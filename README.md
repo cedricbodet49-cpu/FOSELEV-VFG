@@ -1,16 +1,19 @@
-# FOSELEV VFG 1.0.0
+# FOSELEV VFG V2.0.0
 
-Version structurée pour PC, iPhone et GitHub Pages.
+Version connectée à Supabase pour PC et iPhone.
 
-## Mise en ligne
-Téléversez **le contenu du dossier** à la racine du dépôt GitHub, en remplaçant les anciens fichiers. Dans GitHub Pages, conservez la branche `principal` et le dossier `/ (racine)`.
+## Déploiement GitHub Pages
+Téléverser **le contenu de ce dossier à la racine** du dépôt FOSELEV-VFG, en remplaçant les anciens fichiers.
 
-## Référentiels
-- `data/parc.json` : parc complet
-- `data/agences.json` : coordonnées des agences
-- `data/controleurs.json` : base initiale des contrôleurs
-- `data/parametres.json` : paramètres applicatifs
+## Première connexion
+1. Ouvrir l’application depuis GitHub Pages.
+2. Aller dans **Synchronisation**.
+3. Renseigner l’URL Supabase et la clé publique `sb_publishable_...`.
+4. Créer un compte ou se connecter.
+5. Appuyer sur **Synchroniser**.
 
-Les fichiers `parc.js` et `agences.js` sont générés à partir des JSON afin de conserver l'ouverture locale sur PC et la compatibilité Safari/GitHub Pages.
+## Base de données
+Les scripts `PHASE_2_MIGRATION.sql` et `IMPORT_REFERENTIEL.sql` ont déjà été exécutés si Supabase affiche 72 agences et 797 matériels. Il ne faut pas les relancer.
 
-Les visites et contrôleurs saisis sont enregistrés localement dans le navigateur utilisé.
+## Sécurité
+Ne jamais saisir ni publier une clé secrète `sb_secret_...` ou `service_role`.

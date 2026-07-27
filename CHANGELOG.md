@@ -1,10 +1,9 @@
-# Journal des versions
+# V2.0.0
 
-## 1.0.0
-- Architecture séparée : HTML, CSS, JavaScript et données.
-- Référentiels JSON du parc et des agences.
-- Conservation des fonctions validées de la V0.6.4.
-- Publication GitHub Pages et PWA améliorées.
-- Cache hors connexion versionné.
-
-- V1.0.1 : correction GitHub Pages lorsque parc.js et agences.js sont placés à la racine.
+- Écran Synchronisation visible dans la navigation.
+- Connexion Supabase par URL et clé publique.
+- Authentification e-mail / mot de passe.
+- Lecture des matériels, agences et contrôleurs depuis Supabase.
+- Synchronisation des visites PC / iPhone via `vfg_visits`.
+- Copie locale conservée pour l’utilisation hors connexion.
+- Cache PWA renommé afin d’éviter le maintien de l’ancienne V0.6.2.
