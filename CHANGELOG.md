@@ -1,13 +1,8 @@
-# Changelog
+# Journal des versions
 
-## V0.7.0 Sync
-- Synchronisation Supabase PC / iPhone
-- Authentification e-mail et mot de passe
-- Fusion de l’historique local et distant
-- Suppression synchronisée
-- Mode hors ligne conservé
-- Écran de configuration cloud
-
-## V0.6.4
-- Formatage français des kilomètres et heures
-- Charte graphique FOSELEV
+## 1.0.0
+- Architecture séparée : HTML, CSS, JavaScript et données.
+- Référentiels JSON du parc et des agences.
+- Conservation des fonctions validées de la V0.6.4.
+- Publication GitHub Pages et PWA améliorées.
+- Cache hors connexion versionné.
