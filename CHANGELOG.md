@@ -1,7 +1,13 @@
 # Changelog
 
+## V0.7.0 Sync
+- Synchronisation Supabase PC / iPhone
+- Authentification e-mail et mot de passe
+- Fusion de l’historique local et distant
+- Suppression synchronisée
+- Mode hors ligne conservé
+- Écran de configuration cloud
+
 ## V0.6.4
-- Formatage français des kilomètres et heures avec séparateur de milliers.
-- Acceptation de la virgule pour les dixièmes d’heure.
-- Refonte graphique FOSELEV : orange, noir, blanc et gris.
-- Conservation de toutes les fonctions de la V0.6.3.
+- Formatage français des kilomètres et heures
+- Charte graphique FOSELEV
