@@ -15,7 +15,7 @@
     <button id="backButton" class="icon-button hidden" type="button" aria-label="Retour">←</button>
     <a class="brand" href="#search" aria-label="Accueil FOSELEV VFG">
       <span class="brand-mark" aria-hidden="true"><i></i></span>
-      <span><strong>FOSELEV</strong><small>VFG · V3.2.1</small></span>
+      <span><strong>FOSELEV</strong><small>VFG · V3.3.0</small></span>
     </a>
     <button id="helpButton" class="icon-button" type="button" aria-label="Aide">?</button>
   </header>
@@ -87,6 +87,39 @@
       <button id="finishVisit" class="primary-action" type="button">Terminer la visite</button>
     </section>
 
+    <section id="zoneScreen" class="screen" aria-labelledby="zoneTitle">
+      <div class="zone-heading">
+        <div>
+          <p id="zoneEyebrow" class="eyebrow">LISTE DE CONTRÔLE</p>
+          <h1 id="zoneTitle">Porteur</h1>
+          <p id="zoneSubtitle" class="muted">—</p>
+        </div>
+        <div class="zone-total" aria-label="Avancement de la zone">
+          <strong id="zoneProgress">0/0</strong>
+          <span>restants / total</span>
+        </div>
+      </div>
+
+      <div class="zone-toolbar">
+        <label class="zone-search" for="sectionSearch">
+          <span aria-hidden="true">⌕</span>
+          <input id="sectionSearch" type="search" autocomplete="off" placeholder="Rechercher une rubrique…">
+        </label>
+        <button id="showZoneNc" class="zone-nc-summary hidden" type="button">NC 0</button>
+      </div>
+
+      <div id="sectionList" class="section-list"></div>
+    </section>
+
+    <section id="findingsScreen" class="screen" aria-labelledby="findingsTitle">
+      <div class="screen-heading">
+        <p class="eyebrow">CONSTATS</p>
+        <h1 id="findingsTitle">Non-conformités</h1>
+        <p id="findingsSubtitle" class="muted">—</p>
+      </div>
+      <div id="findingsList" class="findings-list"></div>
+    </section>
+
     <section id="placeholderScreen" class="screen" aria-labelledby="placeholderTitle">
       <div class="placeholder-card">
         <p class="eyebrow">SPRINT SUIVANT</p>
@@ -99,6 +132,6 @@
 
   <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
   <script src="parc.js"></script>
-  <script src="app-v3.2.js?v=321"></script>
+  <script src="app-v3.3.js?v=330"></script>
 </body>
 </html>
