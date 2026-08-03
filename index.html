@@ -15,7 +15,7 @@
     <button id="backButton" class="icon-button hidden" type="button" aria-label="Retour">←</button>
     <a class="brand" href="#search" aria-label="Accueil FOSELEV VFG">
       <span class="brand-mark" aria-hidden="true"><i></i></span>
-      <span><strong>FOSELEV</strong><small>VFG · V3.3.0</small></span>
+      <span><strong>FOSELEV</strong><small>VFG · V3.4.0</small></span>
     </a>
     <button id="helpButton" class="icon-button" type="button" aria-label="Aide">?</button>
   </header>
@@ -111,6 +111,55 @@
       <div id="sectionList" class="section-list"></div>
     </section>
 
+
+    <section id="inspectionScreen" class="screen" aria-labelledby="inspectionTitle">
+      <div class="zone-heading inspection-heading">
+        <div>
+          <p class="eyebrow">INSPECTION</p>
+          <h1 id="inspectionTitle">Rubrique</h1>
+          <p id="inspectionSubtitle" class="muted">—</p>
+        </div>
+        <div class="zone-total">
+          <strong id="inspectionProgress">0/0</strong>
+          <span>restants / total</span>
+        </div>
+      </div>
+
+      <button id="validateSection" class="validate-section" type="button">
+        <strong>✓ Valider toute la rubrique</strong>
+        <span>Tous les points sont conformes</span>
+      </button>
+
+      <div id="pointList" class="point-list"></div>
+    </section>
+
+    <section id="findingFormScreen" class="screen" aria-labelledby="findingFormTitle">
+      <div class="screen-heading">
+        <p class="eyebrow">CONSTAT</p>
+        <h1 id="findingFormTitle">Ajouter un constat</h1>
+        <p id="findingPointLabel" class="muted">—</p>
+      </div>
+      <div class="finding-form-card">
+        <label for="findingLevel">Niveau <strong>*</strong></label>
+        <select id="findingLevel">
+          <option value="">Choisir un niveau…</option>
+          <option>Information</option>
+          <option>À surveiller</option>
+          <option>Intervention à programmer</option>
+          <option>Intervention urgente</option>
+          <option>Immobilisation immédiate</option>
+        </select>
+        <label for="findingComment">Commentaire</label>
+        <textarea id="findingComment" rows="6" placeholder="Décrire le constat…"></textarea>
+        <p class="form-note">Les photos seront intégrées dans la prochaine version.</p>
+        <div class="form-actions">
+          <button id="findingCancel" class="secondary-action" type="button">Annuler</button>
+          <button id="findingDelete" class="danger-action hidden" type="button">Supprimer</button>
+          <button id="findingSave" class="primary-action" type="button">Enregistrer</button>
+        </div>
+      </div>
+    </section>
+
     <section id="findingsScreen" class="screen" aria-labelledby="findingsTitle">
       <div class="screen-heading">
         <p class="eyebrow">CONSTATS</p>
@@ -130,8 +179,18 @@
     </section>
   </main>
 
+
+  <div id="pointActionDialog" class="dialog-backdrop hidden" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="pointActionTitle">
+    <div class="point-dialog">
+      <button id="pointActionClose" class="dialog-close" type="button" aria-label="Fermer">×</button>
+      <h2 id="pointActionTitle">Point de contrôle</h2>
+      <button id="pointActionConform" class="dialog-choice conform-choice" type="button">✓ Conforme</button>
+      <button id="pointActionFinding" class="dialog-choice finding-choice" type="button">⚠ Ajouter un constat</button>
+    </div>
+  </div>
+
   <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
   <script src="parc.js"></script>
-  <script src="app-v3.3.js?v=330"></script>
+  <script src="app-v3.4.js?v=340"></script>
 </body>
 </html>
