@@ -1,3 +1,12 @@
+# V3.6.0
+
+- Ajout du moteur de rapport imprimable/PDF.
+- Synthèse des anomalies puis rapport complet.
+- Intégration des photos explicitement sélectionnées pour le rapport.
+- Pagination Page X / Y.
+- Charte FOSELEV RAL 7016, RAL 9010 et RAL 2004.
+- Aperçu provisoire disponible avant clôture.
+
 # V3.5.1
 - Éditeur photo : recadrage, rotation, flèche, ellipse, dessin et texte.
 - Annuler / rétablir.

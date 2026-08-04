@@ -68,3 +68,9 @@ body.editor-open{overflow:hidden}
 .photo-editor-footer{display:flex;gap:8px;justify-content:flex-end;padding:8px 10px calc(8px + env(safe-area-inset-bottom));background:#171717;border-top:1px solid #333}
 .photo-editor-footer button{min-height:44px;margin:0}.photo-editor-footer #photoEditorApplyCrop{background:var(--orange);border-color:var(--orange);color:#fff}
 @media(max-width:430px){#photoEditorCanvas{max-height:calc(100vh - 275px)}.photo-editor-footer{justify-content:stretch}.photo-editor-footer button{flex:1}.photo-actions span{font-size:.54rem}}
+
+
+/* V3.6 - Aperçu et génération du rapport */
+.dashboard-report-actions{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:18px}.dashboard-report-actions .primary-action,.dashboard-report-actions .secondary-action{margin:0;width:100%}
+.report-screen-heading{margin-bottom:12px}.report-actions{position:sticky;top:72px;z-index:8;display:flex;justify-content:flex-end;gap:10px;padding:10px 0;background:rgba(243,246,248,.94);backdrop-filter:blur(8px)}.report-actions button{width:auto;margin:0}.report-loading{padding:18px;border:1px solid #d8dde0;border-radius:12px;background:#fff;text-align:center;font-weight:700}.report-preview{overflow:auto;padding:12px;border-radius:14px;background:#dfe3e5}.report-preview .report-document{padding:0}.report-preview .report-page{transform-origin:top center}.report-preview .r-header{font-size:10px}
+@media(max-width:640px){.dashboard-report-actions{grid-template-columns:1fr}.report-actions{top:64px;display:grid;grid-template-columns:1fr}.report-actions button{width:100%}.report-preview{padding:4px}.report-preview .report-page{font-size:11px}}
