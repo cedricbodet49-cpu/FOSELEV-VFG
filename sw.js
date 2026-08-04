@@ -6,7 +6,7 @@ const ASSETS = [
   './manifest.webmanifest',
   './parc.json',
   './parc.js',
-  './app-v3.5.5.js?v=3551',
+  './app-v3.5.6.js?v=3560',
   './icon-192.svg',
   './icon-512.svg'
 ];

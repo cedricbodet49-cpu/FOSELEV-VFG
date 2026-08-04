@@ -66,13 +66,13 @@
           <input id="dashboardVisitDate" type="date" enterkeyhint="next" aria-label="Date de la visite">
         </label>
         <label>Km porteur
-          <span class="inline-meter"><input id="dashboardCarrierKm" type="number" inputmode="numeric" enterkeyhint="next" min="0" step="1" placeholder="0" aria-label="Kilométrage porteur"><small>km</small></span>
+          <span class="inline-meter"><input id="dashboardCarrierKm" type="text" inputmode="numeric" pattern="[0-9 ]*" enterkeyhint="next" min="0" step="1" placeholder="0" aria-label="Kilométrage porteur"><small>km</small></span>
         </label>
         <label>Heures porteur
-          <span class="inline-meter"><input id="dashboardCarrierHours" type="number" inputmode="numeric" enterkeyhint="next" min="0" step="1" placeholder="0" aria-label="Heures porteur"><small>h</small></span>
+          <span class="inline-meter"><input id="dashboardCarrierHours" type="text" inputmode="numeric" pattern="[0-9 ]*" enterkeyhint="next" min="0" step="1" placeholder="0" aria-label="Heures porteur"><small>h</small></span>
         </label>
         <label>Heures tourelle
-          <span class="inline-meter"><input id="dashboardUpperHours" type="number" inputmode="numeric" enterkeyhint="done" min="0" step="1" placeholder="0" aria-label="Heures tourelle"><small>h</small></span>
+          <span class="inline-meter"><input id="dashboardUpperHours" type="text" inputmode="numeric" pattern="[0-9 ]*" enterkeyhint="done" min="0" step="1" placeholder="0" aria-label="Heures tourelle"><small>h</small></span>
         </label>
       </div>
 
@@ -260,6 +260,6 @@
 
   <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
   <script src="parc.js"></script>
-  <script src="app-v3.5.5.js?v=3551"></script>
+  <script src="app-v3.5.6.js?v=3560"></script>
 </body>
 </html>
