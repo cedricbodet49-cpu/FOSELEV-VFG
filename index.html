@@ -15,7 +15,7 @@
     <button id="backButton" class="icon-button hidden" type="button" aria-label="Retour">←</button>
     <a class="brand" href="#search" aria-label="Accueil FOSELEV VFG">
       <span class="brand-mark" aria-hidden="true"><i></i></span>
-      <span><strong>FOSELEV</strong><small>VFG · V3.6.0</small></span>
+      <span><strong>FOSELEV</strong><small>VFG · V3.5.2</small></span>
     </a>
     <button id="helpButton" class="icon-button" type="button" aria-label="Aide">?</button>
   </header>
@@ -84,10 +84,7 @@
         </article>
       </div>
 
-      <div class="dashboard-report-actions">
-        <button id="previewReport" class="secondary-action" type="button">Aperçu du rapport</button>
-        <button id="finishVisit" class="primary-action" type="button">Terminer la visite</button>
-      </div>
+      <button id="finishVisit" class="primary-action" type="button">Terminer la visite</button>
     </section>
 
     <section id="zoneScreen" class="screen" aria-labelledby="zoneTitle">
@@ -184,20 +181,6 @@
       <div id="findingsList" class="findings-list"></div>
     </section>
 
-    <section id="reportScreen" class="screen" aria-labelledby="reportTitle">
-      <div class="screen-heading report-screen-heading">
-        <p class="eyebrow">RAPPORT PDF</p>
-        <h1 id="reportTitle">Aperçu du rapport</h1>
-        <p id="reportSubtitle" class="muted">—</p>
-      </div>
-      <div class="report-actions">
-        <button id="reportBack" class="secondary-action" type="button">Retour au tableau de bord</button>
-        <button id="printReport" class="primary-action" type="button">Imprimer / Enregistrer en PDF</button>
-      </div>
-      <div id="reportLoading" class="report-loading hidden">Préparation du rapport…</div>
-      <div id="reportPreview" class="report-preview" aria-live="polite"></div>
-    </section>
-
     <section id="placeholderScreen" class="screen" aria-labelledby="placeholderTitle">
       <div class="placeholder-card">
         <p class="eyebrow">SPRINT SUIVANT</p>
@@ -208,6 +191,12 @@
     </section>
   </main>
 
+
+  <nav id="quickNav" class="quick-nav hidden" aria-label="Navigation rapide">
+    <button type="button" data-quick-nav="dashboard">⌂<span>Menu principal</span></button>
+    <button type="button" data-quick-nav="carrier">🚛<span>Porteur</span></button>
+    <button type="button" data-quick-nav="upper">🏗️<span>Tourelle</span></button>
+  </nav>
 
   <div id="pointActionDialog" class="dialog-backdrop hidden" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="pointActionTitle">
     <div class="point-dialog">
@@ -255,6 +244,6 @@
 
   <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
   <script src="parc.js"></script>
-  <script src="app-v3.6.js?v=360"></script>
+  <script src="app-v3.5.js?v=351"></script>
 </body>
 </html>
