@@ -1,3 +1,8 @@
+# V3.5.3
+- Correction du fichier réellement chargé par index.html.
+- Correction du cache PWA.
+- Activation effective des correctifs V3.5.2.
+
 # V3.5.2
 - Suppression des points génériques automatiques.
 - Navigation fixe Menu principal / Porteur / Tourelle.
