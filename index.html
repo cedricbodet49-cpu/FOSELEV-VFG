@@ -15,7 +15,7 @@
     <button id="backButton" class="icon-button hidden" type="button" aria-label="Retour">←</button>
     <a class="brand" href="#search" aria-label="Accueil FOSELEV VFG">
       <span class="brand-mark" aria-hidden="true"><i></i></span>
-      <span><strong>FOSELEV</strong><small>VFG · V3.5.4</small></span>
+      <span><strong>FOSELEV</strong><small>VFG · V3.5.5</small></span>
     </a>
     <button id="helpButton" class="icon-button" type="button" aria-label="Aide">?</button>
   </header>
@@ -53,11 +53,54 @@
       </section>
     </section>
 
+
+    <section id="visitInitScreen" class="screen" aria-labelledby="visitInitTitle">
+      <div class="screen-heading">
+        <p class="eyebrow">INITIALISATION DE LA VISITE</p>
+        <h1 id="visitInitTitle">Relevés de la machine</h1>
+        <p id="visitInitMachine" class="muted">—</p>
+      </div>
+
+      <form id="visitInitForm" class="visit-init-card" novalidate>
+        <label for="visitDate">Date de la visite</label>
+        <input id="visitDate" name="visitDate" type="date" required>
+
+        <label for="carrierKm">Kilométrage porteur</label>
+        <div class="meter-field">
+          <input id="carrierKm" name="carrierKm" type="number" inputmode="numeric" min="0" step="1" placeholder="0" required>
+          <span>km</span>
+        </div>
+
+        <label for="carrierHours">Heures porteur</label>
+        <div class="meter-field">
+          <input id="carrierHours" name="carrierHours" type="number" inputmode="numeric" min="0" step="1" placeholder="0" required>
+          <span>h</span>
+        </div>
+
+        <label for="upperHours">Heures tourelle</label>
+        <div class="meter-field">
+          <input id="upperHours" name="upperHours" type="number" inputmode="numeric" min="0" step="1" placeholder="0" required>
+          <span>h</span>
+        </div>
+
+        <button id="startVisit" class="primary-action" type="submit">Commencer la visite</button>
+        <button id="cancelVisitInit" class="secondary-action" type="button">Annuler</button>
+      </form>
+    </section>
+
     <section id="dashboardScreen" class="screen" aria-labelledby="dashboardTitle">
       <div class="machine-summary">
         <p class="eyebrow">VISITE EN COURS</p>
         <h1 id="dashboardTitle">—</h1>
         <p id="dashboardSubtitle" class="muted">—</p>
+      </div>
+
+      <div class="visit-readings" aria-label="Relevés de la visite">
+        <div><span>Date</span><strong id="dashboardVisitDate">—</strong></div>
+        <div><span>Kilométrage porteur</span><strong id="dashboardCarrierKm">—</strong></div>
+        <div><span>Heures porteur</span><strong id="dashboardCarrierHours">—</strong></div>
+        <div><span>Heures tourelle</span><strong id="dashboardUpperHours">—</strong></div>
+        <button id="editVisitReadings" class="text-button visit-readings-edit" type="button">Modifier les relevés</button>
       </div>
 
       <div class="dashboard-grid">
@@ -244,6 +287,6 @@
 
   <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
   <script src="parc.js"></script>
-  <script src="app-v3.5.4.js?v=354"></script>
+  <script src="app-v3.5.5.js?v=355"></script>
 </body>
 </html>

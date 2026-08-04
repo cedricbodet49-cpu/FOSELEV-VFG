@@ -73,3 +73,20 @@ body.editor-open{overflow:hidden}
 .quick-nav button{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:52px;border:0;border-radius:12px;background:transparent;color:var(--ink);font-size:1.2rem;font-weight:800}
 .quick-nav button:active{background:var(--soft)}
 .quick-nav span{font-size:.72rem}
+
+/* V3.5.5 — Initialisation de la visite */
+.visit-init-card{display:grid;gap:10px;padding:18px;border:1px solid var(--line);border-radius:var(--radius);background:#fff;box-shadow:var(--shadow)}
+.visit-init-card label{margin-top:6px;font-size:.86rem;font-weight:850}
+.visit-init-card>input,.meter-field{width:100%;min-height:56px;border:2px solid #d4d4d0;border-radius:14px;background:#fff}
+.visit-init-card>input{padding:0 14px;font:inherit;font-size:1.05rem}
+.visit-init-card>input:focus,.meter-field:focus-within{outline:0;border-color:var(--orange);box-shadow:0 0 0 4px rgba(244,119,33,.11)}
+.meter-field{display:grid;grid-template-columns:1fr auto;align-items:center;overflow:hidden}
+.meter-field input{width:100%;height:52px;padding:0 14px;border:0;outline:0;background:transparent;font:inherit;font-size:1.08rem}
+.meter-field span{align-self:stretch;display:grid;place-items:center;min-width:54px;padding:0 13px;background:var(--soft);color:var(--orange-dark);font-weight:900}
+.visit-init-card .primary-action{margin-top:12px}.visit-init-card .secondary-action{margin-top:0}
+.visit-readings{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:0 0 16px;padding:14px;border:1px solid var(--line);border-radius:18px;background:#fff;box-shadow:0 5px 14px rgba(0,0,0,.05)}
+.visit-readings>div{padding:10px;border-radius:12px;background:#fafaf8}
+.visit-readings span{display:block;color:var(--muted);font-size:.7rem;font-weight:800}
+.visit-readings strong{display:block;margin-top:4px;font-size:.96rem}
+.visit-readings-edit{grid-column:1/-1;justify-self:end;padding:8px 2px}
+@media(max-width:430px){.visit-readings{grid-template-columns:1fr 1fr}.visit-readings strong{font-size:.88rem}}
