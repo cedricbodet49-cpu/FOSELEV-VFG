@@ -15,7 +15,7 @@
     <button id="backButton" class="icon-button hidden" type="button" aria-label="Retour">←</button>
     <a class="brand" href="#search" aria-label="Accueil FOSELEV VFG">
       <span class="brand-mark" aria-hidden="true"><i></i></span>
-      <span><strong>FOSELEV</strong><small>VFG · V3.4.0</small></span>
+      <span><strong>FOSELEV</strong><small>VFG · V3.5.0</small></span>
     </a>
     <button id="helpButton" class="icon-button" type="button" aria-label="Aide">?</button>
   </header>
@@ -151,7 +151,19 @@
         </select>
         <label for="findingComment">Commentaire</label>
         <textarea id="findingComment" rows="6" placeholder="Décrire le constat…"></textarea>
-        <p class="form-note">Les photos seront intégrées dans la prochaine version.</p>
+        <section class="photo-section" aria-labelledby="photoSectionTitle">
+          <div class="photo-section-heading">
+            <h2 id="photoSectionTitle">Photos</h2>
+            <div class="photo-add-actions">
+              <button id="takePhotoButton" class="photo-add-button" type="button">📸 Prendre une photo</button>
+              <button id="galleryPhotoButton" class="photo-add-button" type="button">🖼️ Galerie</button>
+            </div>
+          </div>
+          <input id="cameraPhotoInput" class="visually-hidden" type="file" accept="image/*" capture="environment">
+          <input id="galleryPhotoInput" class="visually-hidden" type="file" accept="image/*" multiple>
+          <div id="photoGallery" class="photo-gallery" aria-live="polite"></div>
+          <p id="photoEmptyState" class="photo-empty-state">Aucune photo ajoutée.</p>
+        </section>
         <div class="form-actions">
           <button id="findingCancel" class="secondary-action" type="button">Annuler</button>
           <button id="findingDelete" class="danger-action hidden" type="button">Supprimer</button>
@@ -189,8 +201,13 @@
     </div>
   </div>
 
+  <div id="photoViewer" class="photo-viewer hidden" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Aperçu de la photo">
+    <button id="photoViewerClose" class="photo-viewer-close" type="button" aria-label="Fermer">×</button>
+    <img id="photoViewerImage" alt="Photo du constat">
+  </div>
+
   <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
   <script src="parc.js"></script>
-  <script src="app-v3.4.js?v=340"></script>
+  <script src="app-v3.5.js?v=350"></script>
 </body>
 </html>
