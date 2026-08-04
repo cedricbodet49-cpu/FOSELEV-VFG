@@ -15,7 +15,7 @@
     <button id="backButton" class="icon-button hidden" type="button" aria-label="Retour">←</button>
     <a class="brand" href="#search" aria-label="Accueil FOSELEV VFG">
       <span class="brand-mark" aria-hidden="true"><i></i></span>
-      <span><strong>FOSELEV</strong><small>VFG · V3.5.0</small></span>
+      <span><strong>FOSELEV</strong><small>VFG · V3.5.1</small></span>
     </a>
     <button id="helpButton" class="icon-button" type="button" aria-label="Aide">?</button>
   </header>
@@ -206,8 +206,38 @@
     <img id="photoViewerImage" alt="Photo du constat">
   </div>
 
+
+  <div id="photoEditor" class="photo-editor hidden" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="photoEditorTitle">
+    <header class="photo-editor-header">
+      <button id="photoEditorClose" type="button" aria-label="Fermer">×</button>
+      <h2 id="photoEditorTitle">Modifier la photo</h2>
+      <button id="photoEditorSave" class="editor-save" type="button">Enregistrer</button>
+    </header>
+    <div class="photo-editor-stage">
+      <div class="photo-editor-canvas-wrap">
+        <canvas id="photoEditorCanvas"></canvas>
+        <div id="photoEditorCropBox" class="photo-editor-crop-box hidden" aria-hidden="true"></div>
+      </div>
+    </div>
+    <div class="photo-editor-tools" aria-label="Outils de retouche">
+      <button type="button" data-editor-tool="crop">✂️<span>Recadrer</span></button>
+      <button id="photoEditorRotateLeft" type="button">↶<span>Gauche</span></button>
+      <button id="photoEditorRotateRight" type="button">↷<span>Droite</span></button>
+      <button type="button" data-editor-tool="arrow">➡️<span>Flèche</span></button>
+      <button type="button" data-editor-tool="ellipse">⭕<span>Ellipse</span></button>
+      <button type="button" data-editor-tool="freehand">✏️<span>Dessin</span></button>
+      <button id="photoEditorText" type="button">T<span>Texte</span></button>
+      <button id="photoEditorUndo" type="button">↩️<span>Annuler</span></button>
+      <button id="photoEditorRedo" type="button">↪️<span>Rétablir</span></button>
+    </div>
+    <div class="photo-editor-footer">
+      <button id="photoEditorApplyCrop" class="secondary-action hidden" type="button">Appliquer le recadrage</button>
+      <button id="photoEditorCancel" class="secondary-action" type="button">Fermer sans enregistrer</button>
+    </div>
+  </div>
+
   <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
   <script src="parc.js"></script>
-  <script src="app-v3.5.js?v=350"></script>
+  <script src="app-v3.5.js?v=351"></script>
 </body>
 </html>

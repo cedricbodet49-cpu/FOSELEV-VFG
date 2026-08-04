@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '3.5.0';
+  const VERSION = '3.5.1';
   const STORAGE_KEYS = {
     recents: 'foselev_v3_recent_machines',
     activeMachine: 'foselev_v3_active_machine',
@@ -84,7 +84,8 @@
     draftFindingId: null,
     photoObjectUrls: [],
     originalPhotoIds: [],
-    removedPhotoIds: []
+    removedPhotoIds: [],
+    photoEditor: null
   };
 
   const $ = selector => document.querySelector(selector);
@@ -282,6 +283,7 @@
           ${photo.includeInReport ? '<span class="photo-report-badge">Rapport</span>' : ''}
         </button>
         <div class="photo-actions">
+          <button type="button" data-photo-edit="${photo.id}">✏️<span>Modifier</span></button>
           <button type="button" data-photo-main="${photo.id}" aria-pressed="${photo.isMain}">⭐<span>Principale</span></button>
           <button type="button" data-photo-report="${photo.id}" aria-pressed="${photo.includeInReport}">📄<span>Rapport</span></button>
           <button type="button" class="photo-delete" data-photo-delete="${photo.id}">🗑️<span>Supprimer</span></button>
@@ -304,6 +306,276 @@
     $('#photoViewer').classList.add('hidden');
     $('#photoViewer').setAttribute('aria-hidden', 'true');
     $('#photoViewerImage').removeAttribute('src');
+  }
+
+
+  function canvasToBlob(canvas, quality = .9) {
+    return new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', quality));
+  }
+
+  function editorCanvas() { return $('#photoEditorCanvas'); }
+  function editorContext() { return editorCanvas().getContext('2d'); }
+
+  function editorSnapshot() {
+    const editor = state.photoEditor;
+    if (!editor) return;
+    const canvas = editorCanvas();
+    const snapshot = canvas.toDataURL('image/jpeg', .9);
+    if (editor.history[editor.historyIndex] === snapshot) return;
+    editor.history = editor.history.slice(0, editor.historyIndex + 1);
+    editor.history.push(snapshot);
+    editor.historyIndex = editor.history.length - 1;
+    updateEditorHistoryButtons();
+  }
+
+  function updateEditorHistoryButtons() {
+    const editor = state.photoEditor;
+    if (!editor) return;
+    $('#photoEditorUndo').disabled = editor.historyIndex <= 0;
+    $('#photoEditorRedo').disabled = editor.historyIndex >= editor.history.length - 1;
+  }
+
+  async function restoreEditorSnapshot(index) {
+    const editor = state.photoEditor;
+    if (!editor || index < 0 || index >= editor.history.length) return;
+    const image = new Image();
+    await new Promise((resolve, reject) => {
+      image.onload = resolve;
+      image.onerror = reject;
+      image.src = editor.history[index];
+    });
+    const canvas = editorCanvas();
+    canvas.width = image.naturalWidth;
+    canvas.height = image.naturalHeight;
+    editorContext().drawImage(image, 0, 0);
+    editor.historyIndex = index;
+    updateEditorHistoryButtons();
+    clearCropSelection();
+  }
+
+  function setEditorTool(tool) {
+    const editor = state.photoEditor;
+    if (!editor) return;
+    editor.tool = tool;
+    editor.start = null;
+    editor.drawing = false;
+    document.querySelectorAll('[data-editor-tool]').forEach(button => {
+      button.classList.toggle('active', button.dataset.editorTool === tool);
+    });
+    $('#photoEditorApplyCrop').classList.toggle('hidden', tool !== 'crop');
+    $('#photoEditorCanvas').style.touchAction = tool === 'none' ? 'pan-x pan-y' : 'none';
+    if (tool !== 'crop') clearCropSelection();
+  }
+
+  function canvasPoint(event) {
+    const canvas = editorCanvas();
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: Math.max(0, Math.min(canvas.width, (event.clientX - rect.left) * canvas.width / rect.width)),
+      y: Math.max(0, Math.min(canvas.height, (event.clientY - rect.top) * canvas.height / rect.height))
+    };
+  }
+
+  function clearCropSelection() {
+    const editor = state.photoEditor;
+    if (editor) editor.crop = null;
+    const overlay = $('#photoEditorCropBox');
+    overlay.classList.add('hidden');
+    overlay.removeAttribute('style');
+  }
+
+  function displayCropSelection(start, end) {
+    const canvas = editorCanvas();
+    const rect = canvas.getBoundingClientRect();
+    const left = Math.min(start.x, end.x) / canvas.width * rect.width;
+    const top = Math.min(start.y, end.y) / canvas.height * rect.height;
+    const width = Math.abs(end.x - start.x) / canvas.width * rect.width;
+    const height = Math.abs(end.y - start.y) / canvas.height * rect.height;
+    const box = $('#photoEditorCropBox');
+    box.classList.remove('hidden');
+    box.style.left = `${left}px`;
+    box.style.top = `${top}px`;
+    box.style.width = `${width}px`;
+    box.style.height = `${height}px`;
+  }
+
+  function drawArrow(context, start, end) {
+    const angle = Math.atan2(end.y - start.y, end.x - start.x);
+    const distance = Math.hypot(end.x - start.x, end.y - start.y);
+    const head = Math.max(18, Math.min(55, distance * .22));
+    context.save();
+    context.strokeStyle = '#e00000';
+    context.fillStyle = '#e00000';
+    context.lineWidth = Math.max(5, editorCanvas().width / 260);
+    context.lineCap = 'round';
+    context.beginPath(); context.moveTo(start.x, start.y); context.lineTo(end.x, end.y); context.stroke();
+    context.beginPath();
+    context.moveTo(end.x, end.y);
+    context.lineTo(end.x - head * Math.cos(angle - Math.PI / 7), end.y - head * Math.sin(angle - Math.PI / 7));
+    context.lineTo(end.x - head * Math.cos(angle + Math.PI / 7), end.y - head * Math.sin(angle + Math.PI / 7));
+    context.closePath(); context.fill();
+    context.restore();
+  }
+
+  function drawEllipse(context, start, end) {
+    const cx = (start.x + end.x) / 2;
+    const cy = (start.y + end.y) / 2;
+    const rx = Math.max(2, Math.abs(end.x - start.x) / 2);
+    const ry = Math.max(2, Math.abs(end.y - start.y) / 2);
+    context.save();
+    context.strokeStyle = '#e00000';
+    context.lineWidth = Math.max(5, editorCanvas().width / 260);
+    context.beginPath(); context.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2); context.stroke();
+    context.restore();
+  }
+
+  function renderEditorPreview() {
+    const editor = state.photoEditor;
+    if (!editor?.previewBase || !editor.start || !editor.current) return;
+    const canvas = editorCanvas();
+    const context = editorContext();
+    context.putImageData(editor.previewBase, 0, 0);
+    if (editor.tool === 'arrow') drawArrow(context, editor.start, editor.current);
+    if (editor.tool === 'ellipse') drawEllipse(context, editor.start, editor.current);
+  }
+
+  function onEditorPointerDown(event) {
+    const editor = state.photoEditor;
+    if (!editor || editor.tool === 'none') return;
+    event.preventDefault();
+    editorCanvas().setPointerCapture?.(event.pointerId);
+    editor.start = canvasPoint(event);
+    editor.current = editor.start;
+    editor.drawing = true;
+    if (['arrow', 'ellipse'].includes(editor.tool)) editor.previewBase = editorContext().getImageData(0, 0, editorCanvas().width, editorCanvas().height);
+    if (editor.tool === 'freehand') {
+      const context = editorContext();
+      context.save();
+      context.strokeStyle = '#e00000';
+      context.lineWidth = Math.max(5, editorCanvas().width / 260);
+      context.lineCap = 'round'; context.lineJoin = 'round';
+      context.beginPath(); context.moveTo(editor.start.x, editor.start.y);
+    }
+  }
+
+  function onEditorPointerMove(event) {
+    const editor = state.photoEditor;
+    if (!editor?.drawing) return;
+    event.preventDefault();
+    editor.current = canvasPoint(event);
+    if (['arrow', 'ellipse'].includes(editor.tool)) renderEditorPreview();
+    else if (editor.tool === 'freehand') {
+      const context = editorContext();
+      context.lineTo(editor.current.x, editor.current.y); context.stroke();
+    } else if (editor.tool === 'crop') displayCropSelection(editor.start, editor.current);
+  }
+
+  function onEditorPointerUp(event) {
+    const editor = state.photoEditor;
+    if (!editor?.drawing) return;
+    event.preventDefault();
+    editor.current = canvasPoint(event);
+    if (['arrow', 'ellipse'].includes(editor.tool)) {
+      renderEditorPreview(); editorSnapshot();
+    } else if (editor.tool === 'freehand') {
+      editorContext().restore(); editorSnapshot();
+    } else if (editor.tool === 'crop') {
+      editor.crop = {
+        x: Math.round(Math.min(editor.start.x, editor.current.x)),
+        y: Math.round(Math.min(editor.start.y, editor.current.y)),
+        width: Math.round(Math.abs(editor.current.x - editor.start.x)),
+        height: Math.round(Math.abs(editor.current.y - editor.start.y))
+      };
+      displayCropSelection(editor.start, editor.current);
+    }
+    editor.drawing = false;
+    editor.previewBase = null;
+  }
+
+  async function openPhotoEditor(id) {
+    const stored = await photoDbGet(id);
+    if (!stored?.blob) return toast('Photo introuvable.');
+    const image = await blobToImage(stored.blob);
+    const canvas = editorCanvas();
+    canvas.width = image.naturalWidth;
+    canvas.height = image.naturalHeight;
+    editorContext().drawImage(image, 0, 0);
+    state.photoEditor = { id, tool: 'none', history: [], historyIndex: -1, crop: null, drawing: false };
+    editorSnapshot();
+    setEditorTool('none');
+    $('#photoEditor').classList.remove('hidden');
+    $('#photoEditor').setAttribute('aria-hidden', 'false');
+    document.body.classList.add('editor-open');
+  }
+
+  function closePhotoEditor() {
+    $('#photoEditor').classList.add('hidden');
+    $('#photoEditor').setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('editor-open');
+    state.photoEditor = null;
+    clearCropSelection();
+  }
+
+  function rotateEditor(direction) {
+    const source = editorCanvas();
+    const temp = document.createElement('canvas');
+    temp.width = source.height; temp.height = source.width;
+    const context = temp.getContext('2d');
+    context.translate(temp.width / 2, temp.height / 2);
+    context.rotate(direction * Math.PI / 2);
+    context.drawImage(source, -source.width / 2, -source.height / 2);
+    source.width = temp.width; source.height = temp.height;
+    editorContext().drawImage(temp, 0, 0);
+    editorSnapshot();
+    clearCropSelection();
+  }
+
+  function applyEditorCrop() {
+    const editor = state.photoEditor;
+    const crop = editor?.crop;
+    if (!crop || crop.width < 20 || crop.height < 20) return toast('Tracez d’abord la zone à conserver.');
+    const source = editorCanvas();
+    const temp = document.createElement('canvas');
+    temp.width = crop.width; temp.height = crop.height;
+    temp.getContext('2d').drawImage(source, crop.x, crop.y, crop.width, crop.height, 0, 0, crop.width, crop.height);
+    source.width = temp.width; source.height = temp.height;
+    editorContext().drawImage(temp, 0, 0);
+    clearCropSelection(); editorSnapshot(); setEditorTool('none');
+  }
+
+  function addEditorText() {
+    const value = prompt('Texte à ajouter sur la photo :');
+    if (!value) return;
+    const canvas = editorCanvas();
+    const context = editorContext();
+    const fontSize = Math.max(28, Math.round(canvas.width / 18));
+    context.save();
+    context.font = `bold ${fontSize}px sans-serif`;
+    context.textBaseline = 'top';
+    const padding = Math.round(fontSize * .25);
+    const metrics = context.measureText(value);
+    const x = Math.round(canvas.width * .06), y = Math.round(canvas.height * .06);
+    context.fillStyle = 'rgba(255,255,255,.88)';
+    context.fillRect(x - padding, y - padding, metrics.width + padding * 2, fontSize * 1.25 + padding * 2);
+    context.fillStyle = '#e00000';
+    context.fillText(value, x, y);
+    context.restore();
+    editorSnapshot();
+  }
+
+  async function savePhotoEditor() {
+    const editor = state.photoEditor;
+    if (!editor) return;
+    const stored = await photoDbGet(editor.id);
+    if (!stored) return toast('Photo introuvable.');
+    const blob = await canvasToBlob(editorCanvas(), .9);
+    if (!blob) return toast('Enregistrement de la photo impossible.');
+    await photoDbPut({ ...stored, originalBlob: stored.originalBlob || stored.blob, blob, editedAt: new Date().toISOString() });
+    const metadata = state.draftPhotos.find(photo => photo.id === editor.id);
+    if (metadata) metadata.edited = true;
+    closePhotoEditor();
+    await renderPhotoGallery();
+    toast('Photo modifiée.');
   }
 
   async function deleteDraftPhoto(id) {
@@ -994,7 +1266,9 @@
       const remove = event.target.closest('[data-photo-delete]');
       const main = event.target.closest('[data-photo-main]');
       const report = event.target.closest('[data-photo-report]');
-      if (view) await viewPhoto(view.dataset.photoView);
+      const edit = event.target.closest('[data-photo-edit]');
+      if (edit) await openPhotoEditor(edit.dataset.photoEdit);
+      else if (view) await viewPhoto(view.dataset.photoView);
       else if (remove) await deleteDraftPhoto(remove.dataset.photoDelete);
       else if (main) {
         state.draftPhotos.forEach(photo => { photo.isMain = photo.id === main.dataset.photoMain; });
@@ -1007,6 +1281,21 @@
     });
     $('#photoViewerClose').addEventListener('click', closePhotoViewer);
     $('#photoViewer').addEventListener('click', event => { if (event.target.id === 'photoViewer') closePhotoViewer(); });
+    $('#photoEditorClose').addEventListener('click', closePhotoEditor);
+    $('#photoEditorCancel').addEventListener('click', closePhotoEditor);
+    $('#photoEditorSave').addEventListener('click', savePhotoEditor);
+    $('#photoEditorRotateLeft').addEventListener('click', () => rotateEditor(-1));
+    $('#photoEditorRotateRight').addEventListener('click', () => rotateEditor(1));
+    $('#photoEditorText').addEventListener('click', addEditorText);
+    $('#photoEditorApplyCrop').addEventListener('click', applyEditorCrop);
+    $('#photoEditorUndo').addEventListener('click', () => restoreEditorSnapshot(state.photoEditor.historyIndex - 1));
+    $('#photoEditorRedo').addEventListener('click', () => restoreEditorSnapshot(state.photoEditor.historyIndex + 1));
+    document.querySelectorAll('[data-editor-tool]').forEach(button => button.addEventListener('click', () => setEditorTool(button.dataset.editorTool)));
+    const editCanvas = $('#photoEditorCanvas');
+    editCanvas.addEventListener('pointerdown', onEditorPointerDown);
+    editCanvas.addEventListener('pointermove', onEditorPointerMove);
+    editCanvas.addEventListener('pointerup', onEditorPointerUp);
+    editCanvas.addEventListener('pointercancel', onEditorPointerUp);
     $('#pointActionDialog').addEventListener('click', event => { if (event.target.id === 'pointActionDialog') closePointActions(); });
 
     if ('serviceWorker' in navigator && location.protocol !== 'file:') {
