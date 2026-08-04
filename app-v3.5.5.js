@@ -1224,32 +1224,46 @@
     saveJson(STORAGE_KEYS.visits, visits);
   }
 
-  function openVisitInitialization(returnScreen = 'search') {
-    const machine = state.activeMachine;
-    const visit = state.activeVisit;
-    state.initReturnScreen = returnScreen;
-    $('#visitInitMachine').textContent = `${machine?.parkNumber || machine?.id || 'Machine'} · ${machine?.model || machine?.designation || ''}`;
-    $('#visitDate').value = visit?.visitDate || todayIsoDate();
-    $('#carrierKm').value = Number.isFinite(Number(visit?.carrierKm)) ? String(visit.carrierKm) : '';
-    $('#carrierHours').value = Number.isFinite(Number(visit?.carrierHours)) ? String(visit.carrierHours) : '';
-    $('#upperHours').value = Number.isFinite(Number(visit?.upperHours)) ? String(visit.upperHours) : '';
-    showScreen('visitInit');
+  function readingValue(input) {
+    const raw = String(input.value ?? '').trim();
+    if (raw === '') return null;
+    const value = Number(raw);
+    return Number.isFinite(value) && value >= 0 ? value : null;
   }
 
-  function submitVisitInitialization(event) {
-    event.preventDefault();
-    const date = $('#visitDate').value;
-    const carrierKm = Number($('#carrierKm').value);
-    const carrierHours = Number($('#carrierHours').value);
-    const upperHours = Number($('#upperHours').value);
-    if (!date || ![carrierKm, carrierHours, upperHours].every(Number.isFinite) || [carrierKm, carrierHours, upperHours].some(value => value < 0)) {
-      toast('Renseignez la date, le kilométrage et les deux compteurs d’heures.');
-      return;
-    }
-    Object.assign(state.activeVisit, { visitDate: date, carrierKm, carrierHours, upperHours });
+  function saveDashboardReadings() {
+    const visit = state.activeVisit;
+    if (!visit) return;
+    visit.visitDate = $('#dashboardVisitDate').value || todayIsoDate();
+    visit.carrierKm = readingValue($('#dashboardCarrierKm'));
+    visit.carrierHours = readingValue($('#dashboardCarrierHours'));
+    visit.upperHours = readingValue($('#dashboardUpperHours'));
     saveActiveVisit();
-    renderDashboard();
-    showScreen('dashboard');
+  }
+
+  function bindReadingSequence() {
+    const fields = [
+      $('#dashboardVisitDate'),
+      $('#dashboardCarrierKm'),
+      $('#dashboardCarrierHours'),
+      $('#dashboardUpperHours')
+    ];
+    fields.forEach((field, index) => {
+      field.addEventListener('change', saveDashboardReadings);
+      field.addEventListener('blur', saveDashboardReadings);
+      field.addEventListener('keydown', event => {
+        if (event.key !== 'Enter') return;
+        event.preventDefault();
+        saveDashboardReadings();
+        const next = fields[index + 1];
+        if (next) {
+          next.focus();
+          if (typeof next.select === 'function' && next.type !== 'date') next.select();
+        } else {
+          field.blur();
+        }
+      });
+    });
   }
 
   function renderDashboard() {
@@ -1261,10 +1275,10 @@
       machine.serialNumber ? `Série ${machine.serialNumber}` : '',
       machine.agency
     ].filter(Boolean).join(' · ');
-    $('#dashboardVisitDate').textContent = formatVisitDate(visit.visitDate);
-    $('#dashboardCarrierKm').textContent = formatMeter(visit.carrierKm, 'km');
-    $('#dashboardCarrierHours').textContent = formatMeter(visit.carrierHours, 'h');
-    $('#dashboardUpperHours').textContent = formatMeter(visit.upperHours, 'h');
+    $('#dashboardVisitDate').value = visit.visitDate || todayIsoDate();
+    $('#dashboardCarrierKm').value = Number.isFinite(Number(visit.carrierKm)) ? String(visit.carrierKm) : '';
+    $('#dashboardCarrierHours').value = Number.isFinite(Number(visit.carrierHours)) ? String(visit.carrierHours) : '';
+    $('#dashboardUpperHours').value = Number.isFinite(Number(visit.upperHours)) ? String(visit.upperHours) : '';
     renderProgress('carrier', zoneProgress(visit, 'carrier'));
     renderProgress('upper', zoneProgress(visit, 'upper'));
   }
@@ -1274,12 +1288,10 @@
     state.activeMachine = machine;
     state.activeVisit = getOrCreateVisit(machine);
     rememberMachine(machine);
-    if (hasVisitReadings(state.activeVisit)) {
-      renderDashboard();
-      showScreen('dashboard');
-    } else {
-      openVisitInitialization('search');
-    }
+    if (!state.activeVisit.visitDate) state.activeVisit.visitDate = todayIsoDate();
+    saveActiveVisit();
+    renderDashboard();
+    showScreen('dashboard');
   }
 
   function openPlaceholder(title, text) {
@@ -1359,7 +1371,6 @@
     $('#showZoneNc').addEventListener('click', () => openFindings(state.activeZone));
 
     document.querySelectorAll('[data-go-dashboard]').forEach(button => button.addEventListener('click', () => showScreen('dashboard')));
-    $('#visitInitForm').addEventListener('submit', submitVisitInitialization);
     $('#cancelVisitInit').addEventListener('click', () => {
       if (state.initReturnScreen === 'dashboard' && hasVisitReadings(state.activeVisit)) {
         renderDashboard();
@@ -1368,7 +1379,6 @@
         showScreen('search');
       }
     });
-    $('#editVisitReadings').addEventListener('click', () => openVisitInitialization('dashboard'));
     $('#finishVisit').addEventListener('click', () => {
       const carrier = zoneProgress(state.activeVisit, 'carrier');
       const upper = zoneProgress(state.activeVisit, 'upper');
@@ -1424,6 +1434,7 @@
     editCanvas.addEventListener('pointerup', onEditorPointerUp);
     editCanvas.addEventListener('pointercancel', onEditorPointerUp);
     $('#pointActionDialog').addEventListener('click', event => { if (event.target.id === 'pointActionDialog') closePointActions(); });
+    bindReadingSequence();
     document.querySelectorAll('[data-quick-nav]').forEach(button => button.addEventListener('click', () => {
       const target = button.dataset.quickNav;
       if (target === 'dashboard') {
@@ -1441,7 +1452,6 @@
 
   async function init() {
     screens.search = $('#searchScreen');
-    screens.visitInit = $('#visitInitScreen');
     screens.dashboard = $('#dashboardScreen');
     screens.zone = $('#zoneScreen');
     screens.findings = $('#findingsScreen');

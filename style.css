@@ -90,3 +90,54 @@ body.editor-open{overflow:hidden}
 .visit-readings strong{display:block;margin-top:4px;font-size:.96rem}
 .visit-readings-edit{grid-column:1/-1;justify-self:end;padding:8px 2px}
 @media(max-width:430px){.visit-readings{grid-template-columns:1fr 1fr}.visit-readings strong{font-size:.88rem}}
+
+/* V3.5.5 correction — relevés directement modifiables sur le tableau de bord */
+.visit-readings-inline{
+  display:grid;
+  grid-template-columns:1.05fr .85fr .85fr .85fr;
+  gap:8px;
+  margin:0 0 14px;
+  padding:10px;
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:#fff;
+}
+.visit-readings-inline label{
+  min-width:0;
+  color:var(--muted);
+  font-size:.67rem;
+  font-weight:800;
+}
+.visit-readings-inline input{
+  width:100%;
+  min-width:0;
+  height:34px;
+  margin-top:4px;
+  padding:4px 7px;
+  border:1px solid #d4d4d0;
+  border-radius:8px;
+  background:#fff;
+  color:var(--text);
+  font:inherit;
+  font-size:.82rem;
+  font-weight:700;
+}
+.visit-readings-inline input:focus{
+  outline:0;
+  border-color:var(--orange);
+  box-shadow:0 0 0 3px rgba(244,119,33,.10);
+}
+.inline-meter{position:relative;display:block}
+.inline-meter input{padding-right:25px}
+.inline-meter small{
+  position:absolute;
+  right:7px;
+  top:50%;
+  transform:translateY(-30%);
+  color:var(--muted);
+  font-size:.67rem;
+  pointer-events:none;
+}
+@media(max-width:520px){
+  .visit-readings-inline{grid-template-columns:1fr 1fr;padding:9px;gap:7px}
+}
