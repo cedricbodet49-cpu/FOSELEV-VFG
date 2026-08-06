@@ -34,3 +34,10 @@
 - Suppression immédiate dans Supabase lorsque la connexion est disponible.
 - Synchronisation manuelle conservée pour fusionner PC et iPhone.
 - Nouveau cache PWA `foselev-vfg-v210`.
+
+## V4.0.0 - Sprint 1
+- Identité « FOSELEV VFG - Warranty Inspection System ».
+- Design définitif du rapport PDF selon la charte RAL 7016 / 9010 / 2004.
+- Photo de couverture automatique à partir des photos sélectionnées.
+- Optimisation A4 et impression couleur/noir et blanc.
+- Conservation de la synthèse, du rapport complet, des pneumatiques et des signatures.

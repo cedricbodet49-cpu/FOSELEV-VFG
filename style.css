@@ -224,3 +224,73 @@ body.editor-open{overflow:hidden}
 .tyre-wheel.is-next-pending{box-shadow:0 0 0 3px rgba(244,119,33,.34)}
 @media(max-width:620px){.tyre-context-menu{min-width:auto;padding:6px}.tyre-context-options{gap:4px}.tyre-context-option{min-width:39px;height:42px;padding:0 6px;font-size:.73rem}}
 @media print{.tyre-context-menu{display:none!important}}
+
+
+/* V3.7.0 — rapport PDF finalisé */
+.report-cover-summary{grid-template-columns:repeat(4,1fr)}
+.report-intro{margin:-8px 0 22px;color:#555;line-height:1.5;font-size:.86rem}
+.report-control-table{width:100%;border-collapse:collapse;font-size:.78rem}
+.report-control-table th{padding:9px 10px;text-align:left;border-bottom:2px solid #383e42;color:#383e42;text-transform:uppercase;font-size:.66rem;letter-spacing:.05em}
+.report-control-table th:last-child{text-align:right}
+.report-control-table td{padding:7px 10px;border-bottom:1px solid #d7d9da;vertical-align:top}
+.report-point-comment{display:block;margin-top:4px;color:#555;font-size:.68rem;font-style:italic;line-height:1.35}
+.report-summary-group{margin-bottom:24px}.report-summary-group h3{margin:0;padding:8px 12px;border-left:6px solid #f04b23;border-bottom:1px solid #aeb3b6;color:#383e42;font-size:1rem;text-transform:uppercase}
+.report-summary-item{display:grid;grid-template-columns:34px 1fr 64px;gap:10px;align-items:start;padding:12px 4px;border-bottom:1px solid #d7d9da}
+.report-summary-index{display:grid;place-items:center;width:26px;height:26px;border-radius:50%;background:#f04b23;color:#fff;font-weight:900;font-size:.75rem}
+.report-summary-item div{display:grid;gap:2px}.report-summary-item small{color:#666;font-size:.68rem}.report-summary-item p{margin:3px 0 0;font-size:.76rem;line-height:1.4}.report-summary-item>b{font-size:.7rem;text-align:right;color:#383e42}.report-summary-empty{padding:12px;color:#666;font-style:italic}
+.report-tyre-diagram{display:grid;gap:10px}.report-axle-diagram{display:grid;grid-template-columns:1fr 150px 1fr;align-items:center;gap:12px;padding:12px 6px;border-bottom:1px solid #d7d9da}.report-axle-side{display:flex;gap:6px}.report-axle-left{justify-content:flex-end}.report-axle-right{justify-content:flex-start}.report-axle-center{display:grid;text-align:center;gap:2px}.report-axle-center strong{font-size:.82rem}.report-axle-center span{font-size:.58rem;color:#666}.report-wheel{width:46px;height:64px;border:3px dashed #9ca3af;border-radius:12px;display:grid;place-items:center;align-content:center;gap:2px;background:#fff;font-size:.66rem;text-align:center}.report-wheel small{font-size:.48rem}.report-wheel-100{background:#54b85a;border-style:solid;border-color:#237b2b;color:#fff}.report-wheel-75{background:#dce66a;border-style:solid;border-color:#9da629}.report-wheel-50{background:#f7a33b;border-style:solid;border-color:#c46a00}.report-wheel-25{background:#ef6b4a;border-style:solid;border-color:#a82c19;color:#fff}.report-wheel-hs{background:#343a40;border-style:solid;border-color:#111;color:#fff}
+.report-finding-card{display:grid;grid-template-columns:1fr 1fr;gap:14px 28px;padding:18px;border:1px solid #383e42}.report-finding-card div{display:grid;gap:3px}.report-finding-card span{font-size:.64rem;text-transform:uppercase;color:#777}.report-finding-card strong{font-size:.9rem}.report-finding-comment{margin-top:22px}.report-finding-comment h3,.report-general-observations h3,.report-signatures h3{border-left:6px solid #f04b23;padding-left:10px;color:#383e42}.report-finding-comment p{min-height:65px;line-height:1.55}.report-finding-photos{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px}.report-finding-photos figure{margin:0;break-inside:avoid}.report-finding-photos img{display:block;width:100%;height:230px;object-fit:contain;border:1px solid #aaa;background:#fff}.report-finding-photos figcaption{text-align:center;font-size:.62rem;margin-top:4px;color:#666}.report-no-photo{margin-top:22px;padding:16px;border:1px dashed #999;color:#666;text-align:center}.report-detail-reference{margin-top:18px;font-size:.66rem;color:#666;text-align:right}
+.report-writing-lines{height:220px;background:repeating-linear-gradient(to bottom,transparent 0,transparent 31px,#bbb 32px)}.report-signatures{display:grid;grid-template-columns:1fr 1fr;gap:35px;margin-top:45px}.report-signature-box{height:160px;border:1px solid #777;margin-top:12px}.report-signatures p{min-height:20px;font-size:.82rem}
+@media(max-width:700px){.report-cover-summary{grid-template-columns:1fr 1fr}.report-axle-diagram{grid-template-columns:1fr 100px 1fr}.report-wheel{width:38px;height:56px}.report-finding-card{grid-template-columns:1fr}.report-finding-photos{grid-template-columns:1fr}.report-signatures{grid-template-columns:1fr}}
+@media print{.report-page{overflow:hidden!important}.report-finding-photos img{height:58mm!important}.report-writing-lines{height:65mm}.report-signature-box{height:45mm}}
+
+/* FOSELEV VFG V4.0.0 - Rapport définitif, Sprint 1 */
+:root{
+  --ral-7016:#383e42;
+  --ral-9010:#f1ece1;
+  --ral-2004:#e25303;
+}
+.report-page{background:#fff;color:#17191b;font-family:Arial,Helvetica,sans-serif}
+.report-page-header{height:50px;background:var(--ral-7016);color:#fff;padding:0 22px;border-bottom:5px solid var(--ral-2004)}
+.report-brand{display:flex;align-items:center;gap:10px}
+.report-brand>div{display:grid;line-height:1.05}
+.report-brand strong{font-size:.9rem;letter-spacing:.07em}
+.report-brand small{font-size:.48rem;font-weight:600;letter-spacing:.04em;color:#fff;opacity:.9}
+.report-brand-mark{border-color:var(--ral-2004)!important}
+.report-page-header>span{font-size:.65rem;letter-spacing:.05em;text-transform:uppercase}
+.report-page-footer{color:var(--ral-7016);border-top:1px solid var(--ral-7016);font-weight:700}
+.report-cover-accent{height:8px;background:var(--ral-2004);width:74px;margin:10px 0 22px}
+.report-kicker{color:var(--ral-7016);font-weight:950;letter-spacing:.12em;margin-bottom:3px}
+.report-cover-system{margin:0 0 22px;color:var(--ral-2004);font-size:.78rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.report-cover-title{color:var(--ral-7016);font-size:2.05rem;line-height:1.12;max-width:640px;margin-bottom:24px}
+.report-cover-photo{margin:0 0 22px;break-inside:avoid}
+.report-cover-photo img{display:block;width:100%;height:235px;object-fit:contain;background:#fff;border:1px solid var(--ral-7016)}
+.report-cover-photo figcaption{margin-top:5px;text-align:right;font-size:.58rem;color:var(--ral-7016)}
+.report-machine-title{color:var(--ral-7016)}
+.report-machine-subtitle{color:#4d5256}
+.report-cover-grid{border-top:2px solid var(--ral-7016);border-bottom:2px solid var(--ral-7016);padding:14px 0;background:#fff}
+.report-cover-grid>div{border-left:4px solid var(--ral-2004);padding-left:10px}
+.report-cover-grid span{color:#555}
+.report-cover-summary{margin-top:24px;gap:10px}
+.report-cover-summary>div{background:#fff;border:1px solid var(--ral-7016);border-top:5px solid var(--ral-2004);color:var(--ral-7016)}
+.report-cover-summary strong{color:var(--ral-7016)}
+.report-section-heading{border-bottom:3px solid var(--ral-2004)}
+.report-section-heading span{color:var(--ral-2004)}
+.report-section-heading h2{color:var(--ral-7016)}
+.report-summary-group h3,.report-finding-comment h3,.report-general-observations h3,.report-signatures h3{border-left-color:var(--ral-2004);color:var(--ral-7016);background:#fff}
+.report-summary-index{background:var(--ral-2004)}
+.report-control-table th{border-bottom-color:var(--ral-7016);color:var(--ral-7016)}
+.report-status-conform{color:var(--ral-7016)}
+.report-status-finding{color:#111;text-decoration-color:var(--ral-2004)}
+.report-finding-card{border:1px solid var(--ral-7016);border-top:6px solid var(--ral-2004);background:#fff}
+.report-wheel-25{background:#fff;border-color:var(--ral-2004);color:var(--ral-7016);border-style:solid}
+.report-wheel-hs{background:var(--ral-7016);border-color:#111;color:#fff}
+.report-writing-lines{background:repeating-linear-gradient(to bottom,transparent 0,transparent 31px,#8d9295 32px)}
+.report-signature-box{border-color:var(--ral-7016)}
+@media print{
+  @page{size:A4;margin:0}
+  .report-page{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;background:#fff!important}
+  .report-page-header{background:var(--ral-7016)!important;color:#fff!important;border-bottom-color:var(--ral-2004)!important}
+  .report-cover-photo img{height:63mm!important}
+  .report-cover-summary>div{break-inside:avoid}
+}
