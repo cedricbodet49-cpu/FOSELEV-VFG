@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const VERSION = '3.5.7';
+  const VERSION = '3.6.0';
   const STORAGE_KEYS = {
     recents: 'foselev_v3_recent_machines',
     activeMachine: 'foselev_v3_active_machine',
@@ -1329,6 +1329,90 @@
     showScreen('dashboard');
   }
 
+  function reportStatusLabel(status) {
+    if (status === 'conform') return 'CONFORME';
+    if (status === 'finding') return 'NON CONFORME';
+    return 'NON CONTRÔLÉ';
+  }
+
+  function reportPage(inner, page, total) {
+    return `<article class="report-page">
+      <div class="report-page-header">
+        <div class="report-brand"><span class="report-brand-mark"></span><strong>FOSELEV</strong></div>
+        <span>Rapport de visite de fin de garantie</span>
+      </div>
+      <div class="report-page-body">${inner}</div>
+      <div class="report-page-footer">Page ${page} / ${total}</div>
+    </article>`;
+  }
+
+  function buildReportPreview() {
+    const visit = state.activeVisit;
+    const machine = state.activeMachine;
+    if (!visit || !machine) return toast('Aucune visite active.');
+    saveDashboardReadings();
+
+    const findings = Array.isArray(visit.findings) ? visit.findings : [];
+    const carrier = zoneProgress(visit, 'carrier');
+    const upper = zoneProgress(visit, 'upper');
+    const totalPoints = carrier.total + upper.total;
+    const remainingPoints = carrier.remaining + upper.remaining;
+    const controlledPoints = totalPoints - remainingPoints;
+    const totalPages = 4;
+
+    const cover = `
+      <div class="report-cover-accent"></div>
+      <p class="report-kicker">VISITE DE FIN DE GARANTIE</p>
+      <h2 class="report-cover-title">Rapport de visite</h2>
+      <div class="report-machine-title">${escapeHtml(machine.parkNumber || machine.id || '—')}</div>
+      <div class="report-machine-subtitle">${escapeHtml([machine.brand, machine.model || machine.designation].filter(Boolean).join(' · ') || 'Machine')}</div>
+      <div class="report-cover-grid">
+        <div><span>N° de série</span><strong>${escapeHtml(machine.serialNumber || '—')}</strong></div>
+        <div><span>Agence</span><strong>${escapeHtml(machine.agency || '—')}</strong></div>
+        <div><span>Date de la visite</span><strong>${escapeHtml(formatVisitDate(visit.visitDate))}</strong></div>
+        <div><span>Kilométrage porteur</span><strong>${escapeHtml(formatMeter(visit.carrierKm, 'km'))}</strong></div>
+        <div><span>Heures porteur</span><strong>${escapeHtml(formatMeter(visit.carrierHours, 'h'))}</strong></div>
+        <div><span>Heures tourelle</span><strong>${escapeHtml(formatMeter(visit.upperHours, 'h'))}</strong></div>
+      </div>
+      <div class="report-cover-summary">
+        <div><strong>${controlledPoints}</strong><span>points contrôlés</span></div>
+        <div><strong>${remainingPoints}</strong><span>points restants</span></div>
+        <div><strong>${findings.length}</strong><span>anomalies</span></div>
+      </div>`;
+
+    const summaryRows = findings.length ? findings.map((finding, index) => `
+      <div class="report-anomaly-row">
+        <span class="report-anomaly-number">${index + 1}</span>
+        <div><strong>${escapeHtml(finding.level || 'Anomalie')}</strong><span>${escapeHtml(finding.pointLabel || finding.title || 'Point de contrôle')}</span></div>
+        <p>${escapeHtml(finding.comment || 'Aucun commentaire.')}</p>
+      </div>`).join('') : '<div class="report-empty">Aucune anomalie enregistrée.</div>';
+    const summary = `<div class="report-section-heading"><span>01</span><h2>Synthèse des anomalies</h2></div>${summaryRows}`;
+
+    function zoneContent(zone, number, title) {
+      const sections = visit.zones?.[zone]?.sections || [];
+      const blocks = sections.map(section => {
+        const points = section.points || [];
+        const lines = points.map(point => `<tr><td>${escapeHtml(point.label || '')}</td><td class="report-status report-status-${point.status}">${reportStatusLabel(point.status)}</td></tr>`).join('');
+        return `<section class="report-control-section"><h3>${escapeHtml(section.label)}</h3><table><tbody>${lines}</tbody></table></section>`;
+      }).join('');
+      return `<div class="report-section-heading"><span>${number}</span><h2>${title}</h2></div><div class="report-control-columns">${blocks}</div>`;
+    }
+
+    const pages = [
+      reportPage(cover, 1, totalPages),
+      reportPage(summary, 2, totalPages),
+      reportPage(zoneContent('carrier', '02', 'Porteur'), 3, totalPages),
+      reportPage(zoneContent('upper', '03', 'Tourelle'), 4, totalPages)
+    ];
+    $('#reportPreview').innerHTML = pages.join('');
+    showScreen('report');
+  }
+
+  function printReport() {
+    if (!$('#reportPreview').children.length) buildReportPreview();
+    requestAnimationFrame(() => window.print());
+  }
+
   function openPlaceholder(title, text) {
     $('#placeholderTitle').textContent = title;
     $('#placeholderText').textContent = text;
@@ -1386,6 +1470,9 @@
         else showScreen('dashboard');
       } else if (state.activeScreen === 'zone') {
         showScreen('dashboard');
+      } else if (state.activeScreen === 'report') {
+        renderDashboard();
+        showScreen('dashboard');
       } else if (state.activeScreen === 'dashboard') {
         showScreen('search');
       } else {
@@ -1415,12 +1502,15 @@
         showScreen('search');
       }
     });
+    $('#previewReport').addEventListener('click', buildReportPreview);
+    $('#closeReport').addEventListener('click', () => { renderDashboard(); showScreen('dashboard'); });
+    $('#printReport').addEventListener('click', printReport);
     $('#finishVisit').addEventListener('click', () => {
       const carrier = zoneProgress(state.activeVisit, 'carrier');
       const upper = zoneProgress(state.activeVisit, 'upper');
       const remaining = carrier.remaining + upper.remaining;
       if (remaining > 0) toast(`Impossible de terminer : ${remaining} point(s) restent à contrôler.`);
-      else toast('La génération du rapport sera ajoutée dans un prochain sprint.');
+      else buildReportPreview();
     });
 
     $('#validateSection').addEventListener('click', validateWholeSection);
@@ -1494,6 +1584,7 @@
     screens.inspection = $('#inspectionScreen');
     screens.findingForm = $('#findingFormScreen');
     screens.placeholder = $('#placeholderScreen');
+    screens.report = $('#reportScreen');
     loadRecents();
     renderMachineList($('#recentMachines'), state.recents, 'Aucune machine récente. Lancez une recherche.');
     bindEvents();

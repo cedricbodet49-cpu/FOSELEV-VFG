@@ -15,7 +15,7 @@
     <button id="backButton" class="icon-button hidden" type="button" aria-label="Retour">←</button>
     <a class="brand" href="#search" aria-label="Accueil FOSELEV VFG">
       <span class="brand-mark" aria-hidden="true"><i></i></span>
-      <span><strong>FOSELEV</strong><small>VFG · V3.5.5</small></span>
+      <span><strong>FOSELEV</strong><small>VFG · V3.6.0</small></span>
     </a>
     <button id="helpButton" class="icon-button" type="button" aria-label="Aide">?</button>
   </header>
@@ -100,7 +100,10 @@
         </article>
       </div>
 
-      <button id="finishVisit" class="primary-action" type="button">Terminer la visite</button>
+      <div class="dashboard-report-actions">
+        <button id="previewReport" class="secondary-action" type="button">Aperçu du rapport</button>
+        <button id="finishVisit" class="primary-action" type="button">Terminer la visite</button>
+      </div>
     </section>
 
     <section id="zoneScreen" class="screen" aria-labelledby="zoneTitle">
@@ -197,6 +200,20 @@
       <div id="findingsList" class="findings-list"></div>
     </section>
 
+    <section id="reportScreen" class="screen report-screen" aria-labelledby="reportScreenTitle">
+      <div class="report-toolbar no-print">
+        <div>
+          <p class="eyebrow">RAPPORT PDF · V3.6.0</p>
+          <h1 id="reportScreenTitle">Aperçu du rapport</h1>
+        </div>
+        <div class="report-toolbar-actions">
+          <button id="closeReport" class="secondary-action" type="button">Retour</button>
+          <button id="printReport" class="primary-action" type="button">Imprimer / Enregistrer en PDF</button>
+        </div>
+      </div>
+      <div id="reportPreview" class="report-preview" aria-live="polite"></div>
+    </section>
+
     <section id="placeholderScreen" class="screen" aria-labelledby="placeholderTitle">
       <div class="placeholder-card">
         <p class="eyebrow">SPRINT SUIVANT</p>
@@ -260,6 +277,6 @@
 
   <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
   <script src="parc.js"></script>
-  <script src="app-v3.5.6.js?v=3560"></script>
+  <script src="app-v3.6.0.js?v=3600"></script>
 </body>
 </html>
