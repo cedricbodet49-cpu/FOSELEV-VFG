@@ -15,7 +15,7 @@
     <button id="backButton" class="icon-button hidden" type="button" aria-label="Retour">←</button>
     <a class="brand" href="#search" aria-label="Accueil FOSELEV VFG">
       <span class="brand-mark" aria-hidden="true"><i></i></span>
-      <span><strong>FOSELEV</strong><small>VFG · V3.6.0</small></span>
+      <span><strong>FOSELEV</strong><small>VFG · V3.6.1</small></span>
     </a>
     <button id="helpButton" class="icon-button" type="button" aria-label="Aide">?</button>
   </header>
@@ -76,6 +76,18 @@
         </label>
       </div>
 
+      <div class="controller-inline" aria-label="Coordonnées du contrôleur">
+        <label>Contrôleur
+          <input id="dashboardControllerName" type="text" autocomplete="name" enterkeyhint="next" placeholder="Nom et prénom">
+        </label>
+        <label>Adresse e-mail
+          <input id="dashboardControllerEmail" type="email" autocomplete="email" enterkeyhint="next" placeholder="prenom.nom@foselev.com">
+        </label>
+        <label>Téléphone
+          <input id="dashboardControllerPhone" type="tel" autocomplete="tel" inputmode="tel" enterkeyhint="done" placeholder="06 00 00 00 00">
+        </label>
+      </div>
+
       <div class="dashboard-grid">
         <article class="dashboard-card" data-zone="carrier">
           <button class="dashboard-main" type="button" data-open-zone="carrier">
@@ -101,6 +113,7 @@
       </div>
 
       <div class="dashboard-report-actions">
+        <button id="newVisit" class="secondary-action" type="button">Nouvelle visite</button>
         <button id="previewReport" class="secondary-action" type="button">Aperçu du rapport</button>
         <button id="finishVisit" class="primary-action" type="button">Terminer la visite</button>
       </div>
@@ -277,6 +290,6 @@
 
   <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
   <script src="parc.js"></script>
-  <script src="app-v3.6.0.js?v=3600"></script>
+  <script src="app-v3.6.1.js?v=3610"></script>
 </body>
 </html>

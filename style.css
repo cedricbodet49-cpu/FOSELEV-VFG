@@ -172,3 +172,35 @@ body.editor-open{overflow:hidden}
   .report-page{width:210mm!important;height:297mm!important;min-height:297mm!important;box-shadow:none!important;margin:0!important;page-break-after:always;break-after:page}
   .report-page:last-child{page-break-after:auto;break-after:auto}
 }
+
+
+/* V3.6.1 — coordonnées contrôleur et nouvelle visite */
+.controller-inline {
+  display: grid;
+  grid-template-columns: 1.2fr 1.5fr 1fr;
+  gap: 10px;
+  margin: 10px 0 16px;
+}
+.controller-inline label {
+  display: grid;
+  gap: 5px;
+  font-size: .78rem;
+  font-weight: 700;
+  color: var(--muted, #667085);
+}
+.controller-inline input {
+  min-width: 0;
+  padding: 10px 11px;
+  border: 1px solid #d7dde3;
+  border-radius: 10px;
+  background: #fff;
+  color: #1d252c;
+  font: inherit;
+}
+.dashboard-report-actions {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+@media (max-width: 720px) {
+  .controller-inline { grid-template-columns: 1fr; }
+  .dashboard-report-actions { grid-template-columns: 1fr; }
+}
