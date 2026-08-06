@@ -15,7 +15,7 @@
     <button id="backButton" class="icon-button hidden" type="button" aria-label="Retour">←</button>
     <a class="brand" href="#search" aria-label="Accueil FOSELEV VFG">
       <span class="brand-mark" aria-hidden="true"><i></i></span>
-      <span><strong>FOSELEV</strong><small>VFG · V3.6.1</small></span>
+      <span><strong>FOSELEV</strong><small>VFG · V3.6.2</small></span>
     </a>
     <button id="helpButton" class="icon-button" type="button" aria-label="Aide">?</button>
   </header>
@@ -143,6 +143,20 @@
       <div id="sectionList" class="section-list"></div>
     </section>
 
+
+
+    <section id="tyreScreen" class="screen" aria-labelledby="tyreTitle">
+      <div class="zone-heading tyre-heading">
+        <div><p class="eyebrow">PORTEUR · PNEUMATIQUES</p><h1 id="tyreTitle">Contrôle des pneumatiques</h1><p id="tyreMachineSubtitle" class="muted">—</p></div>
+        <div class="zone-total"><strong id="tyreProgress">0/0</strong><span>restants / total</span></div>
+      </div>
+      <div class="tyre-toolbar">
+        <div><strong>Nombre d’essieux</strong><div id="axleCountSelector" class="axle-count-selector"></div></div>
+        <button id="resetTyres" class="secondary-action" type="button">Tout remettre à Non contrôlé</button>
+      </div>
+      <p class="tyre-help">Touchez le nom d’un essieu pour choisir roues simples ou jumelées. Touchez chaque pneu pour renseigner son usure.</p>
+      <div id="tyreDiagram" class="tyre-diagram"></div>
+    </section>
 
     <section id="inspectionScreen" class="screen" aria-labelledby="inspectionTitle">
       <div class="zone-heading inspection-heading">
@@ -288,8 +302,18 @@
     </div>
   </div>
 
+
+  <div id="tyreStateDialog" class="modal-backdrop hidden" aria-hidden="true">
+    <div class="point-action-card tyre-state-card" role="dialog" aria-modal="true" aria-labelledby="tyreDialogTitle">
+      <button id="tyreDialogClose" class="modal-close" type="button" aria-label="Fermer">×</button>
+      <p class="eyebrow">PNEUMATIQUE</p><h2 id="tyreDialogTitle">Pneumatique</h2>
+      <div id="tyreStateOptions" class="tyre-state-options"></div>
+      <button id="tyreCreateFinding" class="danger-action hidden" type="button">Créer une fiche anomalie (optionnel)</button>
+    </div>
+  </div>
+
   <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
   <script src="parc.js"></script>
-  <script src="app-v3.6.1.js?v=3610"></script>
+  <script src="app-v3.6.2.js?v=3620"></script>
 </body>
 </html>

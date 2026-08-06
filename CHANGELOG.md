@@ -1,3 +1,7 @@
+## V3.6.2
+- Ajout du module pneumatiques interactif.
+- Intégration rapport et synthèse automatique.
+
 # V3.5.3
 - Correction du fichier réellement chargé par index.html.
 - Correction du cache PWA.
