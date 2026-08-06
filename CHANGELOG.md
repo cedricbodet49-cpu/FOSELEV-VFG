@@ -1,3 +1,10 @@
+# V3.7.0
+- Rapport PDF complet et pagination dynamique.
+- Synthèse des anomalies, surveillances et observations.
+- Intégration du schéma pneumatique.
+- Photos sélectionnées uniquement.
+- Pages de détail des anomalies et signatures.
+
 ## V3.6.2
 - Ajout du module pneumatiques interactif.
 - Intégration rapport et synthèse automatique.
