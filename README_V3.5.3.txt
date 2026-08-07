@@ -1,7 +1,7 @@
 FOSELEV VFG V3.5.3 — Correctif de chargement
 
 Corrections :
-- index.html charge désormais réellement app-v3.5.2.js ;
+- index.html charge désormais réellement .5.2.js ;
 - le service worker met en cache le bon fichier JavaScript ;
 - suppression effective des lignes artificielles « — contrôle X » ;
 - bouton rond = validation conforme immédiate ;
