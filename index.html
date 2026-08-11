@@ -60,7 +60,12 @@
         <h1 id="dashboardTitle">—</h1>
         <p id="dashboardSubtitle" class="muted">—</p>
       </div>
-
+<div id="mkOptionRow" class="hidden">
+  <label>
+    <input id="dashboardMkMode" type="checkbox">
+    <strong>MK</strong> – Grue à déploiement rapide
+  </label>
+</div>
       <div class="visit-readings-inline" aria-label="Relevés de la visite">
         <label>Date
           <input id="dashboardVisitDate" type="date" enterkeyhint="next" aria-label="Date de la visite">
@@ -203,6 +208,7 @@
             <div class="photo-add-actions">
               <button id="takePhotoButton" class="photo-add-button" type="button">📸 Prendre une photo</button>
               <button id="galleryPhotoButton" class="photo-add-button" type="button">🖼️ Galerie</button>
+              <button id="visitPhotoLibraryButton" class="photo-add-button" type="button">📚 Bibliothèque</button>
             </div>
           </div>
           <input id="cameraPhotoInput" class="visually-hidden" type="file" accept="image/*" capture="environment">
@@ -266,7 +272,67 @@
       <button id="pointActionFinding" class="dialog-choice finding-choice" type="button">⚠ Ajouter un constat</button>
     </div>
   </div>
+<div id="visitPhotoLibraryDialog"
+     class="modal-backdrop hidden"
+     aria-hidden="true">
 
+  <div class="point-action-card"
+       role="dialog"
+       aria-modal="true"
+       aria-labelledby="visitPhotoLibraryTitle">
+
+    <button id="visitPhotoLibraryClose"
+            class="modal-close"
+            type="button"
+            aria-label="Fermer">×</button>
+
+    <p class="eyebrow">BIBLIOTHÈQUE DE LA VISITE</p>
+
+    <h2 id="visitPhotoLibraryTitle">
+      Photos disponibles
+    </h2>
+
+    <p id="visitPhotoLibraryCount" class="muted">
+      0 photo
+    </p>
+<div class="photo-add-actions">
+  <button id="visitPhotoLibraryImport"
+          class="photo-add-button"
+          type="button">
+    🖼️ Importer des photos
+  </button>
+
+  <input id="visitPhotoLibraryInput"
+         class="visually-hidden"
+         type="file"
+         accept="image/*"
+         multiple>
+</div>
+    <div id="visitPhotoLibraryGrid"
+         class="photo-gallery">
+    </div>
+
+    <p id="visitPhotoLibraryEmpty"
+       class="photo-empty-state">
+      Aucune photo dans la bibliothèque de cette visite.
+    </p>
+
+    <div class="form-actions">
+      <button id="visitPhotoLibraryCancel"
+              class="secondary-action"
+              type="button">
+        Annuler
+      </button>
+
+      <button id="visitPhotoLibraryAdd"
+              class="primary-action"
+              type="button">
+        Ajouter les photos sélectionnées
+      </button>
+    </div>
+
+  </div>
+</div>
   <div id="photoViewer" class="photo-viewer hidden" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Aperçu de la photo">
     <button id="photoViewerClose" class="photo-viewer-close" type="button" aria-label="Fermer">×</button>
     <img id="photoViewerImage" alt="Photo du constat">
@@ -319,6 +385,6 @@
 
   <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
   <script src="parc.js"></script>
-  <script src="app-v4.0.js?v=4001"></script>
+  <script src="app-v4.0.js?v=40010"></script>
 </body>
 </html>

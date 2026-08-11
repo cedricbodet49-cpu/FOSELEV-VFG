@@ -1,14 +1,20 @@
 (() => {
   'use strict';
 
-  const VERSION = '3.6.2';
+  const VERSION = '4.0.0-S2.01';
   const STORAGE_KEYS = {
     recents: 'foselev_v3_recent_machines',
     activeMachine: 'foselev_v3_active_machine',
     visits: 'foselev_v3_visits',
     controllerProfile: 'foselev_v3_controller_profile'
   };
+const CLOUD_CFG = 'FOSELEV_VFG_cloud_v1';
+const DELETED_KEY = 'FOSELEV_VFG_deleted_v1';
 
+let cloud = null;
+let cloudUser = null;
+let syncInProgress = false;
+let lastAutoSync = 0;
   const DEFAULT_REFERENTIAL = {
     carrier: [
       ['documentation', 'Documentation et plaques', 20],
@@ -36,7 +42,238 @@
       ['lmi', 'Limiteur de charge', 18]
     ]
   };
+const MK_REFERENTIAL = {
+  carrier: [
+    {
+      id: 'mkDocuments',
+      label: 'Documents avant intervention',
+      points: [
+        'Carnet de maintenance présent et à jour',
+        'Dernière VGP disponible',
+        'Rapport de dernière intervention disponible',
+        'Notice constructeur présente',
+        'Abaques de charge présents et lisibles',
+        'Certificats câbles / crochet / moufle si applicable',
+        'Plaque constructeur et marquages lisibles',
+        'Extincteur et équipements de sécurité contrôlés'
+      ]
+    },
+    {
+      id: 'mkSafetyBefore',
+      label: 'Sécurité avant contrôle',
+      points: [
+        'Zone de contrôle balisée',
+        'Sol porteur et stabilisé',
+        'Absence de lignes électriques ou obstacles',
+        'EPI portés',
+        'Machine calée / frein de parc serré',
+        'Consignation si intervention technique',
+        'Conducteur habilité présent pour essais dynamiques'
+      ]
+    },
+    {
+      id: 'mkChassis',
+      label: 'Châssis porteur et train roulant',
+      points: [
+        'État général châssis, longerons, traverses',
+        'Absence fissure, déformation, choc',
+        'Capots, coffres, carters, marchepieds et accès',
+        'Signalisation routière, gyrophares, éclairage',
+        'État pneumatiques et pression',
+        'Serrage roues / absence écrou manquant',
+        'Absence fuite moyeux / ponts',
+        'État suspensions',
+        'Direction, rotules, vérins et modes de direction',
+        'Frein de service et frein de parc'
+      ]
+    },
+    {
+      id: 'mkPowertrain',
+      label: 'Moteur thermique et transmission',
+      points: [
+        'Niveau huile moteur',
+        'Niveau liquide refroidissement',
+        'Niveau carburant / AdBlue si applicable',
+        'État courroies et durites',
+        'Absence fuite huile / eau / carburant',
+        'État faisceaux moteur',
+        'État échappement / silencieux',
+        'Démarrage et arrêt moteur',
+        'Absence défaut tableau de bord'
+      ]
+    },
+    {
+      id: 'mkStabilisation',
+      label: 'Stabilisation et mise en station',
+      points: [
+        'État structure stabilisateurs',
+        'Absence fissure poutres stabilisation',
+        'État vérins stabilisation',
+        'Absence fuite vérins / flexibles',
+        'État patins / semelles appui',
+        'Axes, bagues, goupilles présents et sécurisés',
+        'Sortie / rentrée stabilisateurs',
+        'Montée / descente vérins',
+        'Mise à niveau automatique',
+        'Indication appuis / pression appuis',
+        'Sécurités stabilisation actives'
+      ]
+    }
+  ],
 
+  upper: [
+    {
+      id: 'mkStructure',
+      label: 'Structure mât, tour et flèche',
+      points: [
+        'État général structure mât / tour',
+        'Absence fissure, pliure, choc',
+        'Soudures visibles sans anomalie',
+        'Axes principaux sécurisés',
+        'Bagues / jeux anormaux',
+        'Verrouillages mécaniques',
+        'Graissage articulations',
+        'État général flèche',
+        'Absence déformation / impact flèche',
+        'Tirants, haubans, renvois',
+        'Galets et rails de chariot',
+        'Câblage électrique le long de flèche'
+      ]
+    },
+    {
+      id: 'mkSlew',
+      label: 'Couronne orientation et rotation',
+      points: [
+        'État couronne orientation',
+        'Absence bruit anormal en rotation',
+        'Absence jeu anormal',
+        'Graissage couronne',
+        'État motoréducteur orientation',
+        'État frein orientation',
+        'Rotation gauche / droite',
+        'Progressivité commande rotation',
+        'Zone interdite / limitation si paramétrée'
+      ]
+    },
+    {
+      id: 'mkWinch',
+      label: 'Treuil, câble, crochet',
+      points: [
+        'État tambour treuil',
+        'Enroulement câble correct',
+        'État guide-câble',
+        'État frein de levage',
+        'Absence fuite réducteur / motoréducteur',
+        'Bruit anormal montée / descente',
+        'Câble sans toron cassé',
+        'Câble sans écrasement / hernie / coque',
+        'Câble sans corrosion excessive',
+        'Fixation extrémité câble sécurisée',
+        'Poulies / réas / gorges en bon état',
+        'Crochet sans fissure / déformation',
+        'Linguet sécurité fonctionnel',
+        'Rotation crochet libre',
+        'Marquage CMU lisible'
+      ]
+    },
+    {
+      id: 'mkTrolley',
+      label: 'Chariot de distribution',
+      points: [
+        'Déplacement chariot avant / arrière',
+        'Progressivité commande',
+        'État motorisation chariot',
+        'État câble de distribution',
+        'État galets / roulements',
+        'Fin de course avant',
+        'Fin de course arrière',
+        'Butées mécaniques'
+      ]
+    },
+    {
+      id: 'mkHydraulic',
+      label: 'Hydraulique',
+      points: [
+        'Niveau huile hydraulique',
+        'État huile visible / absence pollution',
+        'Absence fuite pompe hydraulique',
+        'Absence fuite distributeurs',
+        'Flexibles non craquelés / non pincés',
+        'Vérins sans rayure sur tige',
+        'Vérins sans suintement',
+        'Serrage raccords',
+        'Fonctionnement mouvements hydrauliques'
+      ]
+    },
+    {
+      id: 'mkElectrical',
+      label: 'Électricité / commande',
+      points: [
+        'État batteries et cosses',
+        'État faisceaux électriques',
+        'Absence câble coupé / frottement',
+        'Armoires électriques propres et sèches',
+        'Connecteurs verrouillés',
+        'Capteurs / fins de course',
+        'Pupitre de commande',
+        'Écran / diagnostic fonctionnel',
+        'Arrêt urgence cabine',
+        'Arrêt urgence commande déportée',
+        'Klaxon / avertisseur sonore',
+        'Gyrophare / signalisation grue'
+      ]
+    },
+    {
+      id: 'mkSafeties',
+      label: 'Sécurités grue',
+      points: [
+        'Limiteur moment / charge',
+        'Affichage charge / portée',
+        'Fin de course haut crochet',
+        'Fin de course bas crochet',
+        'Fins de course chariot',
+        'Sécurité orientation',
+        'Sécurité stabilisation',
+        'Anémomètre fonctionnel',
+        'Alarme surcharge',
+        'Coupure mouvement dangereux surcharge',
+        'Arrêts urgence fonctionnels',
+        'Verrouillages transport'
+      ]
+    },
+    {
+      id: 'mkNoLoadTests',
+      label: 'Essais fonctionnels sans charge',
+      points: [
+        'Déploiement grue',
+        'Repliage grue',
+        'Levage montée',
+        'Levage descente',
+        'Distribution chariot avant',
+        'Distribution chariot arrière',
+        'Orientation gauche',
+        'Orientation droite',
+        'Modes lents / rapides',
+        'Arrêt immédiat mouvements',
+        'Absence bruit anormal',
+        'Absence échauffement anormal'
+      ]
+    },
+    {
+      id: 'mkLoadTests',
+      label: 'Essais avec charge',
+      points: [
+        'Levage charge faible',
+        'Maintien charge suspendue',
+        'Frein de levage',
+        'Translation chariot avec charge',
+        'Orientation avec charge',
+        'Contrôle affichage charge',
+        'Contrôle limiteur de moment selon procédure'
+      ]
+    }
+  ]
+};
   const POINT_TEMPLATES = {
     documentation: ['Plaques constructeur', 'Numéro de série', 'Carte grise', 'Carnet d’entretien', 'Documents réglementaires'],
     structure: ['État général du châssis', 'Soudures', 'Fixations', 'Corrosion', 'Déformations', 'Protections'],
@@ -61,15 +298,21 @@
     lmi: ['Affichage', 'Capteurs', 'Limiteurs', 'Alarmes', 'Fin de course', 'Anémomètre']
   };
 
-  function buildPoints(section) {
-    const seeds = POINT_TEMPLATES[section.id] || [];
-    return seeds.map((label, index) => ({
-      id: `${section.id}-${String(index + 1).padStart(3, '0')}`,
-      label,
-      status: 'pending',
-      findingId: null
-    }));
-  }
+ function buildPoints(section) {
+  const mkSection = [
+    ...(MK_REFERENTIAL.carrier || []),
+    ...(MK_REFERENTIAL.upper || [])
+  ].find(item => item.id === section.id);
+
+  const seeds = mkSection?.points || POINT_TEMPLATES[section.id] || [];
+
+  return seeds.map((label, index) => ({
+    id: `${section.id}-${String(index + 1).padStart(3, '0')}`,
+    label,
+    status: 'pending',
+    findingId: null
+  }));
+}
 
   const state = {
     machines: [],
@@ -87,7 +330,9 @@
     removedPhotoIds: [],
     photoEditor: null,
     initReturnScreen: 'search',
-    activeTyrePointId: null
+    activeTyrePointId: null,
+    visitPhotoLibrarySelection: new Set(),
+libraryPhotoObjectUrls: []
   };
 
   const $ = selector => document.querySelector(selector);
@@ -262,32 +507,122 @@
     }
   }
 
-  async function addSelectedPhotos(files) {
-    const selected = Array.from(files || []).filter(file => file.type.startsWith('image/'));
-    if (!selected.length) return;
-    for (const file of selected) {
-      try {
-        const blob = await optimisePhoto(file);
-        const id = `P-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
-        await photoDbPut({ id, blob, type: blob.type || file.type, name: file.name || 'photo.jpg', createdAt: new Date().toISOString() });
-        state.draftPhotos.push({
-          id,
-          name: file.name || 'Photo',
-          type: blob.type || file.type,
-          createdAt: new Date().toISOString(),
-          isMain: state.draftPhotos.length === 0,
-          includeInReport: false
-        });
-      } catch (error) {
-        console.error(error);
-        toast('Une photo n’a pas pu être ajoutée.');
-      }
-    }
-    await renderPhotoGallery();
-    $('#cameraPhotoInput').value = '';
-    $('#galleryPhotoInput').value = '';
+ async function addSelectedPhotos(files) {
+  const selected = Array.from(files || [])
+    .filter(file => file.type.startsWith('image/'));
+
+  if (!selected.length || !state.activeVisit) return;
+
+  if (!Array.isArray(state.activeVisit.photoLibrary)) {
+    state.activeVisit.photoLibrary = [];
   }
 
+  for (const file of selected) {
+    try {
+      const blob = await optimisePhoto(file);
+      const id = `P-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+
+      await photoDbPut({
+        id,
+        blob,
+        type: blob.type || file.type,
+        name: file.name || 'photo.jpg',
+        createdAt: new Date().toISOString()
+      });
+
+      const photo = {
+        id,
+        name: file.name || 'Photo',
+        type: blob.type || file.type,
+        createdAt: new Date().toISOString(),
+        isMain: false,
+        includeInReport: false
+      };
+
+      // La photo appartient désormais à toute la visite.
+      state.activeVisit.photoLibrary.push({ ...photo });
+
+      // Et elle est également ajoutée à l'anomalie actuellement ouverte.
+      state.draftPhotos.push({
+        ...photo,
+        isMain: state.draftPhotos.length === 0
+      });
+
+    } catch (error) {
+      console.error(error);
+      toast('Une photo n’a pas pu être ajoutée.');
+    }
+  }
+
+  saveActiveVisit();
+
+  await renderPhotoGallery();
+
+  $('#cameraPhotoInput').value = '';
+  $('#galleryPhotoInput').value = '';
+
+  toast(
+    selected.length > 1
+      ? `${selected.length} photos ajoutées à la bibliothèque.`
+      : 'Photo ajoutée à la bibliothèque.'
+  );
+}
+async function importPhotosToVisitLibrary(files) {
+  const selected = Array.from(files || [])
+    .filter(file => file.type.startsWith('image/'));
+
+  if (!selected.length || !state.activeVisit) return;
+
+  if (!Array.isArray(state.activeVisit.photoLibrary)) {
+    state.activeVisit.photoLibrary = [];
+  }
+
+  let added = 0;
+
+  for (const file of selected) {
+    try {
+      const blob = await optimisePhoto(file);
+      const id = `P-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+
+      await photoDbPut({
+        id,
+        blob,
+        type: blob.type || file.type,
+        name: file.name || 'photo.jpg',
+        createdAt: new Date().toISOString()
+      });
+
+      state.activeVisit.photoLibrary.push({
+        id,
+        name: file.name || 'Photo',
+        type: blob.type || file.type,
+        createdAt: new Date().toISOString(),
+        isMain: false,
+        includeInReport: false
+      });
+
+      added += 1;
+
+    } catch (error) {
+      console.error(error);
+      toast('Une photo n’a pas pu être importée.');
+    }
+  }
+
+  saveActiveVisit();
+
+  $('#visitPhotoLibraryInput').value = '';
+
+  await renderVisitPhotoLibrary();
+
+  toast(
+    added > 1
+      ? `${added} photos importées dans la bibliothèque.`
+      : added === 1
+        ? 'Photo importée dans la bibliothèque.'
+        : 'Aucune photo importée.'
+  );
+}
   async function renderPhotoGallery() {
     const gallery = $('#photoGallery');
     const empty = $('#photoEmptyState');
@@ -318,7 +653,121 @@
       gallery.appendChild(card);
     }
   }
+function clearLibraryPhotoObjectUrls() {
+  state.libraryPhotoObjectUrls.forEach(url => URL.revokeObjectURL(url));
+  state.libraryPhotoObjectUrls = [];
+}
 
+async function renderVisitPhotoLibrary() {
+  const grid = $('#visitPhotoLibraryGrid');
+  const empty = $('#visitPhotoLibraryEmpty');
+  const count = $('#visitPhotoLibraryCount');
+
+  if (!grid || !empty || !count) return;
+
+  clearLibraryPhotoObjectUrls();
+  grid.replaceChildren();
+
+  const library = state.activeVisit?.photoLibrary || [];
+
+  count.textContent = `${library.length} photo${library.length > 1 ? 's' : ''}`;
+  empty.classList.toggle('hidden', library.length > 0);
+
+  for (const photo of library) {
+    const stored = await photoDbGet(photo.id);
+    if (!stored?.blob) continue;
+
+    const url = URL.createObjectURL(stored.blob);
+    state.libraryPhotoObjectUrls.push(url);
+
+    const selected =
+      state.visitPhotoLibrarySelection.has(photo.id);
+
+    const card = document.createElement('label');
+    card.className = 'photo-card';
+
+    card.innerHTML = `
+      <img src="${url}" alt="Photo de la visite">
+
+      <div class="photo-actions">
+        <label>
+          <input
+            type="checkbox"
+            data-library-photo="${photo.id}"
+            ${selected ? 'checked' : ''}
+          >
+          Sélectionner
+        </label>
+      </div>
+    `;
+
+    grid.appendChild(card);
+  }
+}
+
+async function openVisitPhotoLibrary() {
+  if (!state.activeVisit) return;
+
+  state.visitPhotoLibrarySelection = new Set();
+
+  await renderVisitPhotoLibrary();
+
+  $('#visitPhotoLibraryDialog').classList.remove('hidden');
+  $('#visitPhotoLibraryDialog').setAttribute('aria-hidden', 'false');
+}
+
+function closeVisitPhotoLibrary() {
+  $('#visitPhotoLibraryDialog').classList.add('hidden');
+  $('#visitPhotoLibraryDialog').setAttribute('aria-hidden', 'true');
+
+  state.visitPhotoLibrarySelection = new Set();
+
+  clearLibraryPhotoObjectUrls();
+}
+
+async function addSelectedLibraryPhotos() {
+  const library = state.activeVisit?.photoLibrary || [];
+
+  const selectedPhotos = library.filter(photo =>
+    state.visitPhotoLibrarySelection.has(photo.id)
+  );
+
+  if (!selectedPhotos.length) {
+    toast('Sélectionnez au moins une photo.');
+    return;
+  }
+
+  const alreadyUsed = new Set(
+    state.draftPhotos.map(photo => photo.id)
+  );
+
+  let added = 0;
+
+  selectedPhotos.forEach(photo => {
+    if (alreadyUsed.has(photo.id)) return;
+
+    state.draftPhotos.push({
+      ...photo,
+      isMain: state.draftPhotos.length === 0
+        ? true
+        : false
+    });
+
+    added += 1;
+  });
+
+  closeVisitPhotoLibrary();
+
+  await renderPhotoGallery();
+
+  toast(
+    added > 1
+      ? `${added} photos ajoutées à l’anomalie.`
+      : added === 1
+        ? 'Photo ajoutée à l’anomalie.'
+        : 'Ces photos sont déjà présentes dans l’anomalie.'
+  );
+}
   async function viewPhoto(id) {
     const stored = await photoDbGet(id);
     if (!stored?.blob) return toast('Photo introuvable.');
@@ -606,16 +1055,35 @@
   }
 
   async function deleteDraftPhoto(id) {
-    state.draftPhotos = state.draftPhotos.filter(photo => photo.id !== id);
-    if (state.originalPhotoIds.includes(id)) state.removedPhotoIds.push(id);
-    else await photoDbDelete(id);
-    if (state.draftPhotos.length && !state.draftPhotos.some(photo => photo.isMain)) state.draftPhotos[0].isMain = true;
-    await renderPhotoGallery();
+  state.draftPhotos = state.draftPhotos.filter(photo => photo.id !== id);
+
+  if (
+    state.draftPhotos.length &&
+    !state.draftPhotos.some(photo => photo.isMain)
+  ) {
+    state.draftPhotos[0].isMain = true;
   }
 
+  await renderPhotoGallery();
+}
+
   async function deleteFindingPhotos(finding) {
-    await Promise.all((finding?.photos || []).map(photo => photoDbDelete(photo.id).catch(console.error)));
-  }
+  const libraryIds = new Set(
+    (state.activeVisit?.photoLibrary || [])
+      .map(photo => photo.id)
+      .filter(Boolean)
+  );
+
+  const orphanPhotoIds = (finding?.photos || [])
+    .map(photo => photo.id)
+    .filter(id => id && !libraryIds.has(id));
+
+  await Promise.all(
+    orphanPhotoIds.map(id =>
+      photoDbDelete(id).catch(console.error)
+    )
+  );
+}
 
   function loadJson(key, fallback) {
     try { return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback)); }
@@ -631,11 +1099,192 @@
       return false;
     }
   }
+async function syncVisitToServer(visit) {
+  if (!visit || !visit.id) return false;
 
+  try {
+    const response = await fetch(
+      `http://localhost:3000/api/visits/${encodeURIComponent(visit.id)}`,
+      {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(visit)
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Erreur serveur ${response.status}`);
+    }
+
+    console.log('Visite synchronisée avec le serveur :', visit.id);
+    return true;
+  } catch (error) {
+    console.warn('Serveur local indisponible, visite conservée localement :', error);
+    return false;
+  }
+}
+async function deleteVisitFromServer(visitId) {
+  if (!visitId) return false;
+
+  try {
+    const response = await fetch(
+      `http://localhost:3000/api/visits/${encodeURIComponent(visitId)}`,
+      {
+        method: 'DELETE'
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Erreur serveur ${response.status}`);
+    }
+
+    console.log('Visite supprimée du serveur :', visitId);
+    return true;
+
+  } catch (error) {
+    console.warn('Suppression serveur impossible :', error);
+    return false;
+  }
+}
   function loadRecents() {
     state.recents = loadJson(STORAGE_KEYS.recents, []);
   }
+async function loadVisitsFromServer() {
+  try {
+    const response = await fetch(
+      'http://localhost:3000/api/visits',
+      { cache: 'no-store' }
+    );
 
+    if (!response.ok) {
+      throw new Error(`Erreur serveur ${response.status}`);
+    }
+
+    const data = await response.json();
+    const serverVisits = Array.isArray(data.visits) ? data.visits : [];
+    const localVisits = loadJson(STORAGE_KEYS.visits, []);
+
+    const mergedById = new Map();
+
+    localVisits.forEach(visit => {
+      if (visit?.id) mergedById.set(visit.id, visit);
+    });
+
+    serverVisits.forEach(serverVisit => {
+      if (!serverVisit?.id) return;
+
+      const localVisit = mergedById.get(serverVisit.id);
+
+      if (!localVisit) {
+        mergedById.set(serverVisit.id, serverVisit);
+        return;
+      }
+
+      const localDate = new Date(
+        localVisit.updatedAt || localVisit.createdAt || 0
+      ).getTime();
+
+      const serverDate = new Date(
+        serverVisit.updatedAt || serverVisit.createdAt || 0
+      ).getTime();
+
+      if (serverDate >= localDate) {
+        mergedById.set(serverVisit.id, serverVisit);
+      }
+    });
+
+    const mergedVisits = Array.from(mergedById.values())
+      .sort((a, b) =>
+        new Date(b.updatedAt || b.createdAt || 0) -
+        new Date(a.updatedAt || a.createdAt || 0)
+      );
+
+    saveJson(STORAGE_KEYS.visits, mergedVisits);
+
+    console.log(
+      `${serverVisits.length} visite(s) chargée(s) depuis SQLite`
+    );
+
+    return true;
+
+  } catch (error) {
+    console.warn(
+      'SQLite indisponible, utilisation des visites locales :',
+      error
+    );
+
+    return false;
+  }
+}
+async function loadVisitsFromServer() {
+  try {
+    const response = await fetch(
+      'http://localhost:3000/api/visits',
+      { cache: 'no-store' }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Erreur serveur ${response.status}`);
+    }
+
+    const data = await response.json();
+    const serverVisits = Array.isArray(data.visits) ? data.visits : [];
+    const localVisits = loadJson(STORAGE_KEYS.visits, []);
+
+    const mergedById = new Map();
+
+    localVisits.forEach(visit => {
+      if (visit?.id) mergedById.set(visit.id, visit);
+    });
+
+    serverVisits.forEach(serverVisit => {
+      if (!serverVisit?.id) return;
+
+      const localVisit = mergedById.get(serverVisit.id);
+
+      if (!localVisit) {
+        mergedById.set(serverVisit.id, serverVisit);
+        return;
+      }
+
+      const localDate = new Date(
+        localVisit.updatedAt || localVisit.createdAt || 0
+      ).getTime();
+
+      const serverDate = new Date(
+        serverVisit.updatedAt || serverVisit.createdAt || 0
+      ).getTime();
+
+      if (serverDate >= localDate) {
+        mergedById.set(serverVisit.id, serverVisit);
+      }
+    });
+
+    const mergedVisits = Array.from(mergedById.values())
+      .sort((a, b) =>
+        new Date(b.updatedAt || b.createdAt || 0) -
+        new Date(a.updatedAt || a.createdAt || 0)
+      );
+
+    saveJson(STORAGE_KEYS.visits, mergedVisits);
+
+    console.log(
+      `${serverVisits.length} visite(s) chargée(s) depuis SQLite`
+    );
+
+    return true;
+
+  } catch (error) {
+    console.warn(
+      'SQLite indisponible, utilisation des visites locales :',
+      error
+    );
+
+    return false;
+  }
+}
   function rememberMachine(machine) {
     const summary = {
       id: machineKey(machine),
@@ -658,14 +1307,36 @@
     localStorage.removeItem(STORAGE_KEYS.recents);
   }
 
-  function createSections(zone) {
-    return DEFAULT_REFERENTIAL[zone].map(([id, label]) => {
-      const section = { id, label, total: 0, remaining: 0, ncOpen: 0, ncTotal: 0 };
-      section.points = buildPoints(section);
-      recalculateSection(section);
-      return section;
-    });
-  }
+function createSections(zone, mkMode = false) {
+  const referential = mkMode ? MK_REFERENTIAL : DEFAULT_REFERENTIAL;
+  const sections = referential[zone] || [];
+
+  return sections.map(item => {
+    let id;
+    let label;
+
+    if (Array.isArray(item)) {
+      [id, label] = item;
+    } else {
+      id = item.id;
+      label = item.label;
+    }
+
+    const section = {
+      id,
+      label,
+      total: 0,
+      remaining: 0,
+      ncOpen: 0,
+      ncTotal: 0
+    };
+
+    section.points = buildPoints(section);
+    recalculateSection(section);
+
+    return section;
+  });
+}
 
 
   const TYRE_STATES = ['pending', '100', '75', '50', '25', 'HS'];
@@ -762,7 +1433,7 @@
   function createVisit(machine) {
     const now = new Date().toISOString();
     return {
-      id: `V3-${machineKey(machine)}-${Date.now()}`,
+      id: `V4-${machineKey(machine)}-${Date.now()}`,
       machineId: machineKey(machine),
       machineSnapshot: {
         id: machineKey(machine),
@@ -773,7 +1444,7 @@
         agency: machine.agency || '',
         category: machine.category || ''
       },
-      status: 'En cours',
+      status: 'Brouillon',
       createdAt: now,
       updatedAt: now,
       visitDate: todayIsoDate(),
@@ -783,10 +1454,17 @@
       controllerName: '',
       controllerEmail: '',
       controllerPhone: '',
+      mkMode: false,
+
+zones: {
+  carrier: { sections: createSections('carrier', false) },
+  upper: { sections: createSections('upper', false) }
+},
       zones: {
         carrier: { sections: createSections('carrier') },
         upper: { sections: createSections('upper') }
       },
+      photoLibrary: [],
       findings: [],
       tyres: createTyreData(machine)
     };
@@ -808,7 +1486,10 @@
       visit.machineSnapshot = createVisit(machine).machineSnapshot;
       changed = true;
     }
-
+if (typeof visit.mkMode !== 'boolean') {
+  visit.mkMode = false;
+  changed = true;
+}
     const controllerProfile = loadJson(STORAGE_KEYS.controllerProfile, {});
     for (const [field, fallback] of [
       ['controllerName', controllerProfile.name || ''],
@@ -828,18 +1509,20 @@
 
     for (const zone of ['carrier', 'upper']) {
       if (!visit.zones[zone] || typeof visit.zones[zone] !== 'object') {
-        visit.zones[zone] = { sections: createSections(zone) };
+        visit.zones[zone] = {
+  sections: createSections(zone, visit.mkMode)
+};
         changed = true;
         continue;
       }
 
       if (!Array.isArray(visit.zones[zone].sections) || visit.zones[zone].sections.length === 0) {
-        visit.zones[zone].sections = createSections(zone);
+        visit.zones[zone].sections = createSections(zone, visit.mkMode);
         changed = true;
         continue;
       }
 
-      const defaults = createSections(zone);
+      const defaults = createSections(zone, visit.mkMode);
       const existingById = new Map(visit.zones[zone].sections.map(section => [section.id, section]));
       const merged = defaults.map(defaultSection => {
         const existing = existingById.get(defaultSection.id);
@@ -883,6 +1566,25 @@
       visit.findings = [];
       changed = true;
     }
+    if (!Array.isArray(visit.photoLibrary)) {
+  visit.photoLibrary = [];
+
+  const knownPhotoIds = new Set();
+
+  (visit.findings || []).forEach(finding => {
+    (finding.photos || []).forEach(photo => {
+      if (!photo?.id || knownPhotoIds.has(photo.id)) return;
+
+      knownPhotoIds.add(photo.id);
+
+      visit.photoLibrary.push({
+        ...photo
+      });
+    });
+  });
+
+  changed = true;
+}
     visit.findings.forEach(finding => {
       if (!Array.isArray(finding.photos)) { finding.photos = []; changed = true; }
     });
@@ -896,6 +1598,11 @@
         visit[field] = null;
         changed = true;
       }
+    }
+
+    if (!['Brouillon', 'Terminée', 'Synchronisée'].includes(visit.status)) {
+      visit.status = visit.status === 'En cours' ? 'Brouillon' : 'Brouillon';
+      changed = true;
     }
 
     if (!visit.updatedAt) {
@@ -919,15 +1626,47 @@
     return state.activeVisit?.zones?.[state.activeZone]?.sections?.find(section => section.id === state.activeSectionId) || null;
   }
 
+  function visitSortValue(visit) {
+    const value = visit?.updatedAt || visit?.createdAt || visit?.visitDate || '';
+    const time = Date.parse(value);
+    return Number.isFinite(time) ? time : 0;
+  }
+
+  function machineVisits(machine) {
+    const id = machineKey(machine);
+    return loadJson(STORAGE_KEYS.visits, [])
+      .filter(item => item.machineId === id || item.machineSnapshot?.id === id || item.machineSnapshot?.parkNumber === id)
+      .sort((a, b) => visitSortValue(b) - visitSortValue(a));
+  }
+
   function getOrCreateVisit(machine) {
     const visits = loadJson(STORAGE_KEYS.visits, []);
     const id = machineKey(machine);
-    let visit = visits.find(item => item.machineId === id && item.status === 'En cours');
+    const related = visits
+      .filter(item => item.machineId === id || item.machineSnapshot?.id === id || item.machineSnapshot?.parkNumber === id)
+      .sort((a, b) => visitSortValue(b) - visitSortValue(a));
+
+    let visit = related.find(item => item.status === 'Brouillon' || item.status === 'En cours');
+
+    if (!visit && related.length) {
+      const latest = related[0];
+      const dateLabel = formatVisitDate(latest.visitDate);
+      const controller = latest.controllerName ? ` par ${latest.controllerName}` : '';
+      const reopen = confirm(`Dernière visite terminée le ${dateLabel}${controller}.\n\nOK : rouvrir cette visite\nAnnuler : créer une nouvelle visite`);
+      visit = reopen ? latest : createVisit(machine);
+      if (!reopen) {
+        visits.unshift(visit);
+        saveJson(STORAGE_KEYS.visits, visits);
+        syncVisitToServer(visit);
+        return visit;
+      }
+    }
 
     if (!visit) {
       visit = createVisit(machine);
       visits.unshift(visit);
       saveJson(STORAGE_KEYS.visits, visits);
+      syncVisitToServer(visit);
       return visit;
     }
 
@@ -936,7 +1675,7 @@
 
     if (migrated.changed) {
       visit.updatedAt = new Date().toISOString();
-      const index = visits.findIndex(item => item.id === visit.id || (item.machineId === id && item.status === 'En cours'));
+      const index = visits.findIndex(item => item.id === visit.id);
       if (index >= 0) visits[index] = visit;
       else visits.unshift(visit);
       saveJson(STORAGE_KEYS.visits, visits);
@@ -1009,15 +1748,7 @@
     slewRing: '🔄', upperHydraulic: '💧', lmi: '📡'
   };
 
-  function saveActiveVisit() {
-    if (!state.activeVisit) return;
-    const visits = loadJson(STORAGE_KEYS.visits, []);
-    const index = visits.findIndex(item => item.id === state.activeVisit.id);
-    state.activeVisit.updatedAt = new Date().toISOString();
-    if (index >= 0) visits[index] = state.activeVisit;
-    else visits.unshift(state.activeVisit);
-    saveJson(STORAGE_KEYS.visits, visits);
-  }
+
 
   function sectionProgress(section) {
     recalculateSection(section);
@@ -1128,6 +1859,7 @@
   }
 
   function setAxleCount(count) {
+    markVisitDraft();
     const current = ensureTyreData(state.activeVisit, state.activeMachine);
     const old = current.axles;
     current.axleCount = count;
@@ -1137,6 +1869,7 @@
   }
 
   function toggleAxleMode(index) {
+    markVisitDraft();
     const data = ensureTyreData(state.activeVisit, state.activeMachine);
     const axle = data.axles[index];
     if (!axle) return;
@@ -1204,6 +1937,7 @@
   }
 
   function setTyreValue(value) {
+    markVisitDraft();
     const tyre = findTyre(state.activeTyrePointId);
     if (!tyre || !TYRE_STATES.includes(value)) return;
     tyre.value = value;
@@ -1220,6 +1954,7 @@
 
   function resetTyres() {
     if (!confirm('Remettre tous les pneumatiques à Non contrôlé ?')) return;
+    markVisitDraft();
     const data = ensureTyreData(state.activeVisit, state.activeMachine);
     data.axles.forEach(axle => axle.tyres.forEach(tyre => { tyre.value = 'pending'; }));
     syncTyreSection();
@@ -1298,6 +2033,7 @@
   }
 
   async function setPointConform(pointId = state.activePointId) {
+    markVisitDraft();
     const section = currentSection();
     state.activePointId = pointId;
     const point = section?.points?.find(item => item.id === pointId);
@@ -1332,6 +2068,7 @@
   }
 
   function validateWholeSection() {
+    markVisitDraft();
     const section = currentSection();
     if (!section) return;
     if (section.points.some(point => point.status !== 'pending')) {
@@ -1365,6 +2102,7 @@
   }
 
   async function saveFinding() {
+    markVisitDraft();
     const section = currentSection();
     const point = section?.points?.find(item => item.id === state.activePointId);
     if (!point) return;
@@ -1405,6 +2143,7 @@
   }
 
   async function deleteFinding() {
+    markVisitDraft();
     const section = currentSection();
     const point = section?.points?.find(item => item.id === state.activePointId);
     if (!point?.findingId) return;
@@ -1427,12 +2166,8 @@
   }
 
   async function cancelFindingForm() {
-    const section = currentSection();
-    const point = section?.points?.find(item => item.id === state.activePointId);
-    const existing = point?.findingId ? state.activeVisit.findings.find(finding => finding.id === point.findingId) : null;
-    const keepIds = new Set((existing?.photos || []).map(photo => photo.id));
-    const discardIds = state.draftPhotos.filter(photo => !keepIds.has(photo.id)).map(photo => photo.id);
-    await Promise.all(discardIds.map(id => photoDbDelete(id).catch(console.error)));
+    
+    
     state.draftPhotos = [];
     state.draftFindingId = null;
     state.originalPhotoIds = [];
@@ -1498,6 +2233,13 @@
     button.classList.toggle('hidden', progress.ncTotal === 0);
   }
 
+  function markVisitDraft() {
+    if (!state.activeVisit) return;
+    if (state.activeVisit.status === 'Terminée' || state.activeVisit.status === 'Synchronisée') {
+      state.activeVisit.status = 'Brouillon';
+    }
+  }
+
   function saveActiveVisit() {
     if (!state.activeVisit) return;
     state.activeVisit.updatedAt = new Date().toISOString();
@@ -1506,6 +2248,7 @@
     if (index >= 0) visits[index] = state.activeVisit;
     else visits.unshift(state.activeVisit);
     saveJson(STORAGE_KEYS.visits, visits);
+    syncVisitToServer(state.activeVisit);
   }
 
   function readingValue(input) {
@@ -1527,6 +2270,7 @@
   }
 
   function saveDashboardReadings() {
+    markVisitDraft();
     const visit = state.activeVisit;
     if (!visit) return;
     visit.visitDate = $('#dashboardVisitDate').value || todayIsoDate();
@@ -1537,6 +2281,7 @@
   }
 
   function saveControllerDetails() {
+    markVisitDraft();
     const visit = state.activeVisit;
     if (!visit) return;
     visit.controllerName = $('#dashboardControllerName').value.trim();
@@ -1620,7 +2365,8 @@
     $('#dashboardSubtitle').textContent = [
       machine.brand,
       machine.serialNumber ? `Série ${machine.serialNumber}` : '',
-      machine.agency
+      machine.agency,
+      visit.status ? `Statut : ${visit.status}` : ''
     ].filter(Boolean).join(' · ');
     $('#dashboardVisitDate').value = visit.visitDate || todayIsoDate();
     $('#dashboardCarrierKm').value = Number.isFinite(Number(visit.carrierKm)) ? formatReading(visit.carrierKm) : '';
@@ -1631,6 +2377,17 @@
     $('#dashboardControllerPhone').value = visit.controllerPhone || '';
     renderProgress('carrier', zoneProgress(visit, 'carrier'));
     renderProgress('upper', zoneProgress(visit, 'upper'));
+    const mkRow = $('#mkOptionRow');
+const mkCheckbox = $('#dashboardMkMode');
+
+const mkAvailable =
+  String(machine.category || '').toUpperCase() === 'GM';
+
+if (mkRow && mkCheckbox) {
+  mkRow.classList.toggle('hidden', !mkAvailable);
+  mkCheckbox.disabled = !mkAvailable;
+  mkCheckbox.checked = mkAvailable && visit.mkMode === true;
+}
   }
 
   function startNewVisit() {
@@ -1647,16 +2404,123 @@
     toast('Nouvelle visite créée.');
   }
 
-  function openMachine(machine) {
-    state.activeZone = null;
-    state.activeMachine = machine;
-    state.activeVisit = getOrCreateVisit(machine);
-    rememberMachine(machine);
-    if (!state.activeVisit.visitDate) state.activeVisit.visitDate = todayIsoDate();
-    saveActiveVisit();
-    renderDashboard();
-    showScreen('dashboard');
+function openMachine(machine) {
+  state.activeZone = null;
+  state.activeMachine = machine;
+
+  const visits = loadJson(STORAGE_KEYS.visits, []);
+  const machineId = machineKey(machine);
+
+  const machineVisits = visits
+    .filter(visit =>
+      visit.machineId === machineId ||
+      visit.machineSnapshot?.id === machineId ||
+      visit.machineSnapshot?.parkNumber === machineId
+    )
+    .sort((a, b) =>
+      new Date(b.updatedAt || b.createdAt || 0) -
+      new Date(a.updatedAt || a.createdAt || 0)
+    );
+
+  if (machineVisits.length >= 1) {
+    const lines = machineVisits.map((visit, index) => {
+      const date = formatVisitDate(visit.visitDate);
+      const status = visit.status || 'Enregistrée';
+      const controller = visit.controllerName
+        ? ` - ${visit.controllerName}`
+        : '';
+
+      return `${index + 1} - ${date} - ${status}${controller}\nD${index + 1} - Supprimer cette visite`;
+    });
+
+  const choice = prompt(
+  `Visites de ${machine.parkNumber || machine.id}\n\n` +
+  lines.join('\n\n') +
+  `\n\n0 - Créer une nouvelle visite\n\n` +
+`Indiquez votre choix :`
+
+);
+
+    if (choice === null) return;
+
+    const selectedNumber = Number(choice);
+const normalizedChoice = choice.trim().toUpperCase();
+
+if (/^D\d+$/.test(normalizedChoice)) {
+  const deleteNumber = Number(normalizedChoice.slice(1));
+
+  if (
+    deleteNumber >= 1 &&
+    deleteNumber <= machineVisits.length
+  ) {
+    const visitToDelete = machineVisits[deleteNumber - 1];
+
+    const confirmed = confirm(
+      `Supprimer définitivement la visite du ${formatVisitDate(visitToDelete.visitDate)} ?`
+    );
+
+    if (!confirmed) return;
+
+    const remainingVisits = visits.filter(
+      visit => visit.id !== visitToDelete.id
+    );
+
+    saveJson(STORAGE_KEYS.visits, remainingVisits);
+    deleteVisitFromServer(visitToDelete.id);
+
+  toast('Visite supprimée.');
+
+const hasRemainingVisits = remainingVisits.some(visit =>
+  visit.machineId === machineId ||
+  visit.machineSnapshot?.id === machineId ||
+  visit.machineSnapshot?.parkNumber === machineId
+);
+
+if (hasRemainingVisits) {
+  openMachine(machine);
+} else {
+  state.activeVisit = null;
+  showScreen('search');
+}
+
+return;
   }
+
+  toast('Numéro de visite incorrect.');
+  return;
+}
+    if (selectedNumber === 0) {
+      state.activeVisit = createVisit(machine);
+      saveActiveVisit();
+    } else if (
+      Number.isInteger(selectedNumber) &&
+      selectedNumber >= 1 &&
+      selectedNumber <= machineVisits.length
+    ) {
+      const selectedVisit = machineVisits[selectedNumber - 1];
+      state.activeVisit = ensureVisitSchema(selectedVisit, machine).visit;
+    } else {
+      toast('Numéro de visite incorrect.');
+      return;
+    }
+
+  } else if (machineVisits.length === 1) {
+    state.activeVisit = ensureVisitSchema(machineVisits[0], machine).visit;
+
+  } else {
+    state.activeVisit = createVisit(machine);
+    saveActiveVisit();
+  }
+
+  rememberMachine(machine);
+
+  if (!state.activeVisit.visitDate) {
+    state.activeVisit.visitDate = todayIsoDate();
+  }
+
+  renderDashboard();
+  showScreen('dashboard');
+}
 
   function reportStatusLabel(status) {
     if (status === 'conform') return 'CONFORME';
@@ -1859,7 +2723,7 @@
       <div class="report-signatures"><section><h3>Contrôleur</h3><p>${escapeHtml(visit.controllerName || '')}</p><div class="report-signature-box"></div></section><section><h3>Représentant de l’agence / client</h3><p>Nom :</p><div class="report-signature-box"></div></section></div>`);
 
     $('#reportPreview').innerHTML = innerPages.map((inner, index) => reportPage(inner, index + 1, totalPages)).join('');
-    $('#reportScreen .eyebrow').textContent = 'RAPPORT PDF · V4.0.0';
+    $('#reportScreen .eyebrow').textContent = 'RAPPORT PDF · V4.0.0 S2-01';
     showScreen('report');
   }
 
@@ -1957,6 +2821,61 @@
         showScreen('search');
       }
     });
+    $('#dashboardMkMode').addEventListener('change', event => {
+  const visit = state.activeVisit;
+  const machine = state.activeMachine;
+
+  if (!visit || !machine) return;
+
+  const isGm =
+    String(machine.category || '').toUpperCase() === 'GM';
+
+  if (!isGm) {
+    event.target.checked = false;
+    return;
+  }
+
+  const carrier = zoneProgress(visit, 'carrier');
+  const upper = zoneProgress(visit, 'upper');
+
+  const alreadyControlled =
+    (carrier.total - carrier.remaining) +
+    (upper.total - upper.remaining);
+
+  if (alreadyControlled > 0 || (visit.findings || []).length > 0) {
+    event.target.checked = visit.mkMode === true;
+
+    toast(
+      'Le type GM/MK ne peut plus être changé après le début du contrôle.'
+    );
+
+    return;
+  }
+
+  const mkMode = event.target.checked;
+
+  visit.mkMode = mkMode;
+
+  visit.zones = {
+    carrier: {
+      sections: createSections('carrier', mkMode)
+    },
+    upper: {
+      sections: createSections('upper', mkMode)
+    }
+  };
+
+  ensureTyreData(visit, machine);
+
+  saveActiveVisit();
+  renderDashboard();
+
+  toast(
+    mkMode
+      ? 'Mode MK activé : référentiel grue à déploiement rapide.'
+      : 'Mode GM activé : référentiel grue mobile.'
+  );
+});
     $('#newVisit').addEventListener('click', () => {
       if (confirm('Créer une nouvelle visite pour cette machine ? La visite actuelle restera enregistrée.')) startNewVisit();
     });
@@ -1964,12 +2883,23 @@
     $('#closeReport').addEventListener('click', () => { renderDashboard(); showScreen('dashboard'); });
     $('#printReport').addEventListener('click', printReport);
     $('#finishVisit').addEventListener('click', () => {
-      const carrier = zoneProgress(state.activeVisit, 'carrier');
-      const upper = zoneProgress(state.activeVisit, 'upper');
-      const remaining = carrier.remaining + upper.remaining;
-      if (remaining > 0) toast(`Impossible de terminer : ${remaining} point(s) restent à contrôler.`);
-      else buildReportPreview();
-    });
+  const carrier = zoneProgress(state.activeVisit, 'carrier');
+  const upper = zoneProgress(state.activeVisit, 'upper');
+  const remaining = carrier.remaining + upper.remaining;
+
+  if (remaining > 0) {
+    toast(`Impossible de terminer : ${remaining} point(s) restent à contrôler.`);
+    return;
+  }
+
+  state.activeVisit.status = 'Terminée';
+  state.activeVisit.completedAt = new Date().toISOString();
+  saveActiveVisit();
+  renderDashboard();
+  buildReportPreview();
+  toast('Visite terminée et enregistrée.');
+});
+
 
     $('#axleCountSelector').addEventListener('click', event => {
       const button = event.target.closest('[data-axle-count]');
@@ -2009,8 +2939,66 @@
     $('#findingCancel').addEventListener('click', cancelFindingForm);
     $('#findingSave').addEventListener('click', saveFinding);
     $('#findingDelete').addEventListener('click', deleteFinding);
-    $('#takePhotoButton').addEventListener('click', () => $('#cameraPhotoInput').click());
-    $('#galleryPhotoButton').addEventListener('click', () => $('#galleryPhotoInput').click());
+  $('#takePhotoButton').addEventListener(
+  'click',
+  () => $('#cameraPhotoInput').click()
+);
+
+$('#galleryPhotoButton').addEventListener(
+  'click',
+  () => $('#galleryPhotoInput').click()
+);
+
+$('#visitPhotoLibraryButton').addEventListener(
+  'click',
+  openVisitPhotoLibrary
+);
+$('#visitPhotoLibraryImport').addEventListener(
+  'click',
+  () => $('#visitPhotoLibraryInput').click()
+);
+
+$('#visitPhotoLibraryInput').addEventListener(
+  'change',
+  event => importPhotosToVisitLibrary(event.target.files)
+);
+$('#visitPhotoLibraryClose').addEventListener(
+  'click',
+  closeVisitPhotoLibrary
+);
+
+$('#visitPhotoLibraryCancel').addEventListener(
+  'click',
+  closeVisitPhotoLibrary
+);
+
+$('#visitPhotoLibraryAdd').addEventListener(
+  'click',
+  addSelectedLibraryPhotos
+);
+
+$('#visitPhotoLibraryGrid').addEventListener('change', event => {
+  const checkbox = event.target.closest('[data-library-photo]');
+  if (!checkbox) return;
+
+  const id = checkbox.dataset.libraryPhoto;
+
+  if (checkbox.checked) {
+    state.visitPhotoLibrarySelection.add(id);
+  } else {
+    state.visitPhotoLibrarySelection.delete(id);
+  }
+});
+
+$('#cameraPhotoInput').addEventListener(
+  'change',
+  event => addSelectedPhotos(event.target.files)
+);
+
+$('#galleryPhotoInput').addEventListener(
+  'change',
+  event => addSelectedPhotos(event.target.files)
+);
     $('#cameraPhotoInput').addEventListener('change', event => addSelectedPhotos(event.target.files));
     $('#galleryPhotoInput').addEventListener('change', event => addSelectedPhotos(event.target.files));
     $('#photoGallery').addEventListener('click', async event => {
@@ -2060,10 +3048,7 @@
         renderZone(target);
       }
     }));
-
-    if ('serviceWorker' in navigator && location.protocol !== 'file:') {
-      window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(console.error));
-    }
+ 
   }
 
   async function init() {
@@ -2076,7 +3061,8 @@
     screens.findingForm = $('#findingFormScreen');
     screens.placeholder = $('#placeholderScreen');
     screens.report = $('#reportScreen');
-    loadRecents();
+    await loadVisitsFromServer();
+loadRecents();
     renderMachineList($('#recentMachines'), state.recents, 'Aucune machine récente. Lancez une recherche.');
     bindEvents();
     try {
