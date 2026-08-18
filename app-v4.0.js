@@ -1,6 +1,9 @@
-(() => {
+(() => {;
   'use strict';
-
+const SERVER_BASE_URL =
+  window.location.port === '3000'
+    ? window.location.origin
+    : 'http://localhost:3000';
   const VERSION = '4.0.0-S2.01-P4.1';
   const STORAGE_KEYS = {
     recents: 'foselev_v3_recent_machines',
@@ -2394,7 +2397,7 @@ async function syncVisitToServer(visit) {
 
   try {
     const response = await fetch(
-      `http://localhost:3000/api/visits/${encodeURIComponent(visit.id)}`,
+      `${SERVER_BASE_URL}/api/visits/${encodeURIComponent(visit.id)}`,
       {
         method: 'PUT',
         headers: {
@@ -2420,7 +2423,7 @@ async function deleteVisitFromServer(visitId) {
 
   try {
     const response = await fetch(
-      `http://localhost:3000/api/visits/${encodeURIComponent(visitId)}`,
+    `${SERVER_BASE_URL}/api/visits/${encodeURIComponent(visitId)}`,
       {
         method: 'DELETE'
       }
@@ -2444,7 +2447,7 @@ async function deleteVisitFromServer(visitId) {
 async function loadVisitsFromServer() {
   try {
     const response = await fetch(
-      'http://localhost:3000/api/visits',
+     `${SERVER_BASE_URL}/api/visits`,
       { cache: 'no-store' }
     );
 
@@ -2510,10 +2513,9 @@ async function loadVisitsFromServer() {
 }
 async function loadVisitsFromServer() {
   try {
-    const response = await fetch(
-      'http://localhost:3000/api/visits',
-      { cache: 'no-store' }
-    );
+  const response = await fetch(
+  `${SERVER_BASE_URL}/api/visits`
+);
 
     if (!response.ok) {
       throw new Error(`Erreur serveur ${response.status}`);
