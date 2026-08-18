@@ -1096,7 +1096,7 @@ let lastAutoSync = 0;
 
     if (!confirmed) return false;
 
-   state.activeMachine = machine;
+state.activeMachine = machine;
 
 const migrated = ensureVisitSchema(visit, machine);
 state.activeVisit = migrated.visit;
@@ -1109,6 +1109,7 @@ if (migrated.changed) {
 }
 
 saveActiveVisitResumeMarker(state.activeVisit, state.activeMachine);
+
 
     renderDashboard();
     showScreen('dashboard');
