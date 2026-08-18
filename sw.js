@@ -1,4 +1,4 @@
-const CACHE = 'foselev-vfg-v4-0-0-sprint1';
+const CACHE = 'foselev-vfg-v4-0-0-point4-2';
 const ASSETS = [
   './',
   './index.html',
@@ -6,7 +6,7 @@ const ASSETS = [
   './manifest.webmanifest',
   './parc.json',
   './parc.js',
-  './app-v4.0.js?v=4001',
+ './app-v4.0.js?v=4201',
   './icon-192.svg',
   './icon-512.svg'
 ];
