@@ -1053,18 +1053,30 @@ async function exportVisitVfgFile(visit) {
 
   // Téléphone : ouvre la feuille de partage si elle accepte les fichiers.
  
-  let pdfFile = null;
+ let pdfFile = null;
 
 try {
   pdfFile = await createVisitPdfFile(visit);
+
+  toast(
+    pdfFile
+      ? `PDF généré : ${Math.round(pdfFile.size / 1024)} Ko`
+      : 'PDF non généré.'
+  );
+
 } catch (error) {
   console.error('Génération PDF impossible :', error);
+  toast(`PDF impossible : ${error.message || error}`);
 }
 
 const filesToShare = pdfFile
   ? [pdfFile, file]
   : [file];
-
+toast(
+  navigator.canShare?.({ files: filesToShare })
+    ? `Partage de ${filesToShare.length} fichier(s) accepté`
+    : `Partage de ${filesToShare.length} fichier(s) refusé par le téléphone`
+);
 if (
   navigator.share &&
   navigator.canShare &&
