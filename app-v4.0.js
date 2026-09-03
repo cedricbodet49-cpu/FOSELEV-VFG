@@ -918,7 +918,7 @@ let lastAutoSync = 0;
     button.dataset.remaining = String(progress.remaining);
     button.dataset.supplementaryRemaining = String(extra.remaining);
   }
-  async function createVisitPdfFile(visit) {
+ async function createVisitPdfFile(visit) {
   if (!visit?.id) {
     throw new Error('Visite absente pour la génération PDF.');
   }
@@ -927,13 +927,27 @@ let lastAutoSync = 0;
     throw new Error('Bibliothèque PDF indisponible.');
   }
 
-  // Reconstruit le rapport avec les dernières données de la visite.
-  await buildReportPreview();
+  await buildReportPreview({ saveFields: false });
+
+  // Laisse au navigateur le temps de mettre en page le rapport.
+  await new Promise(resolve => {
+    requestAnimationFrame(() => {
+      requestAnimationFrame(resolve);
+    });
+  });
 
   const report = $('#reportPreview');
 
-  if (!report || !report.children.length) {
+  if (!report) {
     throw new Error('Rapport indisponible.');
+  }
+
+  const pages = Array.from(
+    report.querySelectorAll('.report-page')
+  );
+
+  if (!pages.length) {
+    throw new Error('Aucune page dans le rapport.');
   }
 
   const machineId =
@@ -952,17 +966,17 @@ let lastAutoSync = 0;
   const options = {
     margin: 0,
 
-    filename: fileName,
-
     image: {
       type: 'jpeg',
-      quality: 0.96
+      quality: 0.95
     },
 
     html2canvas: {
-      scale: 2,
+      scale: 1.5,
       useCORS: true,
-      backgroundColor: '#ffffff'
+      backgroundColor: '#ffffff',
+      logging: false,
+      windowWidth: 1200
     },
 
     jsPDF: {
@@ -971,18 +985,65 @@ let lastAutoSync = 0;
       orientation: 'portrait'
     },
 
-    enableLinks: true,
-
-    pagebreak: {
-      mode: ['css', 'legacy'],
-      before: '.report-page:not(:first-child)'
-    }
+    enableLinks: false
   };
 
-  const pdfBlob = await html2pdf()
-    .set(options)
-    .from(report)
-    .outputPdf('blob');
+  let pdf = null;
+
+  for (let index = 0; index < pages.length; index += 1) {
+    toast(
+      `Génération PDF : page ${index + 1}/${pages.length}`
+    );
+
+    const worker = html2pdf()
+      .set(options)
+      .from(pages[index]);
+
+    if (index === 0) {
+      await worker.toPdf();
+      pdf = await worker.get('pdf');
+
+    } else {
+      await worker.toCanvas();
+
+      const canvas = await worker.get('canvas');
+
+      const imageData = canvas.toDataURL(
+        'image/jpeg',
+        0.95
+      );
+
+      pdf.addPage('a4', 'portrait');
+
+      pdf.addImage(
+        imageData,
+        'JPEG',
+        0,
+        0,
+        210,
+        297,
+        undefined,
+        'FAST'
+      );
+
+      // Libère la mémoire du téléphone après chaque page.
+      canvas.width = 1;
+      canvas.height = 1;
+    }
+
+    // Laisse respirer le navigateur entre deux pages.
+    await new Promise(resolve => setTimeout(resolve, 0));
+  }
+
+  if (!pdf) {
+    throw new Error('Création du document PDF impossible.');
+  }
+
+  const pdfBlob = pdf.output('blob');
+
+  if (!pdfBlob?.size) {
+    throw new Error('Le fichier PDF généré est vide.');
+  }
 
   return new File(
     [pdfBlob],
@@ -1053,30 +1114,43 @@ async function exportVisitVfgFile(visit) {
 
   // Téléphone : ouvre la feuille de partage si elle accepte les fichiers.
  
- let pdfFile = null;
+let pdfFile = null;
 
 try {
   pdfFile = await createVisitPdfFile(visit);
-
-  toast(
-    pdfFile
-      ? `PDF généré : ${Math.round(pdfFile.size / 1024)} Ko`
-      : 'PDF non généré.'
-  );
-
 } catch (error) {
   console.error('Génération PDF impossible :', error);
-  toast(`PDF impossible : ${error.message || error}`);
+
+  alert(
+    `Génération du PDF impossible.\n\n` +
+    `${error.message || error}`
+  );
+
+  return false;
 }
 
-const filesToShare = pdfFile
-  ? [pdfFile, file]
-  : [file];
-toast(
-  navigator.canShare?.({ files: filesToShare })
-    ? `Partage de ${filesToShare.length} fichier(s) accepté`
-    : `Partage de ${filesToShare.length} fichier(s) refusé par le téléphone`
-);
+if (!pdfFile || !pdfFile.size) {
+  alert('Le PDF a été généré mais le fichier est vide.');
+  return false;
+}
+
+toast(`PDF généré : ${Math.round(pdfFile.size / 1024)} Ko`);
+
+const filesToShare = [pdfFile, file];
+if (
+  !navigator.share ||
+  !navigator.canShare ||
+  !navigator.canShare({ files: filesToShare })
+) {
+  alert(
+    `Le PDF a bien été généré (${Math.round(pdfFile.size / 1024)} Ko), ` +
+    `mais ce téléphone refuse le partage simultané du PDF et du fichier VFG.`
+  );
+
+  return false;
+}
+
+toast('PDF + VFG prêts à être envoyés.');
 if (
   navigator.share &&
   navigator.canShare &&
@@ -7085,13 +7159,16 @@ if (family === 'CN') {
   }
 }
 
-  async function buildReportPreview() {
+  async function buildReportPreview({ saveFields = true } = {}) {
     const visit = state.activeVisit;
     const machine = state.activeMachine;
     if (!visit || !machine) return toast('Aucune visite active.');
-    saveDashboardReadings();
-    saveControllerDetails();
-    ensureTyreData(visit, machine);
+    if (saveFields) {
+  saveDashboardReadings();
+  saveControllerDetails();
+}
+
+ensureTyreData(visit, machine);
 
     const findings = Array.isArray(visit.findings) ? visit.findings : [];
     const tyreItems = (visit.tyres?.axles || []).flatMap((axle, axleIndex) => axle.tyres.map(tyre => ({ ...tyre, axleIndex, label: tyrePositionLabel(axleIndex, tyre.side, tyre.position) })));

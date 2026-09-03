@@ -1,4 +1,4 @@
-const CACHE = 'foselev-vfg-pilot-40018';
+const CACHE = 'foselev-vfg-pilot-40020';
 
 const ASSETS = [
   './',
@@ -7,7 +7,7 @@ const ASSETS = [
   './manifest.webmanifest',
   './parc.json',
   './parc.js',
-  './app-v4.0.js?v=40018',
+  './app-v4.0.js?v=40020',
   './lib/html2pdf.bundle.min.js',
   './icon-192.svg',
   './icon-512.svg'
