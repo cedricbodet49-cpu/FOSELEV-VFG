@@ -918,7 +918,97 @@ let lastAutoSync = 0;
     button.dataset.remaining = String(progress.remaining);
     button.dataset.supplementaryRemaining = String(extra.remaining);
   }
+async function exportVisitVfgFile(visit) {
+  if (!visit?.id) return false;
 
+  const exportedPhotos = [];
+
+  for (const photo of visit.photoLibrary || []) {
+    if (!photo?.id) continue;
+
+    try {
+      const stored = await photoDbGet(photo.id);
+
+      if (!stored?.blob) continue;
+
+      const dataUrl = await blobToDataUrl(stored.blob);
+      const base64 = String(dataUrl).split(',')[1] || '';
+
+      exportedPhotos.push({
+        id: photo.id,
+        name: stored.name || photo.name || 'photo.jpg',
+        type: stored.type || stored.blob.type || photo.type || 'image/jpeg',
+        base64
+      });
+
+    } catch (error) {
+      console.warn('Photo non exportée dans le fichier VFG :', photo.id, error);
+    }
+  }
+
+  const bundle = {
+    format: 'FOSELEV-VFG',
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    visitId: visit.id,
+    visit: JSON.parse(JSON.stringify(visit)),
+    photos: exportedPhotos
+  };
+
+  const blob = new Blob(
+    [JSON.stringify(bundle)],
+    { type: 'application/vnd.foselev.vfg+json' }
+  );
+
+  const machineId =
+    visit.machineId ||
+    state.activeMachine?.parkNumber ||
+    state.activeMachine?.id ||
+    'MACHINE';
+
+  const visitDate =
+    visit.visitDate ||
+    new Date().toISOString().slice(0, 10);
+
+  const fileName =
+    `FOSELEV_VFG_${machineId}_${visitDate}.vfg`;
+
+  const file = new File(
+    [blob],
+    fileName,
+    { type: 'application/vnd.foselev.vfg+json' }
+  );
+
+  // Téléphone : ouvre la feuille de partage si elle accepte les fichiers.
+  if (
+    navigator.share &&
+    navigator.canShare &&
+    navigator.canShare({ files: [file] })
+  ) {
+    await navigator.share({
+      files: [file],
+      title: `Visite FOSELEV VFG ${machineId}`,
+      text: `Visite ${machineId} du ${visitDate}`
+    });
+
+    return true;
+  }
+
+  // Secours PC / navigateur ne gérant pas le partage de fichiers.
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+
+  link.href = url;
+  link.download = fileName;
+
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+  return true;
+}
   async function finishActiveVisit() {
     const visit = state.activeVisit;
     if (!visit) return;
@@ -962,10 +1052,19 @@ let lastAutoSync = 0;
     visit.workflowVersion = 'POINT2-FINAL';
 
     saveActiveVisit();
-    clearActiveVisitResumeMarker();
-    renderDashboard();
+clearActiveVisitResumeMarker();
+renderDashboard();
 
-    toast('Visite terminée et enregistrée.');
+toast('Visite terminée et enregistrée.');
+
+if (IS_PUBLIC_PILOT) {
+  try {
+    await exportVisitVfgFile(visit);
+  } catch (error) {
+    console.error('Export VFG impossible :', error);
+    toast('Visite enregistrée, mais le fichier VFG n’a pas pu être préparé.');
+  }
+}
   }
 
   function standardVisitProgressSummary(visit) {
