@@ -334,3 +334,846 @@ body.editor-open{overflow:hidden}
   background: #f3f3f3;
   border-radius: 10px;
 }
+/* =========================================================
+   FOSELEV VFG — UI CIBLE 2026 — LOT 1
+   Base graphique commune
+   ========================================================= */
+
+:root{
+  --foselev-orange:#f47721;
+  --foselev-orange-dark:#d85f12;
+  --foselev-anthracite:#292929;
+  --foselev-text:#242424;
+  --foselev-muted:#707070;
+  --foselev-bg:#f5f5f3;
+  --foselev-card:#ffffff;
+  --foselev-border:#e3e3df;
+  --foselev-radius:18px;
+  --foselev-shadow:0 6px 22px rgba(0,0,0,.07);
+}
+
+body{
+  background:var(--foselev-bg);
+  color:var(--foselev-text);
+}
+
+.app-header{
+  background:#fff;
+  border-top:6px solid var(--foselev-orange);
+  border-bottom:1px solid var(--foselev-border);
+  box-shadow:0 2px 10px rgba(0,0,0,.04);
+}
+
+.app-shell{
+  width:min(760px,100%);
+}
+
+.eyebrow{
+  color:var(--foselev-orange);
+}
+
+.screen h1{
+  color:var(--foselev-anthracite);
+  font-weight:800;
+  letter-spacing:-.02em;
+}
+/* LOT 1.1 — proportions proches des maquettes */
+
+.app-header{
+  min-height:72px;
+  padding:10px 18px;
+}
+
+.app-shell{
+  width:min(680px,100%);
+  padding-top:24px;
+}
+
+.search-card{
+  padding:18px;
+  border-radius:16px;
+}
+
+.machine-list{
+  grid-template-columns:1fr;
+}
+/* LOT 1.2 — Header FOSELEV */
+
+.app-header{
+  grid-template-columns:48px 1fr 48px;
+  min-height:78px;
+  padding:10px 16px;
+  border-top:0;
+  border-bottom:3px solid var(--foselev-orange);
+}
+
+#backButton{
+  grid-column:1;
+  grid-row:1;
+}
+
+.app-header .brand{
+  grid-column:2;
+  grid-row:1;
+  justify-self:start;
+}
+
+#helpButton{
+  grid-column:3;
+  grid-row:1;
+  justify-self:end;
+}
+
+.app-header .brand strong{
+  font-size:1.15rem;
+  font-weight:800;
+}
+
+.app-header .brand small{
+  color:var(--foselev-orange);
+  font-size:.72rem;
+  font-weight:800;
+}
+/* =========================================================
+   FOSELEV VFG — NAVIGATION BASSE
+   ========================================================= */
+
+.quick-nav{
+  position:fixed;
+  left:50%;
+  bottom:0;
+  z-index:40;
+  transform:translateX(-50%);
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  width:min(680px,100%);
+  padding:8px 10px calc(8px + env(safe-area-inset-bottom));
+  background:#fff;
+  border-top:1px solid var(--foselev-border);
+  box-shadow:0 -5px 18px rgba(0,0,0,.07);
+}
+
+.quick-nav.hidden{
+  display:none!important;
+}
+
+.quick-nav button{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:4px;
+  min-height:54px;
+  border:0;
+  background:transparent;
+  color:#666;
+  font-size:1.25rem;
+  font-weight:700;
+}
+
+.quick-nav button span{
+  font-size:.68rem;
+  line-height:1;
+}
+
+.quick-nav button:active{
+  color:var(--foselev-orange);
+  background:var(--soft);
+  border-radius:12px;
+}
+/* LOT 1.3 — Navigation basse style maquette */
+
+.quick-nav{
+  min-height:68px;
+  padding:6px 8px calc(6px + env(safe-area-inset-bottom));
+  border-top:1px solid #e4e4e1;
+}
+
+.quick-nav button{
+  position:relative;
+  gap:3px;
+  min-height:56px;
+  padding:5px 6px;
+  border-radius:12px;
+  color:#555;
+  font-size:1.35rem;
+  transition:.15s ease;
+}
+
+.quick-nav button span{
+  font-size:.67rem;
+  font-weight:700;
+  white-space:nowrap;
+}
+
+.quick-nav button:hover,
+.quick-nav button:focus{
+  color:var(--foselev-orange);
+  background:#fff6ef;
+}
+
+.quick-nav button:active{
+  transform:scale(.97);
+}
+/* =========================================================
+   FOSELEV VFG — LOT 2.1
+   Liste de contrôle — style maquette
+   ========================================================= */
+
+#zoneScreen{
+  padding-bottom:90px;
+}
+
+.zone-heading{
+  display:grid;
+  grid-template-columns:1fr auto;
+  align-items:end;
+  gap:18px;
+  margin-bottom:16px;
+}
+
+.zone-heading h1{
+  margin:2px 0 4px;
+  font-size:2rem;
+  line-height:1.05;
+}
+
+.zone-total{
+  min-width:118px;
+  padding:12px 14px;
+  border:1px solid var(--foselev-border);
+  border-radius:16px;
+  background:#fff;
+  box-shadow:var(--foselev-shadow);
+  text-align:center;
+}
+
+.zone-total strong{
+  display:block;
+  color:var(--foselev-orange);
+  font-size:1.35rem;
+}
+
+.zone-total span{
+  display:block;
+  margin-top:2px;
+  font-size:.66rem;
+  font-weight:700;
+}
+
+.zone-toolbar{
+  margin-bottom:14px;
+}
+
+.zone-search{
+  min-height:48px;
+  border-radius:14px;
+  background:#fff;
+  border:1px solid var(--foselev-border);
+}
+
+.section-list{
+  display:grid;
+  gap:10px;
+}
+
+.control-section-row{
+  min-height:76px;
+  padding:12px 14px;
+  border:1px solid var(--foselev-border);
+  border-radius:16px;
+  background:#fff;
+  box-shadow:0 3px 12px rgba(0,0,0,.04);
+}
+
+.control-section-row .section-icon{
+  width:46px;
+  height:46px;
+  border-radius:12px;
+  background:#fff3ea;
+}
+
+.control-section-row .section-copy strong{
+  font-size:.98rem;
+  color:var(--foselev-text);
+}
+
+.control-section-row .section-copy small{
+  color:var(--foselev-muted);
+}
+
+.control-section-row .section-metrics strong{
+  color:#555;
+}
+
+.control-section-row .section-arrow{
+  color:var(--foselev-orange);
+  font-size:1.4rem;
+  font-weight:800;
+}
+
+.control-section-row.is-complete{
+  background:#fafaf8;
+}
+
+.control-section-row.is-complete .section-icon{
+  background:#eef8ef;
+}
+
+@media (max-width:600px){
+  .zone-heading{
+    grid-template-columns:1fr;
+  }
+
+  .zone-total{
+    justify-self:start;
+  }
+}
+/* LOT 2.2 — espace pour la navigation basse */
+
+#zoneScreen{
+  padding-bottom:140px;
+}
+/* LOT 2.3 — états visuels des rubriques */
+
+.control-section-row.is-pending{
+  border-left:5px solid #f47721;
+}
+
+.control-section-row.is-pending .section-icon{
+  background:#fff3ea;
+  color:#d85f12;
+}
+
+.control-section-row.is-complete{
+  border-left:5px solid #2e9d55;
+  background:#fbfffc;
+}
+
+.control-section-row.is-complete .section-icon{
+  background:#eaf7ee;
+  color:#238746;
+}
+
+.control-section-row.is-nc{
+  border-left:5px solid #c62828;
+  background:#fffafa;
+}
+
+.control-section-row.is-nc .section-icon{
+  background:#fdecec;
+  color:#b71c1c;
+}
+
+.control-section-row.is-nc .section-nc{
+  background:#c62828;
+  color:#fff;
+  border-radius:999px;
+  padding:3px 7px;
+  font-size:.68rem;
+  font-weight:800;
+}
+/* =========================================================
+   FOSELEV VFG — LOT 3.1
+   États visuels des points de contrôle
+   ========================================================= */
+
+/* Non contrôlé */
+.inspection-point{
+  background:#fff;
+  border:1px solid var(--foselev-border);
+}
+
+/* Conforme */
+.inspection-point.is-conform{
+  background:#f2fbf4;
+  border-color:#cfe8d5;
+}
+
+.inspection-point.is-conform .point-status{
+  background:#28883c;
+  color:#fff;
+}
+
+/* Défaut / constat */
+.inspection-point.is-finding{
+  background:#fff3f1;
+  border-color:#efc7c2;
+}
+
+.inspection-point.is-finding .point-status{
+  background:#c62828;
+  color:#fff;
+}
+
+/* Non applicable */
+.inspection-point.is-na{
+  background:#f3f3f1;
+  border-color:#ddddda;
+}
+
+.inspection-point.is-na .point-status{
+  background:#777;
+  color:#fff;
+  font-size:.72rem;
+}
+
+/* Non évalué */
+.inspection-point.is-ne{
+  background:#fff8e8;
+  border-color:#efdca5;
+}
+
+.inspection-point.is-ne .point-status{
+  background:#e89a19;
+  color:#fff;
+  font-size:.72rem;
+}
+
+/* Pastille d'état */
+.point-status{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:38px;
+  height:38px;
+  border-radius:50%;
+  font-weight:800;
+}
+/* LOT 4.1 — Constat : espace pour la navigation basse */
+
+#findingFormScreen{
+  padding-bottom:150px;
+}
+
+.finding-form-card{
+  border-radius:18px;
+  background:#fff;
+  box-shadow:0 6px 22px rgba(0,0,0,.06);
+}
+
+.finding-form-card select,
+.finding-form-card textarea{
+  border-radius:14px;
+}
+
+.finding-form-card textarea{
+  min-height:140px;
+}
+/* LOT 4.2 — Constat : photos et actions */
+
+#findingFormScreen .photo-section{
+  margin-top:24px;
+  padding-top:20px;
+  border-top:1px solid var(--foselev-border);
+}
+
+#findingFormScreen .photo-section-heading{
+  gap:14px;
+  align-items:center;
+}
+
+#findingFormScreen .photo-add-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+
+#findingFormScreen .photo-add-button{
+  min-height:44px;
+  padding:10px 14px;
+  border:1px solid var(--foselev-orange);
+  border-radius:12px;
+  background:#fff;
+  color:var(--foselev-orange);
+  font-weight:800;
+}
+
+#findingFormScreen .form-actions{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+  margin-top:24px;
+}
+
+#findingFormScreen #findingSave{
+  grid-column:1 / -1;
+  min-height:52px;
+  background:var(--foselev-orange);
+  color:#fff;
+  border-radius:14px;
+  font-weight:800;
+  font-size:1rem;
+}
+
+#findingFormScreen #findingDelete{
+  color:#b71c1c;
+  border-color:#e4b5b5;
+}
+
+@media (max-width:600px){
+  #findingFormScreen .form-actions{
+    grid-template-columns:1fr;
+  }
+
+  #findingFormScreen #findingSave{
+    grid-column:auto;
+  }
+}
+/* LOT 4.3 — couleur selon le niveau de criticité */
+
+#findingLevel[data-level="Information"]{
+  border-color:#8aa4b8;
+  background:#f4f8fb;
+}
+
+#findingLevel[data-level="À surveiller"]{
+  border-color:#e0a32f;
+  background:#fff8e8;
+}
+
+#findingLevel[data-level="Intervention à programmer"]{
+  border-color:#f47721;
+  background:#fff3ea;
+}
+
+#findingLevel[data-level="Intervention urgente"]{
+  border-color:#d94a3a;
+  background:#fff0ee;
+}
+
+#findingLevel[data-level="Immobilisation immédiate"]{
+  border-color:#b71c1c;
+  background:#fdecec;
+  font-weight:800;
+}
+/* =========================================================
+   FOSELEV VFG — LOT 5.1
+   Tableau de bord visite
+   ========================================================= */
+
+#dashboardScreen{
+  padding-bottom:140px;
+}
+
+.machine-summary{
+  margin-bottom:14px;
+}
+
+.machine-summary h1{
+  margin:2px 0 4px;
+  font-size:2rem;
+  line-height:1.05;
+}
+
+.visit-readings-inline,
+.controller-inline{
+  background:#fff;
+  border:1px solid var(--foselev-border);
+  border-radius:16px;
+  padding:12px;
+  box-shadow:0 3px 12px rgba(0,0,0,.04);
+}
+
+.controller-inline{
+  margin-top:10px;
+}
+
+.dashboard-grid{
+  gap:12px;
+  margin-top:16px;
+}
+
+.dashboard-card{
+  overflow:hidden;
+  border:1px solid var(--foselev-border);
+  border-radius:18px;
+  background:#fff;
+  box-shadow:0 5px 18px rgba(0,0,0,.06);
+}
+
+.dashboard-main{
+  min-height:210px;
+  background:#fff;
+}
+
+.machine-visual{
+  min-height:130px;
+  background:#f6f6f3;
+}
+
+.machine-visual span{
+  font-size:3.6rem;
+}
+
+.dashboard-copy{
+  padding:14px;
+  text-align:center;
+}
+
+.dashboard-copy h2{
+  margin:0 0 5px;
+  font-size:1.05rem;
+  text-transform:uppercase;
+  letter-spacing:.02em;
+}
+
+.dashboard-copy strong{
+  color:var(--foselev-orange);
+  font-size:1rem;
+}
+
+.nc-button{
+  min-height:38px;
+  border:0;
+  border-top:1px solid #f0d0cc;
+  background:#fff3f1;
+  color:#b71c1c;
+  font-weight:800;
+}
+
+.dashboard-report-actions{
+  gap:10px;
+  margin-top:14px;
+}
+
+.dashboard-report-actions button{
+  min-height:48px;
+  border-radius:14px;
+}
+/* =========================================================
+   FOSELEV VFG — LOT 5.2
+   En-tête de la visite
+   ========================================================= */
+
+.machine-summary{
+  padding:14px 16px;
+  background:#fff;
+  border:1px solid var(--foselev-border);
+  border-left:5px solid var(--foselev-orange);
+  border-radius:16px;
+  box-shadow:0 4px 14px rgba(0,0,0,.04);
+}
+
+.machine-summary .eyebrow{
+  margin-bottom:4px;
+}
+
+.machine-summary h1{
+  font-size:1.65rem;
+}
+
+#dashboardSubtitle{
+  margin:4px 0 0;
+  font-size:.82rem;
+}
+
+.visit-readings-inline{
+  margin-top:10px;
+}
+
+.visit-readings-inline label,
+.controller-inline label{
+  font-size:.68rem;
+  font-weight:800;
+  color:#555;
+}
+
+.visit-readings-inline input,
+.controller-inline input{
+  margin-top:5px;
+  min-height:38px;
+  border-radius:10px;
+  background:#fff;
+}
+
+.controller-inline{
+  margin-top:10px;
+}
+
+@media (max-width:600px){
+  .machine-summary h1{
+    font-size:1.4rem;
+  }
+}/* LOT 5.3 — Badges résumé de visite */
+
+.visit-scope-summary{
+  margin-top:14px;
+  padding:0;
+  border:0;
+  background:transparent;
+}
+
+.visit-summary-badges{
+  display:grid;
+  grid-template-columns:repeat(4, 1fr);
+  gap:8px;
+}
+
+.visit-summary-badge{
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+  padding:10px 12px;
+  border:1px solid var(--foselev-border);
+  border-radius:12px;
+  background:#fff;
+  color:#777;
+  font-size:.68rem;
+  font-weight:700;
+}
+
+.visit-summary-badge strong{
+  color:var(--foselev-text);
+  font-size:.82rem;
+}
+
+.visit-summary-badge.sync-ok{
+  background:#eef8f1;
+  border-color:#c8e5d0;
+}
+
+.visit-summary-badge.sync-ok strong{
+  color:#238746;
+}
+
+.visit-summary-badge.sync-pending{
+  background:#fff5eb;
+  border-color:#f2d1b6;
+}
+
+.visit-summary-badge.sync-pending strong{
+  color:var(--foselev-orange-dark);
+}
+
+@media (max-width:600px){
+  .visit-summary-badges{
+    grid-template-columns:repeat(2, 1fr);
+  }
+}
+/* LOT 5.3 — Résumé visite, CSS uniquement */
+
+.visit-scope-summary{
+  margin-top:14px;
+  padding:12px 16px;
+  border:1px solid var(--foselev-border);
+  border-left:4px solid var(--foselev-orange);
+  border-radius:14px;
+  background:#fff;
+  box-shadow:0 3px 12px rgba(0,0,0,.04);
+  font-size:.78rem;
+}
+
+.visit-scope-summary strong{
+  color:var(--foselev-text);
+  font-weight:800;
+}
+/* LOT 5.4 — Compteur points de contrôle */
+
+#dashboardScreen .dashboard-grid{
+  position:relative;
+}
+
+#dashboardScreen .dashboard-grid::before{
+  content:"Zones de contrôle";
+  position:absolute;
+  top:-28px;
+  left:0;
+  color:var(--foselev-orange);
+  font-size:.72rem;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+}
+/* LOT 5.4.1 — correction espacement Zones de contrôle */
+
+#dashboardScreen .dashboard-grid{
+  margin-top:44px;
+}
+
+#dashboardScreen .dashboard-grid::before{
+  top:-28px;
+}
+.recent-compact-block {
+  display: grid;
+  gap: 10px;
+}
+
+.recent-compact-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.recent-dropdown {
+  display: grid;
+  gap: 10px;
+}
+
+.recent-dropdown.hidden {
+  display: none !important;
+}
+
+.recent-main-row {
+  border: 2px solid rgba(244, 119, 33, 0.16);
+}
+
+.recent-sub-row {
+  opacity: 0.96;
+}
+.point-option-badge.is-photo-ok {
+  background: #e7f6ec;
+  color: #1f7a3d;
+  border-color: #9bd3ad;
+}
+
+.point-option-badge.is-photo-required {
+  background: #fdeaea;
+  color: #b42318;
+  border-color: #f2a7a7;
+}
+.point-option-badge.is-photo-ok {
+  background: #e7f6ec;
+  color: #1f7a3d;
+  border-color: #9bd3ad;
+}
+
+.point-option-badge.is-photo-required {
+  background: #fdeaea;
+  color: #b42318;
+  border-color: #f2a7a7;
+}
+/* V4.0.1 — Navigation interne du rapport */
+.report-detail-back-link{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-height:40px;
+  margin-top:18px;
+  padding:9px 14px;
+
+  border:1px solid var(--ral-2004, #e25303);
+  border-radius:9px;
+
+  background:#fff;
+  color:var(--ral-7016, #383e42);
+
+  font-size:.72rem;
+  font-weight:800;
+  text-decoration:none;
+}
+
+.report-detail-back-link:hover{
+  background:#fff4ec;
+  color:var(--ral-2004, #e25303);
+}
+
+@media print{
+  .report-detail-back-link{
+    display:inline-flex!important;
+    color:var(--ral-7016, #383e42)!important;
+    border-color:var(--ral-2004, #e25303)!important;
+    text-decoration:none!important;
+  }
+}

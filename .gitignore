@@ -1,0 +1,21 @@
+﻿# FOSELEV VFG - fichiers locaux à ne jamais publier
+
+# Base de données / données de visites
+server/*.db
+*.db
+
+# Dépendances Node
+server/node_modules/
+node_modules/
+
+# Sauvegardes locales
+BACKUP_*/
+app-v4.0_AVANT_*
+app-v4.0_avant_*
+*.bak-point1
+
+# Configuration locale VS Code
+.vscode/
+
+# Fichiers Excel de travail
+*.xlsx
