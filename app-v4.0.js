@@ -918,6 +918,78 @@ let lastAutoSync = 0;
     button.dataset.remaining = String(progress.remaining);
     button.dataset.supplementaryRemaining = String(extra.remaining);
   }
+  async function createVisitPdfFile(visit) {
+  if (!visit?.id) {
+    throw new Error('Visite absente pour la génération PDF.');
+  }
+
+  if (typeof html2pdf !== 'function') {
+    throw new Error('Bibliothèque PDF indisponible.');
+  }
+
+  // Reconstruit le rapport avec les dernières données de la visite.
+  await buildReportPreview();
+
+  const report = $('#reportPreview');
+
+  if (!report || !report.children.length) {
+    throw new Error('Rapport indisponible.');
+  }
+
+  const machineId =
+    visit.machineId ||
+    state.activeMachine?.parkNumber ||
+    state.activeMachine?.id ||
+    'MACHINE';
+
+  const visitDate =
+    visit.visitDate ||
+    new Date().toISOString().slice(0, 10);
+
+  const fileName =
+    `FOSELEV_VFG_${machineId}_${visitDate}.pdf`;
+
+  const options = {
+    margin: 0,
+
+    filename: fileName,
+
+    image: {
+      type: 'jpeg',
+      quality: 0.96
+    },
+
+    html2canvas: {
+      scale: 2,
+      useCORS: true,
+      backgroundColor: '#ffffff'
+    },
+
+    jsPDF: {
+      unit: 'mm',
+      format: 'a4',
+      orientation: 'portrait'
+    },
+
+    enableLinks: true,
+
+    pagebreak: {
+      mode: ['css', 'legacy'],
+      before: '.report-page:not(:first-child)'
+    }
+  };
+
+  const pdfBlob = await html2pdf()
+    .set(options)
+    .from(report)
+    .outputPdf('blob');
+
+  return new File(
+    [pdfBlob],
+    fileName,
+    { type: 'application/pdf' }
+  );
+}
 async function exportVisitVfgFile(visit) {
   if (!visit?.id) return false;
 
@@ -980,19 +1052,32 @@ async function exportVisitVfgFile(visit) {
   );
 
   // Téléphone : ouvre la feuille de partage si elle accepte les fichiers.
-  if (
-    navigator.share &&
-    navigator.canShare &&
-    navigator.canShare({ files: [file] })
-  ) {
-    await navigator.share({
-      files: [file],
-      title: `Visite FOSELEV VFG ${machineId}`,
-      text: `Visite ${machineId} du ${visitDate}`
-    });
+ 
+  let pdfFile = null;
 
-    return true;
-  }
+try {
+  pdfFile = await createVisitPdfFile(visit);
+} catch (error) {
+  console.error('Génération PDF impossible :', error);
+}
+
+const filesToShare = pdfFile
+  ? [pdfFile, file]
+  : [file];
+
+if (
+  navigator.share &&
+  navigator.canShare &&
+  navigator.canShare({ files: filesToShare })
+) {
+  await navigator.share({
+    files: filesToShare,
+    title: `Visite FOSELEV VFG ${machineId}`,
+    text: `Visite ${machineId} du ${visitDate}`
+  });
+
+  return true;
+}
 
   // Secours PC / navigateur ne gérant pas le partage de fichiers.
   const url = URL.createObjectURL(blob);
