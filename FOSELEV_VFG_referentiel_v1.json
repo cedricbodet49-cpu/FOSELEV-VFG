@@ -1,0 +1,6179 @@
+{
+  "version": "1.0.0-P1",
+  "sourceWorkbook": "FOSELEV_VFG_Tourelle_GM_MM-BRAS-NACELLE 14-8   12h.xlsx",
+  "sourceSheets": [
+    "porteur gm-mk-cb-cn",
+    "tourelle GM",
+    "tourelle MK",
+    "BRAS DE GRUE",
+    "NACELLE"
+  ],
+  "rules": {
+    "optionalDefaultStatus": "na",
+    "mandatoryDefaultStatus": "pending",
+    "naExcludedFromControlledTotal": true,
+    "allowCustomPoints": true,
+    "familyResolution": "GM dont modèle/désignation contient MK => MK; sinon catégorie GM/CB/CN",
+    "modules": {
+      "GM": {
+        "carrier": "required",
+        "equipment": "required"
+      },
+      "MK": {
+        "carrier": "required",
+        "equipment": "required"
+      },
+      "CB": {
+        "carrier": "selectable",
+        "equipment": "selectable"
+      },
+      "CN": {
+        "carrier": "selectable",
+        "equipment": "selectable"
+      }
+    }
+  },
+  "families": {
+    "GM": {
+      "carrier": [
+        {
+          "id": "documentation",
+          "label": "Documentation et plaques",
+          "points": [
+            {
+              "id": "documentation-001",
+              "sourceNumber": 1,
+              "label": "Plaques constructeur",
+              "optional": false,
+              "defaultStatus": "pending",
+              "photoRequired": true,
+              "sourceComment": "photos obligatoire ou bouton NA",
+              "plateScope": "machine"
+            },
+            {
+              "id": "documentation-002",
+              "sourceNumber": 2,
+              "label": "Numéro de série",
+              "optional": false,
+              "defaultStatus": "pending",
+              "sourceComment": "i"
+            },
+            {
+              "id": "documentation-003",
+              "sourceNumber": 3,
+              "label": "Carte grise",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "documentation-004",
+              "sourceNumber": 4,
+              "label": "Carnet d’entretien",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "documentation-005",
+              "sourceNumber": 5,
+              "label": "Documents réglementaires",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "documentation-006",
+              "sourceNumber": 6,
+              "label": "photod'ensemble",
+              "optional": false,
+              "defaultStatus": "pending",
+              "photoRequired": true,
+              "sourceComment": "photos obligatoire ou bouton NA"
+            }
+          ]
+        },
+        {
+          "id": "structure",
+          "label": "Châssis / Structure",
+          "points": [
+            {
+              "id": "structure-001",
+              "sourceNumber": 1,
+              "label": "État général du châssis",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "structure-002",
+              "sourceNumber": 2,
+              "label": "Soudures",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "structure-003",
+              "sourceNumber": 3,
+              "label": "Fixations",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "structure-004",
+              "sourceNumber": 4,
+              "label": "Corrosion",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "structure-005",
+              "sourceNumber": 5,
+              "label": "Déformations",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "structure-006",
+              "sourceNumber": 6,
+              "label": "Protections",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "powertrain",
+          "label": "Moteur & Transmission",
+          "points": [
+            {
+              "id": "powertrain-001",
+              "sourceNumber": 1,
+              "label": "Niveau d’huile moteur",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "powertrain-002",
+              "sourceNumber": 2,
+              "label": "Fuites moteur",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "powertrain-003",
+              "sourceNumber": 3,
+              "label": "Courroies et tendeurs",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "powertrain-004",
+              "sourceNumber": 4,
+              "label": "Circuit de refroidissement",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "powertrain-005",
+              "sourceNumber": 5,
+              "label": "Filtration",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "powertrain-006",
+              "sourceNumber": 6,
+              "label": "Échappement",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "powertrain-007",
+              "sourceNumber": 1,
+              "label": "Absence fuite moyeux / ponts",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "powertrain-008",
+              "sourceNumber": 2,
+              "label": "État suspensions",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "powertrain-009",
+              "sourceNumber": 3,
+              "label": "Direction, rotules, vérins et modes de direction",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "powertrain-010",
+              "sourceNumber": 4,
+              "label": "frein de parc",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "powertrain-011",
+              "sourceNumber": 5,
+              "label": "Frein de service",
+              "optional": false,
+              "defaultStatus": "pending",
+              "sourceComment": "bouton essaie dynamique O/N"
+            }
+          ]
+        },
+        {
+          "id": "stabilisers",
+          "label": "Stabilisateurs",
+          "points": [
+            {
+              "id": "stabilisers-001",
+              "sourceNumber": 1,
+              "label": "État structure stabilisateurs",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "stabilisers-002",
+              "sourceNumber": 2,
+              "label": "Absence fissure poutres stabilisation",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "stabilisers-003",
+              "sourceNumber": 3,
+              "label": "État vérins stabilisation",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "stabilisers-004",
+              "sourceNumber": 4,
+              "label": "Absence fuite vérins / flexibles",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "stabilisers-005",
+              "sourceNumber": 5,
+              "label": "État patins / semelles appui",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "stabilisers-006",
+              "sourceNumber": 6,
+              "label": "Axes, bagues, goupilles présents et sécurisés",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "stabilisers-007",
+              "sourceNumber": 7,
+              "label": "Sortie / rentrée stabilisateurs",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "tyres",
+          "label": "Pneumatiques",
+          "points": [
+            {
+              "id": "tyres-001",
+              "sourceNumber": 1,
+              "label": "Usure",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "tyres-002",
+              "sourceNumber": 2,
+              "label": "Pression",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "tyres-003",
+              "sourceNumber": 3,
+              "label": "Flancs",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "tyres-004",
+              "sourceNumber": 4,
+              "label": "Jantes",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "tyres-005",
+              "sourceNumber": 5,
+              "label": "Écrous de roues",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "tyres-006",
+              "sourceNumber": 6,
+              "label": "Valves",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "lighting",
+          "label": "Éclairage",
+          "points": [
+            {
+              "id": "lighting-001",
+              "sourceNumber": 1,
+              "label": "Feux de route",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "lighting-002",
+              "sourceNumber": 2,
+              "label": "Feux de position",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "lighting-003",
+              "sourceNumber": 3,
+              "label": "Clignotants",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "lighting-004",
+              "sourceNumber": 4,
+              "label": "Feux stop",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "lighting-005",
+              "sourceNumber": 5,
+              "label": "Feux de recul",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "lighting-006",
+              "sourceNumber": 6,
+              "label": "Feux de gabarit tourelle",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "cab",
+          "label": "Cabine porteur",
+          "points": [
+            {
+              "id": "cab-001",
+              "sourceNumber": 1,
+              "label": "État cabine",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "cab-002",
+              "sourceNumber": 2,
+              "label": "Siège",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "cab-003",
+              "sourceNumber": 3,
+              "label": "Ceinture",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "cab-004",
+              "sourceNumber": 4,
+              "label": "Rétroviseurs",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "cab-005",
+              "sourceNumber": 5,
+              "label": "Essuie-glaces",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "cab-006",
+              "sourceNumber": 6,
+              "label": "Tableau de bord",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "cab-007",
+              "sourceNumber": 7,
+              "label": "Avertisseur sonore",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "electrical",
+          "label": "Électricité porteur",
+          "points": [
+            {
+              "id": "electrical-001",
+              "sourceNumber": 1,
+              "label": "Batteries",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "electrical-002",
+              "sourceNumber": 2,
+              "label": "Coupe-batterie",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "electrical-003",
+              "sourceNumber": 3,
+              "label": "Faisceaux",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "electrical-004",
+              "sourceNumber": 4,
+              "label": "Connecteurs",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "electrical-005",
+              "sourceNumber": 5,
+              "label": "Fusibles",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "electrical-006",
+              "sourceNumber": 6,
+              "label": "Alternateur",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "electrical-007",
+              "sourceNumber": 7,
+              "label": "Démarreur",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "hydraulic",
+          "label": "Hydraulique porteur",
+          "points": [
+            {
+              "id": "hydraulic-001",
+              "sourceNumber": 1,
+              "label": "Réservoir",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "hydraulic-002",
+              "sourceNumber": 2,
+              "label": "Niveau d’huile",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "hydraulic-003",
+              "sourceNumber": 3,
+              "label": "Pompes",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "hydraulic-004",
+              "sourceNumber": 4,
+              "label": "Flexibles",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "hydraulic-005",
+              "sourceNumber": 5,
+              "label": "Raccords",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "hydraulic-006",
+              "sourceNumber": 6,
+              "label": "Distributeurs",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "hydraulic-007",
+              "sourceNumber": 7,
+              "label": "Vérins",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "hydraulic-008",
+              "sourceNumber": 8,
+              "label": "Fuites",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "access",
+          "label": "Coffres / Accès",
+          "points": [
+            {
+              "id": "access-001",
+              "sourceNumber": 1,
+              "label": "Coffres",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "access-002",
+              "sourceNumber": 2,
+              "label": "Capots",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "access-003",
+              "sourceNumber": 3,
+              "label": "Échelles",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "access-004",
+              "sourceNumber": 4,
+              "label": "Marchepieds",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "access-005",
+              "sourceNumber": 5,
+              "label": "Poignées",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "access-006",
+              "sourceNumber": 6,
+              "label": "Protections",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        }
+      ],
+      "upper": [
+        {
+          "id": "upperCab",
+          "label": "Cabine tourelle",
+          "points": [
+            {
+              "id": "upperCab-001",
+              "sourceNumber": 1,
+              "label": "État cabine",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "upperCab-002",
+              "sourceNumber": 2,
+              "label": "Siège",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "upperCab-003",
+              "sourceNumber": 3,
+              "label": "Ceinture",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "upperCab-004",
+              "sourceNumber": 4,
+              "label": "Vitrages",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "upperCab-005",
+              "sourceNumber": 5,
+              "label": "Essuie-glaces",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "upperCab-006",
+              "sourceNumber": 6,
+              "label": "Commandes",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "upperCab-007",
+              "sourceNumber": 7,
+              "label": "Écrans",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "upperCab-008",
+              "sourceNumber": 8,
+              "label": "Climatisation",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "cec",
+          "label": "CEC / Codes défaut",
+          "points": [
+            {
+              "id": "cec-001",
+              "sourceNumber": 1,
+              "label": "Codes défaut",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "cec-002",
+              "sourceNumber": 2,
+              "label": "Écrans",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "cec-003",
+              "sourceNumber": 3,
+              "label": "Alarmes",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "cec-004",
+              "sourceNumber": 4,
+              "label": "Capteurs",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "cec-005",
+              "sourceNumber": 5,
+              "label": "Paramètres",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "cec-006",
+              "sourceNumber": 6,
+              "label": "Historique défauts",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "boom",
+          "label": "Flèche",
+          "points": [
+            {
+              "id": "boom-001",
+              "sourceNumber": 1,
+              "label": "Structure de flèche",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "boom-002",
+              "sourceNumber": 2,
+              "label": "Soudures",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "boom-003",
+              "sourceNumber": 3,
+              "label": "Axes",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "boom-004",
+              "sourceNumber": 4,
+              "label": "Patins",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "boom-005",
+              "sourceNumber": 5,
+              "label": "Vérin de relevage",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "boom-006",
+              "sourceNumber": 6,
+              "label": "Vérins de télescopage",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "boom-007",
+              "sourceNumber": 7,
+              "label": "Flexibles",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "boom-008",
+              "sourceNumber": 8,
+              "label": "Enrouleurs",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "boom-009",
+              "sourceNumber": 9,
+              "label": "Tête de flèche",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "boom-010",
+              "sourceNumber": 10,
+              "label": "Robot de flèche",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "mainWinch",
+          "label": "Treuil principal",
+          "points": [
+            {
+              "id": "mainWinch-001",
+              "sourceNumber": 1,
+              "label": "Câble",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "mainWinch-002",
+              "sourceNumber": 2,
+              "label": "Tambour",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "mainWinch-003",
+              "sourceNumber": 3,
+              "label": "Réducteur",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "mainWinch-004",
+              "sourceNumber": 4,
+              "label": "Frein",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "mainWinch-005",
+              "sourceNumber": 5,
+              "label": "Fixations",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "mainWinch-006",
+              "sourceNumber": 6,
+              "label": "Graissage",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "mainWinch-007",
+              "sourceNumber": 7,
+              "label": "Enrouleur",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "mainWinch-008",
+              "sourceNumber": 8,
+              "label": "Crochet",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "auxWinch",
+          "label": "Treuil auxiliaire",
+          "points": [
+            {
+              "id": "auxWinch-001",
+              "sourceNumber": 1,
+              "label": "Câble",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "auxWinch-002",
+              "sourceNumber": 2,
+              "label": "Tambour",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "auxWinch-003",
+              "sourceNumber": 3,
+              "label": "Réducteur",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "auxWinch-004",
+              "sourceNumber": 4,
+              "label": "Frein",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "auxWinch-005",
+              "sourceNumber": 5,
+              "label": "Fixations",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "auxWinch-006",
+              "sourceNumber": 6,
+              "label": "Graissage",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "auxWinch-007",
+              "sourceNumber": 7,
+              "label": "Enrouleur",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "auxWinch-008",
+              "sourceNumber": 8,
+              "label": "Crochet",
+              "optional": true,
+              "defaultStatus": "na"
+            }
+          ]
+        },
+        {
+          "id": "upperElectrical",
+          "label": "Électricité tourelle",
+          "points": [
+            {
+              "id": "upperElectrical-001",
+              "sourceNumber": 1,
+              "label": "Batteries",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "upperElectrical-002",
+              "sourceNumber": 2,
+              "label": "Faisceaux",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "upperElectrical-003",
+              "sourceNumber": 3,
+              "label": "Connecteurs",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "upperElectrical-004",
+              "sourceNumber": 4,
+              "label": "Capteurs",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "upperElectrical-005",
+              "sourceNumber": 5,
+              "label": "Boîtiers",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "upperElectrical-006",
+              "sourceNumber": 6,
+              "label": "Mise à la masse",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "workLights",
+          "label": "Éclairage de travail",
+          "points": [
+            {
+              "id": "workLights-001",
+              "sourceNumber": 1,
+              "label": "Projecteurs cabine",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "workLights-002",
+              "sourceNumber": 2,
+              "label": "Projecteurs flèche",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "workLights-003",
+              "sourceNumber": 3,
+              "label": "Projecteurs treuils",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "workLights-004",
+              "sourceNumber": 4,
+              "label": "Projecteurs poutres",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "counterweight",
+          "label": "Contrepoids",
+          "points": [
+            {
+              "id": "counterweight-001",
+              "sourceNumber": 1,
+              "label": "Éléments de contrepoids",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "counterweight-002",
+              "sourceNumber": 2,
+              "label": "Verrouillages",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "counterweight-003",
+              "sourceNumber": 3,
+              "label": "Axes",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "counterweight-004",
+              "sourceNumber": 4,
+              "label": "Fixations",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "counterweight-005",
+              "sourceNumber": 5,
+              "label": "Système de dépose",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "slewRing",
+          "label": "Couronne d’orientation",
+          "points": [
+            {
+              "id": "slewRing-001",
+              "sourceNumber": 1,
+              "label": "Boulonnerie",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "slewRing-002",
+              "sourceNumber": 2,
+              "label": "Graissage",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "slewRing-003",
+              "sourceNumber": 3,
+              "label": "Jeu",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "slewRing-004",
+              "sourceNumber": 4,
+              "label": "Dentures",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "slewRing-005",
+              "sourceNumber": 5,
+              "label": "Pignon d’orientation",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "slewRing-006",
+              "sourceNumber": 6,
+              "label": "Frein d’orientation",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "upperHydraulic",
+          "label": "Hydraulique tourelle",
+          "points": [
+            {
+              "id": "upperHydraulic-001",
+              "sourceNumber": 1,
+              "label": "Réservoir",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "upperHydraulic-002",
+              "sourceNumber": 2,
+              "label": "Pompes",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "upperHydraulic-003",
+              "sourceNumber": 3,
+              "label": "Flexibles",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "upperHydraulic-004",
+              "sourceNumber": 4,
+              "label": "Raccords",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "upperHydraulic-005",
+              "sourceNumber": 5,
+              "label": "Distributeurs",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "upperHydraulic-006",
+              "sourceNumber": 6,
+              "label": "Vérins",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "upperHydraulic-007",
+              "sourceNumber": 7,
+              "label": "Fuites",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "lmi",
+          "label": "Limiteur de charge",
+          "points": [
+            {
+              "id": "lmi-001",
+              "sourceNumber": 1,
+              "label": "Affichage",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "lmi-002",
+              "sourceNumber": 2,
+              "label": "Capteurs",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "lmi-003",
+              "sourceNumber": 3,
+              "label": "Limiteurs",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "lmi-004",
+              "sourceNumber": 4,
+              "label": "Alarmes",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "lmi-005",
+              "sourceNumber": 5,
+              "label": "Fin de course",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "lmi-006",
+              "sourceNumber": 6,
+              "label": "Anémomètre",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "engineUpper",
+          "label": "Moteur tourelle (si équipé)",
+          "points": [
+            {
+              "id": "engineUpper-001",
+              "sourceNumber": 1,
+              "label": "État général et propreté du moteur",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "engineUpper-002",
+              "sourceNumber": 2,
+              "label": "Niveau d’huile moteur",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "engineUpper-003",
+              "sourceNumber": 3,
+              "label": "Niveau et état du liquide de refroidissement",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "engineUpper-004",
+              "sourceNumber": 4,
+              "label": "Absence de fuite huile / carburant / liquide de refroidissement",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "engineUpper-005",
+              "sourceNumber": 5,
+              "label": "Courroies, durites et colliers",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "engineUpper-006",
+              "sourceNumber": 6,
+              "label": "Supports moteur et silentblocs",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "engineUpper-007",
+              "sourceNumber": 7,
+              "label": "Échappement et protections thermiques",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "engineUpper-008",
+              "sourceNumber": 8,
+              "label": "Démarrage, arrêt et stabilité du régime",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "engineUpper-009",
+              "sourceNumber": 9,
+              "label": "Alarmes et défauts moteur",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "engineUpper-010",
+              "sourceNumber": 10,
+              "label": "Refroidissement et ventilation du compartiment moteur",
+              "optional": true,
+              "defaultStatus": "na"
+            }
+          ]
+        },
+        {
+          "id": "flyJib",
+          "label": "Option fléchette",
+          "points": [
+            {
+              "id": "flyJib-001",
+              "sourceNumber": 1,
+              "label": "Présence de la documentation / tableau de charge correspondant à la fléchette",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "flyJib-002",
+              "sourceNumber": 2,
+              "label": "Identification des éléments et conformité de la longueur montée",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "flyJib-003",
+              "sourceNumber": 3,
+              "label": "État général de l’adaptateur de tête de flèche",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "flyJib-004",
+              "sourceNumber": 4,
+              "label": "État général des éléments treillis",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "flyJib-005",
+              "sourceNumber": 5,
+              "label": "Membrures, diagonales et montants",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "flyJib-006",
+              "sourceNumber": 6,
+              "label": "Soudures et absence de fissure",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "flyJib-007",
+              "sourceNumber": 7,
+              "label": "Absence de déformation / choc",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "flyJib-008",
+              "sourceNumber": 8,
+              "label": "Corrosion et état de surface",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "flyJib-009",
+              "sourceNumber": 9,
+              "label": "Axes d’assemblage",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "flyJib-010",
+              "sourceNumber": 10,
+              "label": "Goupilles, clavettes et sécurités d’axes",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "flyJib-011",
+              "sourceNumber": 11,
+              "label": "Articulations / charnières de repliage si fléchette pliante",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "flyJib-012",
+              "sourceNumber": 12,
+              "label": "Butées et verrouillages de position",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "flyJib-013",
+              "sourceNumber": 13,
+              "label": "Tirants / haubans / barres de suspension",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "flyJib-014",
+              "sourceNumber": 14,
+              "label": "Points d’ancrage des tirants / haubans",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "flyJib-015",
+              "sourceNumber": 15,
+              "label": "Tête de fléchette",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "flyJib-016",
+              "sourceNumber": 16,
+              "label": "Réas et gorges",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "flyJib-017",
+              "sourceNumber": 17,
+              "label": "Guides-câble et protections",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "flyJib-018",
+              "sourceNumber": 18,
+              "label": "Rooster sheave / poulie additionnelle si équipée",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "flyJib-019",
+              "sourceNumber": 19,
+              "label": "Fléchette de montage / traverse crochet si équipée",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "flyJib-020",
+              "sourceNumber": 20,
+              "label": "Supports et verrouillages de transport",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "flyJib-021",
+              "sourceNumber": 21,
+              "label": "Dispositif d’aide au montage / déploiement",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "flyJib-022",
+              "sourceNumber": 22,
+              "label": "Vérin de réglage hydraulique d’inclinaison si équipé",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "flyJib-023",
+              "sourceNumber": 23,
+              "label": "Axes et articulations du vérin de réglage",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "flyJib-024",
+              "sourceNumber": 24,
+              "label": "Flexibles et raccords hydrauliques de la fléchette",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "flyJib-025",
+              "sourceNumber": 25,
+              "label": "Tambour / enrouleur de flexible si équipé",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "flyJib-026",
+              "sourceNumber": 26,
+              "label": "Absence de fuite sur le circuit de réglage",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "flyJib-027",
+              "sourceNumber": 27,
+              "label": "Capteur d’angle / position de fléchette si équipé",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "flyJib-028",
+              "sourceNumber": 28,
+              "label": "Affichage de l’angle / configuration dans LICCON",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "flyJib-029",
+              "sourceNumber": 29,
+              "label": "Sélection du tableau de charge correspondant",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "flyJib-030",
+              "sourceNumber": 30,
+              "label": "Fonctionnement des sécurités liées à la fléchette",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "flyJib-031",
+              "sourceNumber": 31,
+              "label": "Déploiement / repliage sans point dur ni interférence",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "flyJib-032",
+              "sourceNumber": 32,
+              "label": "Réglage d’inclinaison régulier si hydraulique",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "flyJib-033",
+              "sourceNumber": 33,
+              "label": "Essai fonctionnel sans charge",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "flyJib-034",
+              "sourceNumber": 34,
+              "label": "Absence de jeu anormal après montage",
+              "optional": true,
+              "defaultStatus": "na"
+            }
+          ]
+        },
+        {
+          "id": "luffingJib",
+          "label": "Option volée variable",
+          "points": [
+            {
+              "id": "luffingJib-001",
+              "sourceNumber": 1,
+              "label": "Présence de la documentation / tableau de charge correspondant",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "luffingJib-002",
+              "sourceNumber": 2,
+              "label": "Identification de la configuration et de la longueur montée",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "luffingJib-003",
+              "sourceNumber": 3,
+              "label": "État de l’adaptateur de liaison à la flèche télescopique",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "luffingJib-004",
+              "sourceNumber": 4,
+              "label": "État général des éléments treillis de volée variable",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "luffingJib-005",
+              "sourceNumber": 5,
+              "label": "Membrures, diagonales et montants",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "luffingJib-006",
+              "sourceNumber": 6,
+              "label": "Soudures et absence de fissure",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "luffingJib-007",
+              "sourceNumber": 7,
+              "label": "Absence de déformation / choc",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "luffingJib-008",
+              "sourceNumber": 8,
+              "label": "Corrosion et état de surface",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "luffingJib-009",
+              "sourceNumber": 9,
+              "label": "Axes d’assemblage des éléments",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "luffingJib-010",
+              "sourceNumber": 10,
+              "label": "Goupilles, clavettes et sécurités d’axes",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "luffingJib-011",
+              "sourceNumber": 11,
+              "label": "Pied de volée variable et articulations",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "luffingJib-012",
+              "sourceNumber": 12,
+              "label": "Tête de volée variable",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "luffingJib-013",
+              "sourceNumber": 13,
+              "label": "Réas de tête et état des gorges",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "luffingJib-014",
+              "sourceNumber": 14,
+              "label": "Tirants / haubans / câbles de suspension",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "luffingJib-015",
+              "sourceNumber": 15,
+              "label": "Points d’ancrage et ferrures de haubanage",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "luffingJib-016",
+              "sourceNumber": 16,
+              "label": "Chevalet / dispositif de support de volée si équipé",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "luffingJib-017",
+              "sourceNumber": 17,
+              "label": "Articulations du système de relevage",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "luffingJib-018",
+              "sourceNumber": 18,
+              "label": "Treuil de réglage / relevage de la volée variable",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "luffingJib-019",
+              "sourceNumber": 19,
+              "label": "Tambour du treuil de réglage",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "luffingJib-020",
+              "sourceNumber": 20,
+              "label": "Réducteur du treuil de réglage",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "luffingJib-021",
+              "sourceNumber": 21,
+              "label": "Moteur hydraulique du treuil de réglage",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "luffingJib-022",
+              "sourceNumber": 22,
+              "label": "Frein du treuil de réglage",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "luffingJib-023",
+              "sourceNumber": 23,
+              "label": "Fixations du treuil de réglage",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "luffingJib-024",
+              "sourceNumber": 24,
+              "label": "Câble de réglage / relevage",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "luffingJib-025",
+              "sourceNumber": 25,
+              "label": "Ancrage du câble de réglage",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "luffingJib-026",
+              "sourceNumber": 26,
+              "label": "État du mouflage de réglage",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "luffingJib-027",
+              "sourceNumber": 27,
+              "label": "Poulies / réas du système de réglage",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "luffingJib-028",
+              "sourceNumber": 28,
+              "label": "Guides-câble et protections",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "luffingJib-029",
+              "sourceNumber": 29,
+              "label": "Enroulement correct du câble sur le tambour",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "luffingJib-030",
+              "sourceNumber": 30,
+              "label": "Flexibles et raccords hydrauliques associés",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "luffingJib-031",
+              "sourceNumber": 31,
+              "label": "Capteur d’angle de volée variable",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "luffingJib-032",
+              "sourceNumber": 32,
+              "label": "Capteurs de position / fins de course",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "luffingJib-033",
+              "sourceNumber": 33,
+              "label": "Câblage et connecteurs des capteurs",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "luffingJib-034",
+              "sourceNumber": 34,
+              "label": "Affichage de la configuration dans LICCON",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "luffingJib-035",
+              "sourceNumber": 35,
+              "label": "Affichage de l’angle de volée",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "luffingJib-036",
+              "sourceNumber": 36,
+              "label": "Sélection du tableau de charge correspondant",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "luffingJib-037",
+              "sourceNumber": 37,
+              "label": "Interpolation / prise en compte de la capacité lors du relevage",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "luffingJib-038",
+              "sourceNumber": 38,
+              "label": "Fonction d’érection automatique si équipée",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "luffingJib-039",
+              "sourceNumber": 39,
+              "label": "Commande du treuil de réglage par le système de contrôle",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "luffingJib-040",
+              "sourceNumber": 40,
+              "label": "Montée / descente régulière de la volée variable",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "luffingJib-041",
+              "sourceNumber": 41,
+              "label": "Maintien de la position / efficacité du frein",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "luffingJib-042",
+              "sourceNumber": 42,
+              "label": "Fonctionnement des alarmes et sécurités",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "luffingJib-043",
+              "sourceNumber": 43,
+              "label": "Arrêts / limites de mouvement",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "luffingJib-044",
+              "sourceNumber": 44,
+              "label": "Essai fonctionnel sans charge",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "luffingJib-045",
+              "sourceNumber": 45,
+              "label": "Absence de bruit, à-coup, fuite ou échauffement anormal",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "luffingJib-046",
+              "sourceNumber": 46,
+              "label": "Verrouillages et supports de transport après repliage / démontage",
+              "optional": true,
+              "defaultStatus": "na"
+            }
+          ]
+        }
+      ],
+      "upperLabel": "Tourelle"
+    },
+    "MK": {
+      "carrier": [
+        {
+          "id": "documentation",
+          "label": "Documentation et plaques",
+          "points": [
+            {
+              "id": "documentation-001",
+              "sourceNumber": 1,
+              "label": "Plaques constructeur",
+              "optional": false,
+              "defaultStatus": "pending",
+              "photoRequired": true,
+              "sourceComment": "photos obligatoire ou bouton NA",
+              "plateScope": "machine"
+            },
+            {
+              "id": "documentation-002",
+              "sourceNumber": 2,
+              "label": "Numéro de série",
+              "optional": false,
+              "defaultStatus": "pending",
+              "sourceComment": "i"
+            },
+            {
+              "id": "documentation-003",
+              "sourceNumber": 3,
+              "label": "Carte grise",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "documentation-004",
+              "sourceNumber": 4,
+              "label": "Carnet d’entretien",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "documentation-005",
+              "sourceNumber": 5,
+              "label": "Documents réglementaires",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "documentation-006",
+              "sourceNumber": 6,
+              "label": "photod'ensemble",
+              "optional": false,
+              "defaultStatus": "pending",
+              "photoRequired": true,
+              "sourceComment": "photos obligatoire ou bouton NA"
+            }
+          ]
+        },
+        {
+          "id": "structure",
+          "label": "Châssis / Structure",
+          "points": [
+            {
+              "id": "structure-001",
+              "sourceNumber": 1,
+              "label": "État général du châssis",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "structure-002",
+              "sourceNumber": 2,
+              "label": "Soudures",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "structure-003",
+              "sourceNumber": 3,
+              "label": "Fixations",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "structure-004",
+              "sourceNumber": 4,
+              "label": "Corrosion",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "structure-005",
+              "sourceNumber": 5,
+              "label": "Déformations",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "structure-006",
+              "sourceNumber": 6,
+              "label": "Protections",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "powertrain",
+          "label": "Moteur & Transmission",
+          "points": [
+            {
+              "id": "powertrain-001",
+              "sourceNumber": 1,
+              "label": "Niveau d’huile moteur",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "powertrain-002",
+              "sourceNumber": 2,
+              "label": "Fuites moteur",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "powertrain-003",
+              "sourceNumber": 3,
+              "label": "Courroies et tendeurs",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "powertrain-004",
+              "sourceNumber": 4,
+              "label": "Circuit de refroidissement",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "powertrain-005",
+              "sourceNumber": 5,
+              "label": "Filtration",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "powertrain-006",
+              "sourceNumber": 6,
+              "label": "Échappement",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "powertrain-007",
+              "sourceNumber": 1,
+              "label": "Absence fuite moyeux / ponts",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "powertrain-008",
+              "sourceNumber": 2,
+              "label": "État suspensions",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "powertrain-009",
+              "sourceNumber": 3,
+              "label": "Direction, rotules, vérins et modes de direction",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "powertrain-010",
+              "sourceNumber": 4,
+              "label": "frein de parc",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "powertrain-011",
+              "sourceNumber": 5,
+              "label": "Frein de service",
+              "optional": false,
+              "defaultStatus": "pending",
+              "sourceComment": "bouton essaie dynamique O/N"
+            }
+          ]
+        },
+        {
+          "id": "stabilisers",
+          "label": "Stabilisateurs",
+          "points": [
+            {
+              "id": "stabilisers-001",
+              "sourceNumber": 1,
+              "label": "État structure stabilisateurs",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "stabilisers-002",
+              "sourceNumber": 2,
+              "label": "Absence fissure poutres stabilisation",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "stabilisers-003",
+              "sourceNumber": 3,
+              "label": "État vérins stabilisation",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "stabilisers-004",
+              "sourceNumber": 4,
+              "label": "Absence fuite vérins / flexibles",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "stabilisers-005",
+              "sourceNumber": 5,
+              "label": "État patins / semelles appui",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "stabilisers-006",
+              "sourceNumber": 6,
+              "label": "Axes, bagues, goupilles présents et sécurisés",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "stabilisers-007",
+              "sourceNumber": 7,
+              "label": "Sortie / rentrée stabilisateurs",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "tyres",
+          "label": "Pneumatiques",
+          "points": [
+            {
+              "id": "tyres-001",
+              "sourceNumber": 1,
+              "label": "Usure",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "tyres-002",
+              "sourceNumber": 2,
+              "label": "Pression",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "tyres-003",
+              "sourceNumber": 3,
+              "label": "Flancs",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "tyres-004",
+              "sourceNumber": 4,
+              "label": "Jantes",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "tyres-005",
+              "sourceNumber": 5,
+              "label": "Écrous de roues",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "tyres-006",
+              "sourceNumber": 6,
+              "label": "Valves",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "lighting",
+          "label": "Éclairage",
+          "points": [
+            {
+              "id": "lighting-001",
+              "sourceNumber": 1,
+              "label": "Feux de route",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "lighting-002",
+              "sourceNumber": 2,
+              "label": "Feux de position",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "lighting-003",
+              "sourceNumber": 3,
+              "label": "Clignotants",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "lighting-004",
+              "sourceNumber": 4,
+              "label": "Feux stop",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "lighting-005",
+              "sourceNumber": 5,
+              "label": "Feux de recul",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "lighting-006",
+              "sourceNumber": 6,
+              "label": "Feux de gabarit tourelle",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "cab",
+          "label": "Cabine porteur",
+          "points": [
+            {
+              "id": "cab-001",
+              "sourceNumber": 1,
+              "label": "État cabine",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "cab-002",
+              "sourceNumber": 2,
+              "label": "Siège",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "cab-003",
+              "sourceNumber": 3,
+              "label": "Ceinture",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "cab-004",
+              "sourceNumber": 4,
+              "label": "Rétroviseurs",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "cab-005",
+              "sourceNumber": 5,
+              "label": "Essuie-glaces",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "cab-006",
+              "sourceNumber": 6,
+              "label": "Tableau de bord",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "cab-007",
+              "sourceNumber": 7,
+              "label": "Avertisseur sonore",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "electrical",
+          "label": "Électricité porteur",
+          "points": [
+            {
+              "id": "electrical-001",
+              "sourceNumber": 1,
+              "label": "Batteries",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "electrical-002",
+              "sourceNumber": 2,
+              "label": "Coupe-batterie",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "electrical-003",
+              "sourceNumber": 3,
+              "label": "Faisceaux",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "electrical-004",
+              "sourceNumber": 4,
+              "label": "Connecteurs",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "electrical-005",
+              "sourceNumber": 5,
+              "label": "Fusibles",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "electrical-006",
+              "sourceNumber": 6,
+              "label": "Alternateur",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "electrical-007",
+              "sourceNumber": 7,
+              "label": "Démarreur",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "hydraulic",
+          "label": "Hydraulique porteur",
+          "points": [
+            {
+              "id": "hydraulic-001",
+              "sourceNumber": 1,
+              "label": "Réservoir",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "hydraulic-002",
+              "sourceNumber": 2,
+              "label": "Niveau d’huile",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "hydraulic-003",
+              "sourceNumber": 3,
+              "label": "Pompes",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "hydraulic-004",
+              "sourceNumber": 4,
+              "label": "Flexibles",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "hydraulic-005",
+              "sourceNumber": 5,
+              "label": "Raccords",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "hydraulic-006",
+              "sourceNumber": 6,
+              "label": "Distributeurs",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "hydraulic-007",
+              "sourceNumber": 7,
+              "label": "Vérins",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "hydraulic-008",
+              "sourceNumber": 8,
+              "label": "Fuites",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "access",
+          "label": "Coffres / Accès",
+          "points": [
+            {
+              "id": "access-001",
+              "sourceNumber": 1,
+              "label": "Coffres",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "access-002",
+              "sourceNumber": 2,
+              "label": "Capots",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "access-003",
+              "sourceNumber": 3,
+              "label": "Échelles",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "access-004",
+              "sourceNumber": 4,
+              "label": "Marchepieds",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "access-005",
+              "sourceNumber": 5,
+              "label": "Poignées",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "access-006",
+              "sourceNumber": 6,
+              "label": "Protections",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        }
+      ],
+      "upper": [
+        {
+          "id": "structure-mat-tour-fleche",
+          "label": "Structure mât / tour / flèche",
+          "points": [
+            {
+              "id": "structure-mat-tour-fleche-001",
+              "sourceNumber": 1,
+              "label": "État général structure mât / tour",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "structure-mat-tour-fleche-002",
+              "sourceNumber": 2,
+              "label": "Absence de fissure / déformation / choc",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "structure-mat-tour-fleche-003",
+              "sourceNumber": 3,
+              "label": "Soudures",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "structure-mat-tour-fleche-004",
+              "sourceNumber": 4,
+              "label": "Axes",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "structure-mat-tour-fleche-005",
+              "sourceNumber": 5,
+              "label": "Bagues / jeux anormaux",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "structure-mat-tour-fleche-006",
+              "sourceNumber": 6,
+              "label": "Verrouillages mécaniques",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "structure-mat-tour-fleche-007",
+              "sourceNumber": 7,
+              "label": "Graissage des articulations",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "structure-mat-tour-fleche-008",
+              "sourceNumber": 8,
+              "label": "État général de la flèche",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "structure-mat-tour-fleche-009",
+              "sourceNumber": 9,
+              "label": "Tirants / haubans / renvois",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "structure-mat-tour-fleche-010",
+              "sourceNumber": 10,
+              "label": "Galets / guidages",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "structure-mat-tour-fleche-011",
+              "sourceNumber": 11,
+              "label": "Rails de chariot",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "structure-mat-tour-fleche-012",
+              "sourceNumber": 12,
+              "label": "Câblage / chaînes porte-câbles",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "orientation",
+          "label": "Orientation",
+          "points": [
+            {
+              "id": "orientation-001",
+              "sourceNumber": 1,
+              "label": "Boulonnerie de couronne",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "orientation-002",
+              "sourceNumber": 2,
+              "label": "Graissage",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "orientation-003",
+              "sourceNumber": 3,
+              "label": "Jeu",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "orientation-004",
+              "sourceNumber": 4,
+              "label": "Dentures",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "orientation-005",
+              "sourceNumber": 5,
+              "label": "Pignon / motoréducteur d’orientation",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "orientation-006",
+              "sourceNumber": 6,
+              "label": "Frein d’orientation",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "orientation-007",
+              "sourceNumber": 7,
+              "label": "Rotation gauche / droite",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "orientation-008",
+              "sourceNumber": 8,
+              "label": "Progressivité de la commande",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "orientation-009",
+              "sourceNumber": 9,
+              "label": "Limitation de zone si applicable",
+              "optional": true,
+              "defaultStatus": "na"
+            }
+          ]
+        },
+        {
+          "id": "treuil-cable-crochet",
+          "label": "Treuil / câble / crochet",
+          "points": [
+            {
+              "id": "treuil-cable-crochet-001",
+              "sourceNumber": 1,
+              "label": "Câble",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "treuil-cable-crochet-002",
+              "sourceNumber": 2,
+              "label": "Tambour",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "treuil-cable-crochet-003",
+              "sourceNumber": 3,
+              "label": "Guide-câble",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "treuil-cable-crochet-004",
+              "sourceNumber": 4,
+              "label": "Réducteur / motoréducteur",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "treuil-cable-crochet-005",
+              "sourceNumber": 5,
+              "label": "Frein",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "treuil-cable-crochet-006",
+              "sourceNumber": 6,
+              "label": "Fixations",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "treuil-cable-crochet-007",
+              "sourceNumber": 7,
+              "label": "Graissage",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "treuil-cable-crochet-008",
+              "sourceNumber": 8,
+              "label": "Enroulement du câble",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "treuil-cable-crochet-009",
+              "sourceNumber": 9,
+              "label": "Poulies / réas / gorges",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "treuil-cable-crochet-010",
+              "sourceNumber": 10,
+              "label": "Fixation extrémité câble",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "treuil-cable-crochet-011",
+              "sourceNumber": 11,
+              "label": "Crochet",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "treuil-cable-crochet-012",
+              "sourceNumber": 12,
+              "label": "Linguet de sécurité",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "treuil-cable-crochet-013",
+              "sourceNumber": 13,
+              "label": "Rotation du crochet",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "treuil-cable-crochet-014",
+              "sourceNumber": 14,
+              "label": "Marquage CMU",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "treuil-cable-crochet-015",
+              "sourceNumber": 15,
+              "label": "État général moufle / accessoires de levage",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "chariot-de-distribution",
+          "label": "Chariot de distribution",
+          "points": [
+            {
+              "id": "chariot-de-distribution-001",
+              "sourceNumber": 1,
+              "label": "Structure du chariot",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "chariot-de-distribution-002",
+              "sourceNumber": 2,
+              "label": "Galets / roulements",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "chariot-de-distribution-003",
+              "sourceNumber": 3,
+              "label": "Rails / guidages",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "chariot-de-distribution-004",
+              "sourceNumber": 4,
+              "label": "Câble / chaîne de distribution",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "chariot-de-distribution-005",
+              "sourceNumber": 5,
+              "label": "Motorisation",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "chariot-de-distribution-006",
+              "sourceNumber": 6,
+              "label": "Frein",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "chariot-de-distribution-007",
+              "sourceNumber": 7,
+              "label": "Fin de course avant",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "chariot-de-distribution-008",
+              "sourceNumber": 8,
+              "label": "Fin de course arrière",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "chariot-de-distribution-009",
+              "sourceNumber": 9,
+              "label": "Butées mécaniques",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "chariot-de-distribution-010",
+              "sourceNumber": 10,
+              "label": "Déplacement avant / arrière et progressivité",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "hydraulique",
+          "label": "Hydraulique",
+          "points": [
+            {
+              "id": "hydraulique-001",
+              "sourceNumber": 1,
+              "label": "Réservoir",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "hydraulique-002",
+              "sourceNumber": 2,
+              "label": "Niveau d’huile",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "hydraulique-003",
+              "sourceNumber": 3,
+              "label": "Pompes",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "hydraulique-004",
+              "sourceNumber": 4,
+              "label": "Filtration",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "hydraulique-005",
+              "sourceNumber": 5,
+              "label": "Flexibles",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "hydraulique-006",
+              "sourceNumber": 6,
+              "label": "Raccords",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "hydraulique-007",
+              "sourceNumber": 7,
+              "label": "Distributeurs",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "hydraulique-008",
+              "sourceNumber": 8,
+              "label": "Vérins",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "hydraulique-009",
+              "sourceNumber": 9,
+              "label": "Fuites",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "electricite-commande",
+          "label": "Électricité / commande",
+          "points": [
+            {
+              "id": "electricite-commande-001",
+              "sourceNumber": 1,
+              "label": "Batteries",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "electricite-commande-002",
+              "sourceNumber": 2,
+              "label": "Coupe-batterie",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "electricite-commande-003",
+              "sourceNumber": 3,
+              "label": "Faisceaux",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "electricite-commande-004",
+              "sourceNumber": 4,
+              "label": "Connecteurs",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "electricite-commande-005",
+              "sourceNumber": 5,
+              "label": "Armoires / boîtiers électriques",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "electricite-commande-006",
+              "sourceNumber": 6,
+              "label": "Capteurs / fins de course",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "electricite-commande-007",
+              "sourceNumber": 7,
+              "label": "Pupitre de commande",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "electricite-commande-008",
+              "sourceNumber": 8,
+              "label": "Écran / diagnostic",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "electricite-commande-009",
+              "sourceNumber": 9,
+              "label": "Télécommande si équipée",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "electricite-commande-010",
+              "sourceNumber": 10,
+              "label": "Arrêts d’urgence",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "electricite-commande-011",
+              "sourceNumber": 11,
+              "label": "Avertisseur sonore",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "electricite-commande-012",
+              "sourceNumber": 12,
+              "label": "Éclairage de travail",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "securites-grue",
+          "label": "Sécurités grue",
+          "points": [
+            {
+              "id": "securites-grue-001",
+              "sourceNumber": 1,
+              "label": "Limiteur de moment / charge",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "securites-grue-002",
+              "sourceNumber": 2,
+              "label": "Affichage charge / portée",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "securites-grue-003",
+              "sourceNumber": 3,
+              "label": "Fin de course haut crochet",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "securites-grue-004",
+              "sourceNumber": 4,
+              "label": "Fin de course bas crochet",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "securites-grue-005",
+              "sourceNumber": 5,
+              "label": "Fins de course chariot",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "securites-grue-006",
+              "sourceNumber": 6,
+              "label": "Sécurité d’orientation",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "securites-grue-007",
+              "sourceNumber": 7,
+              "label": "Sécurité de stabilisation",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "securites-grue-008",
+              "sourceNumber": 8,
+              "label": "Anémomètre",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "securites-grue-009",
+              "sourceNumber": 9,
+              "label": "Alarme surcharge",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "securites-grue-010",
+              "sourceNumber": 10,
+              "label": "Coupure des mouvements dangereux en surcharge",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "securites-grue-011",
+              "sourceNumber": 11,
+              "label": "Arrêts d’urgence fonctionnels",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "securites-grue-012",
+              "sourceNumber": 12,
+              "label": "Verrouillages transport",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "deploiement-repliement",
+          "label": "Déploiement / repliement",
+          "points": [
+            {
+              "id": "deploiement-repliement-001",
+              "sourceNumber": 1,
+              "label": "Séquence de déploiement",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "deploiement-repliement-002",
+              "sourceNumber": 2,
+              "label": "Séquence de repliement",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "deploiement-repliement-003",
+              "sourceNumber": 3,
+              "label": "Verrouillages de déploiement",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "deploiement-repliement-004",
+              "sourceNumber": 4,
+              "label": "Capteurs de position",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "deploiement-repliement-005",
+              "sourceNumber": 5,
+              "label": "Synchronisation des mouvements",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "deploiement-repliement-006",
+              "sourceNumber": 6,
+              "label": "Absence d’interférence / collision",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "deploiement-repliement-007",
+              "sourceNumber": 7,
+              "label": "Position travail correctement détectée",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "deploiement-repliement-008",
+              "sourceNumber": 8,
+              "label": "Position transport correctement détectée",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "essais-fonctionnels-sans-charge",
+          "label": "Essais fonctionnels sans charge",
+          "points": [
+            {
+              "id": "essais-fonctionnels-sans-charge-001",
+              "sourceNumber": 1,
+              "label": "Levage montée",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "essais-fonctionnels-sans-charge-002",
+              "sourceNumber": 2,
+              "label": "Levage descente",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "essais-fonctionnels-sans-charge-003",
+              "sourceNumber": 3,
+              "label": "Distribution chariot avant",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "essais-fonctionnels-sans-charge-004",
+              "sourceNumber": 4,
+              "label": "Distribution chariot arrière",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "essais-fonctionnels-sans-charge-005",
+              "sourceNumber": 5,
+              "label": "Orientation gauche",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "essais-fonctionnels-sans-charge-006",
+              "sourceNumber": 6,
+              "label": "Orientation droite",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "essais-fonctionnels-sans-charge-007",
+              "sourceNumber": 7,
+              "label": "Modes lents / rapides",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "essais-fonctionnels-sans-charge-008",
+              "sourceNumber": 8,
+              "label": "Arrêt immédiat des mouvements",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "essais-fonctionnels-sans-charge-009",
+              "sourceNumber": 9,
+              "label": "Fonctionnement des sécurités pendant les essais",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "essais-fonctionnels-sans-charge-010",
+              "sourceNumber": 10,
+              "label": "Absence de bruit anormal",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "essais-fonctionnels-sans-charge-011",
+              "sourceNumber": 11,
+              "label": "Absence d’échauffement anormal",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "essais-avec-charge",
+          "label": "Essais avec charge",
+          "points": [
+            {
+              "id": "essais-avec-charge-001",
+              "sourceNumber": 1,
+              "label": "Levage avec charge",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "essais-avec-charge-002",
+              "sourceNumber": 2,
+              "label": "Maintien de la charge suspendue",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "essais-avec-charge-003",
+              "sourceNumber": 3,
+              "label": "Frein de levage",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "essais-avec-charge-004",
+              "sourceNumber": 4,
+              "label": "Translation chariot avec charge",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "essais-avec-charge-005",
+              "sourceNumber": 5,
+              "label": "Orientation avec charge",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "essais-avec-charge-006",
+              "sourceNumber": 6,
+              "label": "Contrôle affichage charge / portée",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "essais-avec-charge-007",
+              "sourceNumber": 7,
+              "label": "Contrôle limiteur de moment selon procédure applicable",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        }
+      ],
+      "upperLabel": "Grue MK"
+    },
+    "CB": {
+      "carrier": [
+        {
+          "id": "documentation",
+          "label": "Documentation et plaques",
+          "points": [
+            {
+              "id": "documentation-001",
+              "sourceNumber": 1,
+              "label": "Plaques constructeur",
+              "optional": false,
+              "defaultStatus": "pending",
+              "photoRequired": true,
+              "sourceComment": "photos obligatoire ou bouton NA",
+              "plateScope": "chassis+equipment"
+            },
+            {
+              "id": "documentation-002",
+              "sourceNumber": 2,
+              "label": "Numéro de série",
+              "optional": false,
+              "defaultStatus": "pending",
+              "sourceComment": "i"
+            },
+            {
+              "id": "documentation-003",
+              "sourceNumber": 3,
+              "label": "Carte grise",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "documentation-004",
+              "sourceNumber": 4,
+              "label": "Carnet d’entretien",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "documentation-005",
+              "sourceNumber": 5,
+              "label": "Documents réglementaires",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "documentation-006",
+              "sourceNumber": 6,
+              "label": "photod'ensemble",
+              "optional": false,
+              "defaultStatus": "pending",
+              "photoRequired": true,
+              "sourceComment": "photos obligatoire ou bouton NA"
+            }
+          ]
+        },
+        {
+          "id": "structure",
+          "label": "Châssis / Structure",
+          "points": [
+            {
+              "id": "structure-001",
+              "sourceNumber": 1,
+              "label": "État général du châssis",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "structure-002",
+              "sourceNumber": 2,
+              "label": "Soudures",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "structure-003",
+              "sourceNumber": 3,
+              "label": "Fixations",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "structure-004",
+              "sourceNumber": 4,
+              "label": "Corrosion",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "structure-005",
+              "sourceNumber": 5,
+              "label": "Déformations",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "structure-006",
+              "sourceNumber": 6,
+              "label": "Protections",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "powertrain",
+          "label": "Moteur & Transmission",
+          "points": [
+            {
+              "id": "powertrain-001",
+              "sourceNumber": 1,
+              "label": "Niveau d’huile moteur",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "powertrain-002",
+              "sourceNumber": 2,
+              "label": "Fuites moteur",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "powertrain-003",
+              "sourceNumber": 3,
+              "label": "Courroies et tendeurs",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "powertrain-004",
+              "sourceNumber": 4,
+              "label": "Circuit de refroidissement",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "powertrain-005",
+              "sourceNumber": 5,
+              "label": "Filtration",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "powertrain-006",
+              "sourceNumber": 6,
+              "label": "Échappement",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "powertrain-007",
+              "sourceNumber": 1,
+              "label": "Absence fuite moyeux / ponts",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "powertrain-008",
+              "sourceNumber": 2,
+              "label": "État suspensions",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "powertrain-009",
+              "sourceNumber": 3,
+              "label": "Direction, rotules, vérins et modes de direction",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "powertrain-010",
+              "sourceNumber": 4,
+              "label": "frein de parc",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "powertrain-011",
+              "sourceNumber": 5,
+              "label": "Frein de service",
+              "optional": false,
+              "defaultStatus": "pending",
+              "sourceComment": "bouton essaie dynamique O/N"
+            }
+          ]
+        },
+        {
+          "id": "stabilisers",
+          "label": "Stabilisateurs",
+          "points": [
+            {
+              "id": "stabilisers-001",
+              "sourceNumber": 1,
+              "label": "État structure stabilisateurs",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "stabilisers-002",
+              "sourceNumber": 2,
+              "label": "Absence fissure poutres stabilisation",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "stabilisers-003",
+              "sourceNumber": 3,
+              "label": "État vérins stabilisation",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "stabilisers-004",
+              "sourceNumber": 4,
+              "label": "Absence fuite vérins / flexibles",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "stabilisers-005",
+              "sourceNumber": 5,
+              "label": "État patins / semelles appui",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "stabilisers-006",
+              "sourceNumber": 6,
+              "label": "Axes, bagues, goupilles présents et sécurisés",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "stabilisers-007",
+              "sourceNumber": 7,
+              "label": "Sortie / rentrée stabilisateurs",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "tyres",
+          "label": "Pneumatiques",
+          "points": [
+            {
+              "id": "tyres-001",
+              "sourceNumber": 1,
+              "label": "Usure",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "tyres-002",
+              "sourceNumber": 2,
+              "label": "Pression",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "tyres-003",
+              "sourceNumber": 3,
+              "label": "Flancs",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "tyres-004",
+              "sourceNumber": 4,
+              "label": "Jantes",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "tyres-005",
+              "sourceNumber": 5,
+              "label": "Écrous de roues",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "tyres-006",
+              "sourceNumber": 6,
+              "label": "Valves",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "lighting",
+          "label": "Éclairage",
+          "points": [
+            {
+              "id": "lighting-001",
+              "sourceNumber": 1,
+              "label": "Feux de route",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "lighting-002",
+              "sourceNumber": 2,
+              "label": "Feux de position",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "lighting-003",
+              "sourceNumber": 3,
+              "label": "Clignotants",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "lighting-004",
+              "sourceNumber": 4,
+              "label": "Feux stop",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "lighting-005",
+              "sourceNumber": 5,
+              "label": "Feux de recul",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "lighting-006",
+              "sourceNumber": 6,
+              "label": "Feux de gabarit tourelle",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "cab",
+          "label": "Cabine porteur",
+          "points": [
+            {
+              "id": "cab-001",
+              "sourceNumber": 1,
+              "label": "État cabine",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "cab-002",
+              "sourceNumber": 2,
+              "label": "Siège",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "cab-003",
+              "sourceNumber": 3,
+              "label": "Ceinture",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "cab-004",
+              "sourceNumber": 4,
+              "label": "Rétroviseurs",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "cab-005",
+              "sourceNumber": 5,
+              "label": "Essuie-glaces",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "cab-006",
+              "sourceNumber": 6,
+              "label": "Tableau de bord",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "cab-007",
+              "sourceNumber": 7,
+              "label": "Avertisseur sonore",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "electrical",
+          "label": "Électricité porteur",
+          "points": [
+            {
+              "id": "electrical-001",
+              "sourceNumber": 1,
+              "label": "Batteries",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "electrical-002",
+              "sourceNumber": 2,
+              "label": "Coupe-batterie",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "electrical-003",
+              "sourceNumber": 3,
+              "label": "Faisceaux",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "electrical-004",
+              "sourceNumber": 4,
+              "label": "Connecteurs",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "electrical-005",
+              "sourceNumber": 5,
+              "label": "Fusibles",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "electrical-006",
+              "sourceNumber": 6,
+              "label": "Alternateur",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "electrical-007",
+              "sourceNumber": 7,
+              "label": "Démarreur",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "hydraulic",
+          "label": "Hydraulique porteur",
+          "points": [
+            {
+              "id": "hydraulic-001",
+              "sourceNumber": 1,
+              "label": "Réservoir",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "hydraulic-002",
+              "sourceNumber": 2,
+              "label": "Niveau d’huile",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "hydraulic-003",
+              "sourceNumber": 3,
+              "label": "Pompes",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "hydraulic-004",
+              "sourceNumber": 4,
+              "label": "Flexibles",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "hydraulic-005",
+              "sourceNumber": 5,
+              "label": "Raccords",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "hydraulic-006",
+              "sourceNumber": 6,
+              "label": "Distributeurs",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "hydraulic-007",
+              "sourceNumber": 7,
+              "label": "Vérins",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "hydraulic-008",
+              "sourceNumber": 8,
+              "label": "Fuites",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "access",
+          "label": "Coffres / Accès",
+          "points": [
+            {
+              "id": "access-001",
+              "sourceNumber": 1,
+              "label": "Coffres",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "access-002",
+              "sourceNumber": 2,
+              "label": "Capots",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "access-003",
+              "sourceNumber": 3,
+              "label": "Échelles",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "access-004",
+              "sourceNumber": 4,
+              "label": "Marchepieds",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "access-005",
+              "sourceNumber": 5,
+              "label": "Poignées",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "access-006",
+              "sourceNumber": 6,
+              "label": "Protections",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        }
+      ],
+      "upper": [
+        {
+          "id": "embase-faux-chassis",
+          "label": "Embase / faux-châssis",
+          "points": [
+            {
+              "id": "embase-faux-chassis-001",
+              "sourceNumber": 1,
+              "label": "État général embase / faux-châssis",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "embase-faux-chassis-002",
+              "sourceNumber": 2,
+              "label": "Boulonnerie de fixation",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "embase-faux-chassis-003",
+              "sourceNumber": 3,
+              "label": "Soudures",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "embase-faux-chassis-004",
+              "sourceNumber": 4,
+              "label": "Absence de fissure",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "embase-faux-chassis-005",
+              "sourceNumber": 5,
+              "label": "Absence de déformation",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "embase-faux-chassis-006",
+              "sourceNumber": 6,
+              "label": "Corrosion",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "embase-faux-chassis-007",
+              "sourceNumber": 7,
+              "label": "Platines / renforts",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "embase-faux-chassis-008",
+              "sourceNumber": 8,
+              "label": "Fixations accessoires / protections",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "colonne-orientation",
+          "label": "Colonne / orientation",
+          "points": [
+            {
+              "id": "colonne-orientation-001",
+              "sourceNumber": 1,
+              "label": "État général de la colonne",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "colonne-orientation-002",
+              "sourceNumber": 2,
+              "label": "Boulonnerie de couronne",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "colonne-orientation-003",
+              "sourceNumber": 3,
+              "label": "Graissage",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "colonne-orientation-004",
+              "sourceNumber": 4,
+              "label": "Jeu",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "colonne-orientation-005",
+              "sourceNumber": 5,
+              "label": "Dentures",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "colonne-orientation-006",
+              "sourceNumber": 6,
+              "label": "Pignon / motoréducteur d’orientation",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "colonne-orientation-007",
+              "sourceNumber": 7,
+              "label": "Frein d’orientation",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "colonne-orientation-008",
+              "sourceNumber": 8,
+              "label": "Rotation gauche / droite",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "colonne-orientation-009",
+              "sourceNumber": 9,
+              "label": "Butées / limitation d’orientation",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "colonne-orientation-010",
+              "sourceNumber": 10,
+              "label": "Flexibles / passage tournant",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "bras-principal-secondaire",
+          "label": "Bras principal / secondaire",
+          "points": [
+            {
+              "id": "bras-principal-secondaire-001",
+              "sourceNumber": 1,
+              "label": "État général des bras",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "bras-principal-secondaire-002",
+              "sourceNumber": 2,
+              "label": "Absence de fissure / déformation / choc",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "bras-principal-secondaire-003",
+              "sourceNumber": 3,
+              "label": "Soudures",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "bras-principal-secondaire-004",
+              "sourceNumber": 4,
+              "label": "Axes",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "bras-principal-secondaire-005",
+              "sourceNumber": 5,
+              "label": "Bagues / jeux",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "bras-principal-secondaire-006",
+              "sourceNumber": 6,
+              "label": "Graissage articulations",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "bras-principal-secondaire-007",
+              "sourceNumber": 7,
+              "label": "Butées",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "bras-principal-secondaire-008",
+              "sourceNumber": 8,
+              "label": "Passage flexibles / câbles",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "bras-principal-secondaire-009",
+              "sourceNumber": 9,
+              "label": "Protections",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "bras-principal-secondaire-010",
+              "sourceNumber": 10,
+              "label": "Repères / marquages",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "extensions-telescopiques",
+          "label": "Extensions télescopiques",
+          "points": [
+            {
+              "id": "extensions-telescopiques-001",
+              "sourceNumber": 1,
+              "label": "État des éléments télescopiques",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "extensions-telescopiques-002",
+              "sourceNumber": 2,
+              "label": "Patins / guidages",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "extensions-telescopiques-003",
+              "sourceNumber": 3,
+              "label": "Jeux",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "extensions-telescopiques-004",
+              "sourceNumber": 4,
+              "label": "Vérin(s) de télescopage",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "extensions-telescopiques-005",
+              "sourceNumber": 5,
+              "label": "Chaînes / câbles de synchronisation si équipés",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "extensions-telescopiques-006",
+              "sourceNumber": 6,
+              "label": "Flexibles / enrouleurs",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "extensions-telescopiques-007",
+              "sourceNumber": 7,
+              "label": "Fin de course / détection de position",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "extensions-telescopiques-008",
+              "sourceNumber": 8,
+              "label": "Sortie / rentrée complète",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "extensions-telescopiques-009",
+              "sourceNumber": 9,
+              "label": "Absence de point dur",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "verins-articulations",
+          "label": "Vérins / articulations",
+          "points": [
+            {
+              "id": "verins-articulations-001",
+              "sourceNumber": 1,
+              "label": "Vérin de levage principal",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "verins-articulations-002",
+              "sourceNumber": 2,
+              "label": "Vérin de bras secondaire",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "verins-articulations-003",
+              "sourceNumber": 3,
+              "label": "Autres vérins de mouvement",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "verins-articulations-004",
+              "sourceNumber": 4,
+              "label": "Tiges de vérins",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "verins-articulations-005",
+              "sourceNumber": 5,
+              "label": "Joints / suintements",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "verins-articulations-006",
+              "sourceNumber": 6,
+              "label": "Axes",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "verins-articulations-007",
+              "sourceNumber": 7,
+              "label": "Bagues",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "verins-articulations-008",
+              "sourceNumber": 8,
+              "label": "Goupilles / sécurisation",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "verins-articulations-009",
+              "sourceNumber": 9,
+              "label": "Graissage",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "verins-articulations-010",
+              "sourceNumber": 10,
+              "label": "Jeux anormaux",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "hydraulique-grue",
+          "label": "Hydraulique grue",
+          "points": [
+            {
+              "id": "hydraulique-grue-001",
+              "sourceNumber": 1,
+              "label": "Réservoir",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "hydraulique-grue-002",
+              "sourceNumber": 2,
+              "label": "Niveau d’huile",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "hydraulique-grue-003",
+              "sourceNumber": 3,
+              "label": "Pompe(s)",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "hydraulique-grue-004",
+              "sourceNumber": 4,
+              "label": "Filtration",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "hydraulique-grue-005",
+              "sourceNumber": 5,
+              "label": "Flexibles",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "hydraulique-grue-006",
+              "sourceNumber": 6,
+              "label": "Raccords",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "hydraulique-grue-007",
+              "sourceNumber": 7,
+              "label": "Distributeurs",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "hydraulique-grue-008",
+              "sourceNumber": 8,
+              "label": "Clapets / valves de sécurité",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "hydraulique-grue-009",
+              "sourceNumber": 9,
+              "label": "Passage tournant",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "hydraulique-grue-010",
+              "sourceNumber": 10,
+              "label": "Fuites",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "hydraulique-grue-011",
+              "sourceNumber": 11,
+              "label": "Température / bruit anormal",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "commandes-radiocommande",
+          "label": "Commandes / radiocommande",
+          "points": [
+            {
+              "id": "commandes-radiocommande-001",
+              "sourceNumber": 1,
+              "label": "Commandes au poste fixe",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "commandes-radiocommande-002",
+              "sourceNumber": 2,
+              "label": "Radiocommande si équipée",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "commandes-radiocommande-003",
+              "sourceNumber": 3,
+              "label": "Sélecteur poste de commande",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "commandes-radiocommande-004",
+              "sourceNumber": 4,
+              "label": "Arrêt d’urgence",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "commandes-radiocommande-005",
+              "sourceNumber": 5,
+              "label": "Commande homme mort / validation",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "commandes-radiocommande-006",
+              "sourceNumber": 6,
+              "label": "Progressivité des mouvements",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "commandes-radiocommande-007",
+              "sourceNumber": 7,
+              "label": "Retour au neutre",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "commandes-radiocommande-008",
+              "sourceNumber": 8,
+              "label": "Affichage / voyants",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "commandes-radiocommande-009",
+              "sourceNumber": 9,
+              "label": "Batterie / chargeur radiocommande",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "commandes-radiocommande-010",
+              "sourceNumber": 10,
+              "label": "Avertisseur sonore",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "securites-limiteur-de-charge",
+          "label": "Sécurités / limiteur de charge",
+          "points": [
+            {
+              "id": "securites-limiteur-de-charge-001",
+              "sourceNumber": 1,
+              "label": "Limiteur de charge / moment",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "securites-limiteur-de-charge-002",
+              "sourceNumber": 2,
+              "label": "Affichage charge / portée si équipé",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "securites-limiteur-de-charge-003",
+              "sourceNumber": 3,
+              "label": "Capteurs de position",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "securites-limiteur-de-charge-004",
+              "sourceNumber": 4,
+              "label": "Sécurité stabilisation",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "securites-limiteur-de-charge-005",
+              "sourceNumber": 5,
+              "label": "Limitation de zone / hauteur si équipée",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "securites-limiteur-de-charge-006",
+              "sourceNumber": 6,
+              "label": "Alarmes",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "securites-limiteur-de-charge-007",
+              "sourceNumber": 7,
+              "label": "Arrêts d’urgence",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "securites-limiteur-de-charge-008",
+              "sourceNumber": 8,
+              "label": "Coupure des mouvements dangereux",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "securites-limiteur-de-charge-009",
+              "sourceNumber": 9,
+              "label": "Verrouillages transport",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "securites-limiteur-de-charge-010",
+              "sourceNumber": 10,
+              "label": "Signalisation / avertisseurs",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "crochet-accessoires",
+          "label": "Crochet / accessoires",
+          "points": [
+            {
+              "id": "crochet-accessoires-001",
+              "sourceNumber": 1,
+              "label": "Crochet",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "crochet-accessoires-002",
+              "sourceNumber": 2,
+              "label": "Linguet de sécurité",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "crochet-accessoires-003",
+              "sourceNumber": 3,
+              "label": "Marquage CMU",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "crochet-accessoires-004",
+              "sourceNumber": 4,
+              "label": "Émerillon / rotation",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "crochet-accessoires-005",
+              "sourceNumber": 5,
+              "label": "Manilles / accessoires fournis",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "crochet-accessoires-006",
+              "sourceNumber": 6,
+              "label": "Poulies / moufle si équipé",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "crochet-accessoires-007",
+              "sourceNumber": 7,
+              "label": "Fixation des accessoires",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "crochet-accessoires-008",
+              "sourceNumber": 8,
+              "label": "Rangement / verrouillage transport",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "treuil-si-equipe",
+          "label": "Treuil si équipé",
+          "points": [
+            {
+              "id": "treuil-si-equipe-001",
+              "sourceNumber": 1,
+              "label": "Câble",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "treuil-si-equipe-002",
+              "sourceNumber": 2,
+              "label": "Tambour",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "treuil-si-equipe-003",
+              "sourceNumber": 3,
+              "label": "Guide-câble",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "treuil-si-equipe-004",
+              "sourceNumber": 4,
+              "label": "Réducteur",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "treuil-si-equipe-005",
+              "sourceNumber": 5,
+              "label": "Frein",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "treuil-si-equipe-006",
+              "sourceNumber": 6,
+              "label": "Fixations",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "treuil-si-equipe-007",
+              "sourceNumber": 7,
+              "label": "Enroulement",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "treuil-si-equipe-008",
+              "sourceNumber": 8,
+              "label": "Poulies / réas",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "treuil-si-equipe-009",
+              "sourceNumber": 9,
+              "label": "Fin de course",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "treuil-si-equipe-010",
+              "sourceNumber": 10,
+              "label": "Crochet / moufle",
+              "optional": true,
+              "defaultStatus": "na"
+            }
+          ]
+        },
+        {
+          "id": "essais-fonctionnels-sans-charge",
+          "label": "Essais fonctionnels sans charge",
+          "points": [
+            {
+              "id": "essais-fonctionnels-sans-charge-001",
+              "sourceNumber": 1,
+              "label": "Levage / abaissement bras principal",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "essais-fonctionnels-sans-charge-002",
+              "sourceNumber": 2,
+              "label": "Ouverture / fermeture bras secondaire",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "essais-fonctionnels-sans-charge-003",
+              "sourceNumber": 3,
+              "label": "Télescopage sortie / rentrée",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "essais-fonctionnels-sans-charge-004",
+              "sourceNumber": 4,
+              "label": "Orientation gauche / droite",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "essais-fonctionnels-sans-charge-005",
+              "sourceNumber": 5,
+              "label": "Fonctionnement commandes au poste fixe",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "essais-fonctionnels-sans-charge-006",
+              "sourceNumber": 6,
+              "label": "Fonctionnement radiocommande si équipée",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "essais-fonctionnels-sans-charge-007",
+              "sourceNumber": 7,
+              "label": "Progressivité / retour au neutre",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "essais-fonctionnels-sans-charge-008",
+              "sourceNumber": 8,
+              "label": "Arrêt d’urgence",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "essais-fonctionnels-sans-charge-009",
+              "sourceNumber": 9,
+              "label": "Fonctionnement des sécurités",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "essais-fonctionnels-sans-charge-010",
+              "sourceNumber": 10,
+              "label": "Absence de bruit anormal",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "essais-fonctionnels-sans-charge-011",
+              "sourceNumber": 11,
+              "label": "Absence de fuite pendant les mouvements",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "essais-avec-charge",
+          "label": "Essais avec charge",
+          "points": [
+            {
+              "id": "essais-avec-charge-001",
+              "sourceNumber": 1,
+              "label": "Levage avec charge selon procédure applicable",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "essais-avec-charge-002",
+              "sourceNumber": 2,
+              "label": "Maintien de la charge",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "essais-avec-charge-003",
+              "sourceNumber": 3,
+              "label": "Fonctionnement clapets de maintien",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "essais-avec-charge-004",
+              "sourceNumber": 4,
+              "label": "Orientation avec charge",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "essais-avec-charge-005",
+              "sourceNumber": 5,
+              "label": "Télescopage avec charge si autorisé",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "essais-avec-charge-006",
+              "sourceNumber": 6,
+              "label": "Contrôle du limiteur de charge / moment",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "essais-avec-charge-007",
+              "sourceNumber": 7,
+              "label": "Contrôle des alarmes et coupures",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        }
+      ],
+      "upperLabel": "Bras de grue"
+    },
+    "CN": {
+      "carrier": [
+        {
+          "id": "documentation",
+          "label": "Documentation et plaques",
+          "points": [
+            {
+              "id": "documentation-001",
+              "sourceNumber": 1,
+              "label": "Plaques constructeur",
+              "optional": false,
+              "defaultStatus": "pending",
+              "photoRequired": true,
+              "sourceComment": "photos obligatoire ou bouton NA",
+              "plateScope": "chassis+equipment"
+            },
+            {
+              "id": "documentation-002",
+              "sourceNumber": 2,
+              "label": "Numéro de série",
+              "optional": false,
+              "defaultStatus": "pending",
+              "sourceComment": "i"
+            },
+            {
+              "id": "documentation-003",
+              "sourceNumber": 3,
+              "label": "Carte grise",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "documentation-004",
+              "sourceNumber": 4,
+              "label": "Carnet d’entretien",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "documentation-005",
+              "sourceNumber": 5,
+              "label": "Documents réglementaires",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "documentation-006",
+              "sourceNumber": 6,
+              "label": "photod'ensemble",
+              "optional": false,
+              "defaultStatus": "pending",
+              "photoRequired": true,
+              "sourceComment": "photos obligatoire ou bouton NA"
+            }
+          ]
+        },
+        {
+          "id": "structure",
+          "label": "Châssis / Structure",
+          "points": [
+            {
+              "id": "structure-001",
+              "sourceNumber": 1,
+              "label": "État général du châssis",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "structure-002",
+              "sourceNumber": 2,
+              "label": "Soudures",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "structure-003",
+              "sourceNumber": 3,
+              "label": "Fixations",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "structure-004",
+              "sourceNumber": 4,
+              "label": "Corrosion",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "structure-005",
+              "sourceNumber": 5,
+              "label": "Déformations",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "structure-006",
+              "sourceNumber": 6,
+              "label": "Protections",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "powertrain",
+          "label": "Moteur & Transmission",
+          "points": [
+            {
+              "id": "powertrain-001",
+              "sourceNumber": 1,
+              "label": "Niveau d’huile moteur",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "powertrain-002",
+              "sourceNumber": 2,
+              "label": "Fuites moteur",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "powertrain-003",
+              "sourceNumber": 3,
+              "label": "Courroies et tendeurs",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "powertrain-004",
+              "sourceNumber": 4,
+              "label": "Circuit de refroidissement",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "powertrain-005",
+              "sourceNumber": 5,
+              "label": "Filtration",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "powertrain-006",
+              "sourceNumber": 6,
+              "label": "Échappement",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "powertrain-007",
+              "sourceNumber": 1,
+              "label": "Absence fuite moyeux / ponts",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "powertrain-008",
+              "sourceNumber": 2,
+              "label": "État suspensions",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "powertrain-009",
+              "sourceNumber": 3,
+              "label": "Direction, rotules, vérins et modes de direction",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "powertrain-010",
+              "sourceNumber": 4,
+              "label": "frein de parc",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "powertrain-011",
+              "sourceNumber": 5,
+              "label": "Frein de service",
+              "optional": false,
+              "defaultStatus": "pending",
+              "sourceComment": "bouton essaie dynamique O/N"
+            }
+          ]
+        },
+        {
+          "id": "stabilisers",
+          "label": "Stabilisateurs",
+          "points": [
+            {
+              "id": "stabilisers-001",
+              "sourceNumber": 1,
+              "label": "État structure stabilisateurs",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "stabilisers-002",
+              "sourceNumber": 2,
+              "label": "Absence fissure poutres stabilisation",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "stabilisers-003",
+              "sourceNumber": 3,
+              "label": "État vérins stabilisation",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "stabilisers-004",
+              "sourceNumber": 4,
+              "label": "Absence fuite vérins / flexibles",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "stabilisers-005",
+              "sourceNumber": 5,
+              "label": "État patins / semelles appui",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "stabilisers-006",
+              "sourceNumber": 6,
+              "label": "Axes, bagues, goupilles présents et sécurisés",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "stabilisers-007",
+              "sourceNumber": 7,
+              "label": "Sortie / rentrée stabilisateurs",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "tyres",
+          "label": "Pneumatiques",
+          "points": [
+            {
+              "id": "tyres-001",
+              "sourceNumber": 1,
+              "label": "Usure",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "tyres-002",
+              "sourceNumber": 2,
+              "label": "Pression",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "tyres-003",
+              "sourceNumber": 3,
+              "label": "Flancs",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "tyres-004",
+              "sourceNumber": 4,
+              "label": "Jantes",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "tyres-005",
+              "sourceNumber": 5,
+              "label": "Écrous de roues",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "tyres-006",
+              "sourceNumber": 6,
+              "label": "Valves",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "lighting",
+          "label": "Éclairage",
+          "points": [
+            {
+              "id": "lighting-001",
+              "sourceNumber": 1,
+              "label": "Feux de route",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "lighting-002",
+              "sourceNumber": 2,
+              "label": "Feux de position",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "lighting-003",
+              "sourceNumber": 3,
+              "label": "Clignotants",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "lighting-004",
+              "sourceNumber": 4,
+              "label": "Feux stop",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "lighting-005",
+              "sourceNumber": 5,
+              "label": "Feux de recul",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "lighting-006",
+              "sourceNumber": 6,
+              "label": "Feux de gabarit tourelle",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "cab",
+          "label": "Cabine porteur",
+          "points": [
+            {
+              "id": "cab-001",
+              "sourceNumber": 1,
+              "label": "État cabine",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "cab-002",
+              "sourceNumber": 2,
+              "label": "Siège",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "cab-003",
+              "sourceNumber": 3,
+              "label": "Ceinture",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "cab-004",
+              "sourceNumber": 4,
+              "label": "Rétroviseurs",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "cab-005",
+              "sourceNumber": 5,
+              "label": "Essuie-glaces",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "cab-006",
+              "sourceNumber": 6,
+              "label": "Tableau de bord",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "cab-007",
+              "sourceNumber": 7,
+              "label": "Avertisseur sonore",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "electrical",
+          "label": "Électricité porteur",
+          "points": [
+            {
+              "id": "electrical-001",
+              "sourceNumber": 1,
+              "label": "Batteries",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "electrical-002",
+              "sourceNumber": 2,
+              "label": "Coupe-batterie",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "electrical-003",
+              "sourceNumber": 3,
+              "label": "Faisceaux",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "electrical-004",
+              "sourceNumber": 4,
+              "label": "Connecteurs",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "electrical-005",
+              "sourceNumber": 5,
+              "label": "Fusibles",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "electrical-006",
+              "sourceNumber": 6,
+              "label": "Alternateur",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "electrical-007",
+              "sourceNumber": 7,
+              "label": "Démarreur",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "hydraulic",
+          "label": "Hydraulique porteur",
+          "points": [
+            {
+              "id": "hydraulic-001",
+              "sourceNumber": 1,
+              "label": "Réservoir",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "hydraulic-002",
+              "sourceNumber": 2,
+              "label": "Niveau d’huile",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "hydraulic-003",
+              "sourceNumber": 3,
+              "label": "Pompes",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "hydraulic-004",
+              "sourceNumber": 4,
+              "label": "Flexibles",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "hydraulic-005",
+              "sourceNumber": 5,
+              "label": "Raccords",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "hydraulic-006",
+              "sourceNumber": 6,
+              "label": "Distributeurs",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "hydraulic-007",
+              "sourceNumber": 7,
+              "label": "Vérins",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "hydraulic-008",
+              "sourceNumber": 8,
+              "label": "Fuites",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "access",
+          "label": "Coffres / Accès",
+          "points": [
+            {
+              "id": "access-001",
+              "sourceNumber": 1,
+              "label": "Coffres",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "access-002",
+              "sourceNumber": 2,
+              "label": "Capots",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "access-003",
+              "sourceNumber": 3,
+              "label": "Échelles",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "access-004",
+              "sourceNumber": 4,
+              "label": "Marchepieds",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "access-005",
+              "sourceNumber": 5,
+              "label": "Poignées",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "access-006",
+              "sourceNumber": 6,
+              "label": "Protections",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        }
+      ],
+      "upper": [
+        {
+          "id": "tourelle-orientation",
+          "label": "Tourelle / orientation",
+          "points": [
+            {
+              "id": "tourelle-orientation-001",
+              "sourceNumber": 1,
+              "label": "État général tourelle / embase",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "tourelle-orientation-002",
+              "sourceNumber": 2,
+              "label": "Boulonnerie de couronne",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "tourelle-orientation-003",
+              "sourceNumber": 3,
+              "label": "Graissage",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "tourelle-orientation-004",
+              "sourceNumber": 4,
+              "label": "Jeu",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "tourelle-orientation-005",
+              "sourceNumber": 5,
+              "label": "Dentures",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "tourelle-orientation-006",
+              "sourceNumber": 6,
+              "label": "Motoréducteur d’orientation",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "tourelle-orientation-007",
+              "sourceNumber": 7,
+              "label": "Frein d’orientation",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "tourelle-orientation-008",
+              "sourceNumber": 8,
+              "label": "Rotation gauche / droite",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "tourelle-orientation-009",
+              "sourceNumber": 9,
+              "label": "Butées / limitation d’orientation",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "tourelle-orientation-010",
+              "sourceNumber": 10,
+              "label": "Passage tournant / flexibles",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "structure-des-bras",
+          "label": "Structure des bras",
+          "points": [
+            {
+              "id": "structure-des-bras-001",
+              "sourceNumber": 1,
+              "label": "État général des bras",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "structure-des-bras-002",
+              "sourceNumber": 2,
+              "label": "Absence de fissure / déformation / choc",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "structure-des-bras-003",
+              "sourceNumber": 3,
+              "label": "Soudures",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "structure-des-bras-004",
+              "sourceNumber": 4,
+              "label": "Axes",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "structure-des-bras-005",
+              "sourceNumber": 5,
+              "label": "Bagues / jeux",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "structure-des-bras-006",
+              "sourceNumber": 6,
+              "label": "Graissage articulations",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "structure-des-bras-007",
+              "sourceNumber": 7,
+              "label": "Butées",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "structure-des-bras-008",
+              "sourceNumber": 8,
+              "label": "Passage flexibles / câbles",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "structure-des-bras-009",
+              "sourceNumber": 9,
+              "label": "Protections",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "structure-des-bras-010",
+              "sourceNumber": 10,
+              "label": "Marquages / repères",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "extensions-telescopiques",
+          "label": "Extensions télescopiques",
+          "points": [
+            {
+              "id": "extensions-telescopiques-001",
+              "sourceNumber": 1,
+              "label": "État des éléments télescopiques",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "extensions-telescopiques-002",
+              "sourceNumber": 2,
+              "label": "Patins / guidages",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "extensions-telescopiques-003",
+              "sourceNumber": 3,
+              "label": "Jeux",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "extensions-telescopiques-004",
+              "sourceNumber": 4,
+              "label": "Vérin(s) de télescopage",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "extensions-telescopiques-005",
+              "sourceNumber": 5,
+              "label": "Chaînes / câbles de synchronisation si équipés",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "extensions-telescopiques-006",
+              "sourceNumber": 6,
+              "label": "Flexibles / enrouleurs",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "extensions-telescopiques-007",
+              "sourceNumber": 7,
+              "label": "Fin de course / détection de position",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "extensions-telescopiques-008",
+              "sourceNumber": 8,
+              "label": "Sortie / rentrée complète",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "extensions-telescopiques-009",
+              "sourceNumber": 9,
+              "label": "Absence de point dur",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "verins-articulations",
+          "label": "Vérins / articulations",
+          "points": [
+            {
+              "id": "verins-articulations-001",
+              "sourceNumber": 1,
+              "label": "Vérins de levage",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "verins-articulations-002",
+              "sourceNumber": 2,
+              "label": "Vérins d’articulation",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "verins-articulations-003",
+              "sourceNumber": 3,
+              "label": "Vérin(s) de télescopage",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "verins-articulations-004",
+              "sourceNumber": 4,
+              "label": "Vérin de mise à niveau panier",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "verins-articulations-005",
+              "sourceNumber": 5,
+              "label": "Tiges de vérins",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "verins-articulations-006",
+              "sourceNumber": 6,
+              "label": "Joints / suintements",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "verins-articulations-007",
+              "sourceNumber": 7,
+              "label": "Axes / bagues",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "verins-articulations-008",
+              "sourceNumber": 8,
+              "label": "Goupilles / sécurisation",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "verins-articulations-009",
+              "sourceNumber": 9,
+              "label": "Graissage",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "verins-articulations-010",
+              "sourceNumber": 10,
+              "label": "Jeux anormaux",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "hydraulique-nacelle",
+          "label": "Hydraulique nacelle",
+          "points": [
+            {
+              "id": "hydraulique-nacelle-001",
+              "sourceNumber": 1,
+              "label": "Réservoir",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "hydraulique-nacelle-002",
+              "sourceNumber": 2,
+              "label": "Niveau d’huile",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "hydraulique-nacelle-003",
+              "sourceNumber": 3,
+              "label": "Pompe(s)",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "hydraulique-nacelle-004",
+              "sourceNumber": 4,
+              "label": "Filtration",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "hydraulique-nacelle-005",
+              "sourceNumber": 5,
+              "label": "Flexibles",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "hydraulique-nacelle-006",
+              "sourceNumber": 6,
+              "label": "Raccords",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "hydraulique-nacelle-007",
+              "sourceNumber": 7,
+              "label": "Distributeurs",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "hydraulique-nacelle-008",
+              "sourceNumber": 8,
+              "label": "Clapets / valves de sécurité",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "hydraulique-nacelle-009",
+              "sourceNumber": 9,
+              "label": "Passage tournant",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "hydraulique-nacelle-010",
+              "sourceNumber": 10,
+              "label": "Fuites",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "hydraulique-nacelle-011",
+              "sourceNumber": 11,
+              "label": "Pompe de secours si équipée",
+              "optional": true,
+              "defaultStatus": "na"
+            }
+          ]
+        },
+        {
+          "id": "panier-nacelle",
+          "label": "Panier / nacelle",
+          "points": [
+            {
+              "id": "panier-nacelle-001",
+              "sourceNumber": 1,
+              "label": "État général du panier",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "panier-nacelle-002",
+              "sourceNumber": 2,
+              "label": "Structure / soudures",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "panier-nacelle-003",
+              "sourceNumber": 3,
+              "label": "Plancher antidérapant",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "panier-nacelle-004",
+              "sourceNumber": 4,
+              "label": "Garde-corps",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "panier-nacelle-005",
+              "sourceNumber": 5,
+              "label": "Portillon / fermeture",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "panier-nacelle-006",
+              "sourceNumber": 6,
+              "label": "Verrouillage du portillon",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "panier-nacelle-007",
+              "sourceNumber": 7,
+              "label": "Points d’ancrage EPI",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "panier-nacelle-008",
+              "sourceNumber": 8,
+              "label": "Plaque charge nominale / nombre de personnes",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "panier-nacelle-009",
+              "sourceNumber": 9,
+              "label": "Fixation du panier",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "panier-nacelle-010",
+              "sourceNumber": 10,
+              "label": "Rotation panier si équipée",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "panier-nacelle-011",
+              "sourceNumber": 11,
+              "label": "Mise à niveau panier",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "panier-nacelle-012",
+              "sourceNumber": 12,
+              "label": "Absence de déformation / corrosion",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "commandes-au-sol",
+          "label": "Commandes au sol",
+          "points": [
+            {
+              "id": "commandes-au-sol-001",
+              "sourceNumber": 1,
+              "label": "Pupitre / boîtier de commande",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "commandes-au-sol-002",
+              "sourceNumber": 2,
+              "label": "Sélecteur sol / panier",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "commandes-au-sol-003",
+              "sourceNumber": 3,
+              "label": "Arrêt d’urgence",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "commandes-au-sol-004",
+              "sourceNumber": 4,
+              "label": "Commande homme mort / validation",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "commandes-au-sol-005",
+              "sourceNumber": 5,
+              "label": "Commandes de mouvements",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "commandes-au-sol-006",
+              "sourceNumber": 6,
+              "label": "Retour au neutre",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "commandes-au-sol-007",
+              "sourceNumber": 7,
+              "label": "Affichage / voyants",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "commandes-au-sol-008",
+              "sourceNumber": 8,
+              "label": "Avertisseur sonore",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "commandes-au-sol-009",
+              "sourceNumber": 9,
+              "label": "Commandes de secours",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "commandes-au-sol-010",
+              "sourceNumber": 10,
+              "label": "Repérage des commandes",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "commandes-panier",
+          "label": "Commandes panier",
+          "points": [
+            {
+              "id": "commandes-panier-001",
+              "sourceNumber": 1,
+              "label": "Pupitre de commande",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "commandes-panier-002",
+              "sourceNumber": 2,
+              "label": "Arrêt d’urgence",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "commandes-panier-003",
+              "sourceNumber": 3,
+              "label": "Commande homme mort / validation",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "commandes-panier-004",
+              "sourceNumber": 4,
+              "label": "Commandes de mouvements",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "commandes-panier-005",
+              "sourceNumber": 5,
+              "label": "Retour au neutre",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "commandes-panier-006",
+              "sourceNumber": 6,
+              "label": "Progressivité",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "commandes-panier-007",
+              "sourceNumber": 7,
+              "label": "Avertisseur sonore",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "commandes-panier-008",
+              "sourceNumber": 8,
+              "label": "Affichage / voyants",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "commandes-panier-009",
+              "sourceNumber": 9,
+              "label": "Sélecteurs / autorisations",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "commandes-panier-010",
+              "sourceNumber": 10,
+              "label": "Protection du pupitre",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "electricite-capteurs",
+          "label": "Électricité / capteurs",
+          "points": [
+            {
+              "id": "electricite-capteurs-001",
+              "sourceNumber": 1,
+              "label": "Batteries / alimentation",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "electricite-capteurs-002",
+              "sourceNumber": 2,
+              "label": "Coupe-batterie",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "electricite-capteurs-003",
+              "sourceNumber": 3,
+              "label": "Faisceaux",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "electricite-capteurs-004",
+              "sourceNumber": 4,
+              "label": "Connecteurs",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "electricite-capteurs-005",
+              "sourceNumber": 5,
+              "label": "Boîtiers électriques",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "electricite-capteurs-006",
+              "sourceNumber": 6,
+              "label": "Capteurs d’angle / position",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "electricite-capteurs-007",
+              "sourceNumber": 7,
+              "label": "Capteur d’inclinaison",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "electricite-capteurs-008",
+              "sourceNumber": 8,
+              "label": "Fins de course",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "electricite-capteurs-009",
+              "sourceNumber": 9,
+              "label": "Mise à la masse",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "electricite-capteurs-010",
+              "sourceNumber": 10,
+              "label": "Éclairage de travail",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "securites-limitations",
+          "label": "Sécurités / limitations",
+          "points": [
+            {
+              "id": "securites-limitations-001",
+              "sourceNumber": 1,
+              "label": "Limiteur de charge / moment si équipé",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "securites-limitations-002",
+              "sourceNumber": 2,
+              "label": "Limitation de portée / hauteur",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "securites-limitations-003",
+              "sourceNumber": 3,
+              "label": "Capteur d’inclinaison / dévers",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "securites-limitations-004",
+              "sourceNumber": 4,
+              "label": "Sécurité stabilisation",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "securites-limitations-005",
+              "sourceNumber": 5,
+              "label": "Interverrouillage sol / panier",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "securites-limitations-006",
+              "sourceNumber": 6,
+              "label": "Arrêts d’urgence",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "securites-limitations-007",
+              "sourceNumber": 7,
+              "label": "Commande homme mort",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "securites-limitations-008",
+              "sourceNumber": 8,
+              "label": "Coupure des mouvements dangereux",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "securites-limitations-009",
+              "sourceNumber": 9,
+              "label": "Alarmes sonores / visuelles",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "securites-limitations-010",
+              "sourceNumber": 10,
+              "label": "Sécurité de mise à niveau panier",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "securites-limitations-011",
+              "sourceNumber": 11,
+              "label": "Protection contre mouvements incompatibles",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "securites-limitations-012",
+              "sourceNumber": 12,
+              "label": "Verrouillages transport",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "dispositifs-de-secours",
+          "label": "Dispositifs de secours",
+          "points": [
+            {
+              "id": "dispositifs-de-secours-001",
+              "sourceNumber": 1,
+              "label": "Descente d’urgence",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "dispositifs-de-secours-002",
+              "sourceNumber": 2,
+              "label": "Pompe manuelle / électrique de secours",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "dispositifs-de-secours-003",
+              "sourceNumber": 3,
+              "label": "Commandes de secours au sol",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "dispositifs-de-secours-004",
+              "sourceNumber": 4,
+              "label": "Procédure de récupération opérateur disponible",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "dispositifs-de-secours-005",
+              "sourceNumber": 5,
+              "label": "Fonctionnement en cas de perte d’alimentation principale",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "dispositifs-de-secours-006",
+              "sourceNumber": 6,
+              "label": "Accès aux dispositifs de secours",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "dispositifs-de-secours-007",
+              "sourceNumber": 7,
+              "label": "Repérage / instructions lisibles",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "essais-fonctionnels",
+          "label": "Essais fonctionnels",
+          "points": [
+            {
+              "id": "essais-fonctionnels-001",
+              "sourceNumber": 1,
+              "label": "Élévation / abaissement",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "essais-fonctionnels-002",
+              "sourceNumber": 2,
+              "label": "Déploiement / repliement",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "essais-fonctionnels-003",
+              "sourceNumber": 3,
+              "label": "Télescopage sortie / rentrée",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "essais-fonctionnels-004",
+              "sourceNumber": 4,
+              "label": "Orientation gauche / droite",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "essais-fonctionnels-005",
+              "sourceNumber": 5,
+              "label": "Rotation panier si équipée",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "essais-fonctionnels-006",
+              "sourceNumber": 6,
+              "label": "Mise à niveau panier",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "essais-fonctionnels-007",
+              "sourceNumber": 7,
+              "label": "Commandes au sol",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "essais-fonctionnels-008",
+              "sourceNumber": 8,
+              "label": "Commandes panier",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "essais-fonctionnels-009",
+              "sourceNumber": 9,
+              "label": "Progressivité / retour au neutre",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "essais-fonctionnels-010",
+              "sourceNumber": 10,
+              "label": "Arrêts d’urgence",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "essais-fonctionnels-011",
+              "sourceNumber": 11,
+              "label": "Dispositifs de secours",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "essais-fonctionnels-012",
+              "sourceNumber": 12,
+              "label": "Fonctionnement des sécurités",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "essais-fonctionnels-013",
+              "sourceNumber": 13,
+              "label": "Absence de bruit anormal",
+              "optional": false,
+              "defaultStatus": "pending"
+            },
+            {
+              "id": "essais-fonctionnels-014",
+              "sourceNumber": 14,
+              "label": "Absence de fuite pendant les mouvements",
+              "optional": false,
+              "defaultStatus": "pending"
+            }
+          ]
+        },
+        {
+          "id": "essai-avec-charge-si-applicable",
+          "label": "Essai avec charge si applicable",
+          "points": [
+            {
+              "id": "essai-avec-charge-si-applicable-001",
+              "sourceNumber": 1,
+              "label": "Essai avec charge selon procédure constructeur / réglementation applicable",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "essai-avec-charge-si-applicable-002",
+              "sourceNumber": 2,
+              "label": "Maintien en position",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "essai-avec-charge-si-applicable-003",
+              "sourceNumber": 3,
+              "label": "Mise à niveau panier sous charge",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "essai-avec-charge-si-applicable-004",
+              "sourceNumber": 4,
+              "label": "Fonctionnement des sécurités sous charge",
+              "optional": true,
+              "defaultStatus": "na"
+            },
+            {
+              "id": "essai-avec-charge-si-applicable-005",
+              "sourceNumber": 5,
+              "label": "Contrôle des alarmes / limitations",
+              "optional": true,
+              "defaultStatus": "na"
+            }
+          ]
+        }
+      ],
+      "upperLabel": "Nacelle"
+    }
+  }
+}

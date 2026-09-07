@@ -4,15 +4,58 @@ const IS_PUBLIC_PILOT =
   window.location.hostname === 'cedricbodet49-cpu.github.io' ||
   window.location.hostname.endsWith('.github.io');
 
+// V8K3.4 MOBILE_PERMANENT_ENDPOINT
+// Sur GitHub Pages, le serveur VFG peut etre memorise une fois pour toutes
+// avec ?server=https%3A%2F%2Fnom-du-pc.tailnet.ts.net .
+// L'adresse reste ensuite conservee dans ce navigateur, quel que soit le Wi-Fi.
+const SERVER_URL_KEY = 'FOSELEV_VFG_server_url_v1';
+const CLIENT_ID_KEY = 'FOSELEV_VFG_client_id_v1';
+
+function normalizeVfgServerUrl(value) {
+  const url = String(value || '').trim().replace(/\/+$/, '');
+  if (!url) return '';
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') return '';
+    return parsed.origin;
+  } catch (_) {
+    return '';
+  }
+}
+
+function ensureVfgClientId() {
+  let id = localStorage.getItem(CLIENT_ID_KEY) || '';
+  if (!id) {
+    id = (globalThis.crypto && typeof globalThis.crypto.randomUUID === 'function')
+      ? globalThis.crypto.randomUUID()
+      : `vfg-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+    localStorage.setItem(CLIENT_ID_KEY, id);
+  }
+  return id;
+}
+
+const VFG_CLIENT_ID = ensureVfgClientId();
+const serverFromQuery = normalizeVfgServerUrl(
+  new URLSearchParams(window.location.search).get('server')
+);
+
+if (serverFromQuery) {
+  localStorage.setItem(SERVER_URL_KEY, serverFromQuery);
+}
+
+const rememberedServerUrl = normalizeVfgServerUrl(
+  localStorage.getItem(SERVER_URL_KEY)
+);
+
 const SERVER_BASE_URL =
   IS_PUBLIC_PILOT
-    ? null
+    ? (serverFromQuery || rememberedServerUrl || null)
     : (
         window.location.port === '3000'
           ? window.location.origin
-          : 'http://localhost:3000'
+          : (rememberedServerUrl || 'http://localhost:3000')
       );
-  const VERSION = '4.0.0-S2.01-P4.1';
+  const VERSION = 'V8K3.4';
   const STORAGE_KEYS = {
     recents: 'foselev_v3_recent_machines',
     activeMachine: 'foselev_v3_active_machine',
@@ -918,23 +961,19 @@ let lastAutoSync = 0;
     button.dataset.remaining = String(progress.remaining);
     button.dataset.supplementaryRemaining = String(extra.remaining);
   }
- async function createVisitPdfFile(visit) {
+// V8K3_FINAL_PDF_SERIALIZED_HTML
+async function createVisitPdfFile(visit) {
   if (!visit?.id) {
     throw new Error('Visite absente pour la génération PDF.');
   }
 
-  if (typeof html2pdf !== 'function') {
-    throw new Error('Bibliothèque PDF indisponible.');
+  if (!SERVER_BASE_URL) {
+    throw new Error(
+      'Génération PDF automatique indisponible : ouvre VFG depuis le serveur local du PC.'
+    );
   }
 
   await buildReportPreview({ saveFields: false });
-
-  // Laisse au navigateur le temps de mettre en page le rapport.
-  await new Promise(resolve => {
-    requestAnimationFrame(() => {
-      requestAnimationFrame(resolve);
-    });
-  });
 
   const report = $('#reportPreview');
 
@@ -950,99 +989,69 @@ let lastAutoSync = 0;
     throw new Error('Aucune page dans le rapport.');
   }
 
-  const machineId =
+  // Le rapport contient déjà les photos sous forme data: URL.
+  // On transmet donc au serveur un instantané HTML complet du rapport
+  // déjà validé à l'écran, au lieu de reconstruire une seconde fois
+  // la visite dans un navigateur headless.
+  const machineId = String(
     visit.machineId ||
     state.activeMachine?.parkNumber ||
     state.activeMachine?.id ||
-    'MACHINE';
+    'MACHINE'
+  ).replace(/[^a-zA-Z0-9_-]/g, '') || 'MACHINE';
 
-  const visitDate =
+  const visitDate = String(
     visit.visitDate ||
-    new Date().toISOString().slice(0, 10);
+    new Date().toISOString().slice(0, 10)
+  ).slice(0, 10);
 
   const fileName =
     `FOSELEV_VFG_${machineId}_${visitDate}.pdf`;
 
-  const options = {
-    margin: 0,
+  const response = await fetch(
+    `${SERVER_BASE_URL}/api/render-report-pdf`,
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        reportHtml: report.innerHTML,
+        machineId,
+        visitDate,
+        pageCount: pages.length
+      })
+    }
+  );
 
-    image: {
-      type: 'jpeg',
-      quality: 0.95
-    },
+  if (!response.ok) {
+    let detail = '';
 
-    html2canvas: {
-      scale: 1.5,
-      useCORS: true,
-      backgroundColor: '#ffffff',
-      logging: false,
-      windowWidth: 1200
-    },
-
-    jsPDF: {
-      unit: 'mm',
-      format: 'a4',
-      orientation: 'portrait'
-    },
-
-    enableLinks: false
-  };
-
-  let pdf = null;
-
-  for (let index = 0; index < pages.length; index += 1) {
-    toast(
-      `Génération PDF : page ${index + 1}/${pages.length}`
-    );
-
-    const worker = html2pdf()
-      .set(options)
-      .from(pages[index]);
-
-    if (index === 0) {
-      await worker.toPdf();
-      pdf = await worker.get('pdf');
-
-    } else {
-      await worker.toCanvas();
-
-      const canvas = await worker.get('canvas');
-
-      const imageData = canvas.toDataURL(
-        'image/jpeg',
-        0.95
-      );
-
-      pdf.addPage('a4', 'portrait');
-
-      pdf.addImage(
-        imageData,
-        'JPEG',
-        0,
-        0,
-        210,
-        297,
-        undefined,
-        'FAST'
-      );
-
-      // Libère la mémoire du téléphone après chaque page.
-      canvas.width = 1;
-      canvas.height = 1;
+    try {
+      const data = await response.json();
+      detail = String(data?.error || '').trim();
+    } catch (_) {
+      // Le détail JSON est facultatif.
     }
 
-    // Laisse respirer le navigateur entre deux pages.
-    await new Promise(resolve => setTimeout(resolve, 0));
+    throw new Error(
+      detail ||
+      `Génération PDF Chromium impossible (HTTP ${response.status}).`
+    );
   }
 
-  if (!pdf) {
-    throw new Error('Création du document PDF impossible.');
-  }
-
-  const pdfBlob = pdf.output('blob');
+  const pdfBlob = await response.blob();
 
   if (!pdfBlob?.size) {
-    throw new Error('Le fichier PDF généré est vide.');
+    throw new Error('Le serveur a retourné un PDF vide.');
+  }
+
+  const signature = await pdfBlob
+    .slice(0, 5)
+    .text();
+
+  if (signature !== '%PDF-') {
+    throw new Error('Le serveur n’a pas retourné un PDF valide.');
   }
 
   return new File(
@@ -1137,50 +1146,742 @@ if (!pdfFile || !pdfFile.size) {
 toast(`PDF généré : ${Math.round(pdfFile.size / 1024)} Ko`);
 
 const filesToShare = [pdfFile, file];
-if (
-  !navigator.share ||
-  !navigator.canShare ||
-  !navigator.canShare({ files: filesToShare })
-) {
-  alert(
-    `Le PDF a bien été généré (${Math.round(pdfFile.size / 1024)} Ko), ` +
-    `mais ce téléphone refuse le partage simultané du PDF et du fichier VFG.`
-  );
 
-  return false;
-}
-
-toast('PDF + VFG prêts à être envoyés.');
 if (
   navigator.share &&
   navigator.canShare &&
   navigator.canShare({ files: filesToShare })
 ) {
-  await navigator.share({
-    files: filesToShare,
-    title: `Visite FOSELEV VFG ${machineId}`,
-    text: `Visite ${machineId} du ${visitDate}`
-  });
+  try {
+    await navigator.share({
+      files: filesToShare,
+      title: `Visite FOSELEV VFG ${machineId}`,
+      text: `Visite ${machineId} du ${visitDate}`
+    });
 
-  return true;
+    return true;
+  } catch (error) {
+    if (error?.name === 'AbortError') {
+      toast('Envoi annule.');
+      return false;
+    }
+
+    console.warn('Partage natif impossible, passage au telechargement :', error);
+  }
 }
 
-  // Secours PC / navigateur ne gérant pas le partage de fichiers.
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
+// Secours pour HTTP local / PC / navigateur sans partage de fichiers.
+const previousDialog = document.getElementById('vfg-export-download-dialog');
+if (previousDialog) previousDialog.remove();
 
-  link.href = url;
-  link.download = fileName;
+const pdfUrl = URL.createObjectURL(pdfFile);
+const vfgUrl = URL.createObjectURL(file);
 
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
+const overlay = document.createElement('div');
+overlay.id = 'vfg-export-download-dialog';
+overlay.style.cssText =
+  'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.55);' +
+  'display:flex;align-items:center;justify-content:center;padding:20px;';
 
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+const panel = document.createElement('div');
+panel.style.cssText =
+  'width:min(92vw,420px);background:#fff;border-radius:16px;padding:22px;' +
+  'box-shadow:0 18px 55px rgba(0,0,0,.28);font-family:Arial,sans-serif;';
 
-  return true;
+const title = document.createElement('h2');
+title.textContent = 'Visite prete';
+title.style.cssText = 'margin:0 0 10px;font-size:21px;';
+
+const info = document.createElement('p');
+info.textContent =
+  "Le partage direct n'est pas disponible sur cette connexion. " +
+  'Telecharge les deux fichiers separement.';
+info.style.cssText = 'margin:0 0 18px;line-height:1.4;';
+
+const pdfButton = document.createElement('a');
+pdfButton.href = pdfUrl;
+pdfButton.download = pdfFile.name;
+pdfButton.textContent = 'Telecharger le rapport PDF';
+pdfButton.style.cssText =
+  'display:block;text-align:center;text-decoration:none;padding:14px 16px;' +
+  'margin:0 0 10px;border-radius:10px;background:#111;color:#fff;font-weight:700;';
+
+const vfgButton = document.createElement('a');
+vfgButton.href = vfgUrl;
+vfgButton.download = fileName;
+vfgButton.textContent = 'Telecharger le fichier VFG';
+vfgButton.style.cssText =
+  'display:block;text-align:center;text-decoration:none;padding:14px 16px;' +
+  'margin:0 0 14px;border-radius:10px;background:#e7e7e7;color:#111;font-weight:700;';
+
+const closeButton = document.createElement('button');
+closeButton.type = 'button';
+closeButton.textContent = 'Fermer';
+closeButton.style.cssText =
+  'width:100%;padding:12px 16px;border:0;border-radius:10px;' +
+  'background:transparent;font-weight:700;';
+
+panel.appendChild(title);
+panel.appendChild(info);
+panel.appendChild(pdfButton);
+panel.appendChild(vfgButton);
+panel.appendChild(closeButton);
+overlay.appendChild(panel);
+document.body.appendChild(overlay);
+
+const cleanupDownloadDialog = () => {
+  URL.revokeObjectURL(pdfUrl);
+  URL.revokeObjectURL(vfgUrl);
+  overlay.remove();
+};
+
+closeButton.addEventListener('click', cleanupDownloadDialog);
+
+overlay.addEventListener('click', (event) => {
+  if (event.target === overlay) cleanupDownloadDialog();
+});
+
+toast('PDF + VFG prets au telechargement.');
+return true;
 }
-  async function finishActiveVisit() {
+    function agencyRecipientForMachine(machine = state.activeMachine) {
+    const agencies = window.FOSELEV_AGENCIES || {};
+    const agencyId = String(machine?.agencyId || '').trim();
+
+    if (agencyId && agencies[agencyId]) {
+      return agencies[agencyId];
+    }
+
+    const agencyName = String(machine?.agency || '').trim().toLowerCase();
+
+    if (agencyName) {
+      const match = Object.values(agencies).find(agency =>
+        String(agency?.name || '').trim().toLowerCase() === agencyName
+      );
+      if (match) return match;
+    }
+
+    return null;
+  }
+
+  async function copyVfgText(text) {
+    const value = String(text || '').trim();
+    if (!value) return false;
+
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(value);
+        return true;
+      }
+    } catch (error) {
+      console.warn('Presse-papiers moderne indisponible :', error);
+    }
+
+    try {
+      const area = document.createElement('textarea');
+      area.value = value;
+      area.setAttribute('readonly', '');
+      area.style.cssText = 'position:fixed;left:-9999px;top:-9999px;';
+      document.body.appendChild(area);
+      area.select();
+      const ok = document.execCommand('copy');
+      area.remove();
+      return ok;
+    } catch (error) {
+      console.warn('Copie adresse impossible :', error);
+      return false;
+    }
+  }
+
+  
+  const VFG_ADDRESS_BOOK_KEY = 'FOSELEV_VFG_address_book_v2';
+
+  function normalizeVfgAgencyName(value) {
+    return String(value || '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[’']/g, "'")
+      .replace(/\s+/g, ' ')
+      .trim()
+      .toLowerCase();
+  }
+
+  function loadVfgAddressBook() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(VFG_ADDRESS_BOOK_KEY) || '{}');
+      return {
+        global: raw?.global && typeof raw.global === 'object' ? raw.global : {},
+        agencies: raw?.agencies && typeof raw.agencies === 'object' ? raw.agencies : {}
+      };
+    } catch {
+      return { global: {}, agencies: {} };
+    }
+  }
+
+  function saveVfgAddressBook(book) {
+    localStorage.setItem(
+      VFG_ADDRESS_BOOK_KEY,
+      JSON.stringify(book || { global: {}, agencies: {} })
+    );
+  }
+
+  function validVfgEmail(value) {
+    const email = String(value || '').trim();
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  }
+
+  function normalizeVfgRecipientEmails(values) {
+    const seen = new Set();
+    const result = [];
+
+    for (const value of values || []) {
+      const email = String(value || '').trim().toLowerCase();
+      if (!validVfgEmail(email) || seen.has(email)) continue;
+      seen.add(email);
+      result.push(email);
+    }
+
+    return result;
+  }
+
+  function vfgContactDataForMachine(machine = state.activeMachine) {
+    const book = window.FOSELEV_VFG_CONTACTS || {};
+    const agencies = Array.isArray(book.agencies) ? book.agencies : [];
+    const machineAgency = String(machine?.agency || '').trim();
+    const machineKey = normalizeVfgAgencyName(machineAgency);
+
+    let agency = agencies.find(item =>
+      normalizeVfgAgencyName(item?.agency) === machineKey
+    ) || null;
+
+    if (!agency && machineKey) {
+      agency = agencies.find(item => {
+        const candidate = normalizeVfgAgencyName(item?.agency);
+        return candidate && (
+          candidate.includes(machineKey) ||
+          machineKey.includes(candidate)
+        );
+      }) || null;
+    }
+
+    return {
+      globals: book.globals || {},
+      agency
+    };
+  }
+
+  async function shareVisitPdfToAgency(visit) {
+    if (!visit?.id) return false;
+
+    let pdfFile = null;
+
+    try {
+      pdfFile = await createVisitPdfFile(visit);
+    } catch (error) {
+      console.error('Generation PDF impossible :', error);
+      toast(`PDF impossible : ${error.message || error}`);
+      return false;
+    }
+
+    if (!pdfFile || !pdfFile.size) {
+      alert('Le PDF a ete genere mais le fichier est vide.');
+      return false;
+    }
+
+    const machine =
+      state.activeMachine ||
+      visit.machineSnapshot ||
+      {};
+
+    const machineId =
+      visit.machineId ||
+      machine.parkNumber ||
+      machine.id ||
+      'MACHINE';
+
+    const visitDate =
+      visit.visitDate ||
+      new Date().toISOString().slice(0, 10);
+
+    const contactData = vfgContactDataForMachine(machine);
+    const contact = contactData.agency || {};
+    const globals = contactData.globals || {};
+
+    const agencyName =
+      contact.agency ||
+      machine.agency ||
+      'Agence non identifiee';
+
+    const agencyKey =
+      normalizeVfgAgencyName(agencyName) ||
+      String(machine.agencyId || machine.agencyCode || 'UNKNOWN');
+
+    const addressBook = loadVfgAddressBook();
+
+    if (!addressBook.agencies[agencyKey]) {
+      addressBook.agencies[agencyKey] = {};
+    }
+
+    const agencyOverrides = addressBook.agencies[agencyKey];
+    const globalOverrides = addressBook.global || {};
+
+    const sourceValues = {
+      materialReferentName:
+        String(globals?.materialReferent?.name || '').trim(),
+      materialReferentEmail:
+        String(globals?.materialReferent?.email || '').trim(),
+
+      agencyManagerName:
+        String(contact?.agencyManager || '').trim(),
+      agencyManagerEmail:
+        String(contact?.agencyManagerEmail || '').trim(),
+
+      agencyName,
+      agencyEmail:
+        String(contact?.agencyEmail || '').trim(),
+
+      materialManagerName:
+        String(contact?.materialManager || '').trim(),
+      materialManagerEmail:
+        String(contact?.materialManagerEmail || '').trim(),
+
+      regionalDirectorName:
+        String(contact?.regionalDirector || '').trim(),
+      regionalDirectorEmail:
+        String(contact?.regionalDirectorEmail || '').trim(),
+
+      groupMaterialManagerName:
+        String(globals?.groupMaterialManager?.name || '').trim(),
+      groupMaterialManagerEmail:
+        String(globals?.groupMaterialManager?.email || '').trim()
+    };
+
+    const currentValues = {
+      materialReferentEmail:
+        String(globalOverrides.materialReferentEmail || sourceValues.materialReferentEmail || '').trim(),
+      agencyManagerEmail:
+        String(agencyOverrides.agencyManagerEmail || sourceValues.agencyManagerEmail || '').trim(),
+      agencyEmail:
+        String(agencyOverrides.agencyEmail || sourceValues.agencyEmail || '').trim(),
+      materialManagerEmail:
+        String(agencyOverrides.materialManagerEmail || sourceValues.materialManagerEmail || '').trim(),
+      regionalDirectorEmail:
+        String(agencyOverrides.regionalDirectorEmail || sourceValues.regionalDirectorEmail || '').trim(),
+      groupMaterialManagerEmail:
+        String(globalOverrides.groupMaterialManagerEmail || sourceValues.groupMaterialManagerEmail || '').trim()
+    };
+
+    const previousDialog =
+      document.getElementById('vfg-pdf-agency-dialog');
+
+    if (previousDialog) previousDialog.remove();
+
+    const pdfUrl = URL.createObjectURL(pdfFile);
+
+    const overlay = document.createElement('div');
+    overlay.id = 'vfg-pdf-agency-dialog';
+    overlay.style.cssText =
+      'position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.58);' +
+      'display:flex;align-items:center;justify-content:center;padding:14px;overflow:auto;';
+
+    const panel = document.createElement('div');
+    panel.style.cssText =
+      'width:min(96vw,580px);max-height:94vh;overflow:auto;background:#fff;' +
+      'border-radius:16px;padding:20px;box-shadow:0 18px 55px rgba(0,0,0,.28);' +
+      'font-family:Arial,sans-serif;';
+
+    const title = document.createElement('h2');
+    title.textContent = 'Envoyer le rapport PDF';
+    title.style.cssText = 'margin:0 0 8px;font-size:21px;';
+
+    const info = document.createElement('p');
+    info.textContent = `Machine : ${machineId} - ${agencyName}`;
+    info.style.cssText = 'margin:0 0 14px;line-height:1.4;';
+
+    const help = document.createElement('p');
+    help.textContent =
+      'Tous les destinataires sont coches par defaut. Decoche ceux qui ne doivent pas recevoir le rapport.';
+    help.style.cssText =
+      'margin:0 0 14px;padding:10px 12px;background:#f6f6f6;border-radius:10px;' +
+      'font-size:13px;line-height:1.4;';
+
+    const list = document.createElement('div');
+    list.style.cssText = 'display:grid;gap:10px;margin-bottom:14px;';
+
+    const rows = {};
+
+    const makeRecipientRow = ({
+      key,
+      label,
+      detail = '',
+      email = ''
+    }) => {
+      const row = document.createElement('div');
+      row.style.cssText =
+        'display:grid;grid-template-columns:auto 1fr;gap:9px 10px;align-items:start;' +
+        'padding:11px;border:1px solid #ddd;border-radius:11px;';
+
+      const checkbox = document.createElement('input');
+      checkbox.type = 'checkbox';
+      checkbox.checked = validVfgEmail(email);
+      checkbox.style.cssText = 'width:20px;height:20px;margin-top:2px;';
+
+      const body = document.createElement('div');
+
+      const labelLine = document.createElement('div');
+      labelLine.textContent = label;
+      labelLine.style.cssText = 'font-weight:700;margin-bottom:3px;';
+      body.appendChild(labelLine);
+
+      if (detail) {
+        const detailLine = document.createElement('div');
+        detailLine.textContent = detail;
+        detailLine.style.cssText =
+          'font-size:12px;color:#666;margin-bottom:6px;';
+        body.appendChild(detailLine);
+      }
+
+      const input = document.createElement('input');
+      input.type = 'email';
+      input.value = String(email || '').trim();
+      input.placeholder = 'adresse@foselev.fr';
+      input.autocomplete = 'email';
+      input.style.cssText =
+        'box-sizing:border-box;width:100%;padding:10px 11px;border:1px solid #bbb;' +
+        'border-radius:8px;font-size:15px;';
+
+      if (!validVfgEmail(input.value)) {
+        row.style.borderColor = '#e0a020';
+        row.style.background = '#fff9e8';
+      }
+
+      body.appendChild(input);
+      row.appendChild(checkbox);
+      row.appendChild(body);
+      list.appendChild(row);
+
+      rows[key] = { checkbox, input, row, label };
+    };
+
+    makeRecipientRow({
+      key: 'materialReferent',
+      label: 'Referent materiel',
+      detail: sourceValues.materialReferentName,
+      email: currentValues.materialReferentEmail
+    });
+
+    makeRecipientRow({
+      key: 'agencyManager',
+      label: "Responsable d'agence",
+      detail: sourceValues.agencyManagerName || 'Responsable agence',
+      email: currentValues.agencyManagerEmail
+    });
+
+    makeRecipientRow({
+      key: 'agency',
+      label: 'Agence',
+      detail: agencyName,
+      email: currentValues.agencyEmail
+    });
+
+    makeRecipientRow({
+      key: 'materialManager',
+      label: 'Responsable materiel',
+      detail: sourceValues.materialManagerName || 'Responsable materiel a completer',
+      email: currentValues.materialManagerEmail
+    });
+
+    makeRecipientRow({
+      key: 'regionalDirector',
+      label: 'Directeur regional',
+      detail: sourceValues.regionalDirectorName || 'Directeur regional a completer',
+      email: currentValues.regionalDirectorEmail
+    });
+
+    makeRecipientRow({
+      key: 'groupMaterialManager',
+      label: 'Responsable materiel GROUPE',
+      detail: sourceValues.groupMaterialManagerName,
+      email: currentValues.groupMaterialManagerEmail
+    });
+
+    const saveAddresses = () => {
+      addressBook.global = addressBook.global || {};
+
+      addressBook.global.materialReferentEmail =
+        String(rows.materialReferent.input.value || '').trim();
+
+      addressBook.global.groupMaterialManagerEmail =
+        String(rows.groupMaterialManager.input.value || '').trim();
+
+      agencyOverrides.agencyManagerEmail =
+        String(rows.agencyManager.input.value || '').trim();
+
+      agencyOverrides.agencyEmail =
+        String(rows.agency.input.value || '').trim();
+
+      agencyOverrides.materialManagerEmail =
+        String(rows.materialManager.input.value || '').trim();
+
+      agencyOverrides.regionalDirectorEmail =
+        String(rows.regionalDirector.input.value || '').trim();
+
+      addressBook.agencies[agencyKey] = agencyOverrides;
+      saveVfgAddressBook(addressBook);
+    };
+
+    const selectedRecipients = () => {
+      const selected = [];
+
+      for (const row of Object.values(rows)) {
+        if (!row.checkbox.checked) continue;
+
+        const email = String(row.input.value || '').trim();
+
+        if (!validVfgEmail(email)) {
+          return {
+            ok: false,
+            row,
+            message:
+              `Adresse manquante ou invalide pour "${row.label}". ` +
+              `Renseigne-la ou decoche ce destinataire.`
+          };
+        }
+
+        selected.push(email);
+      }
+
+      const emails = normalizeVfgRecipientEmails(selected);
+
+      if (!emails.length) {
+        return {
+          ok: false,
+          message: 'Conserve au moins un destinataire.'
+        };
+      }
+
+      return { ok: true, emails };
+    };
+
+    const recipientsPreview = document.createElement('div');
+    recipientsPreview.style.cssText =
+      'margin:0 0 12px;font-size:12px;color:#555;line-height:1.4;';
+
+    const refreshPreview = () => {
+      const selected = [];
+
+      for (const row of Object.values(rows)) {
+        if (row.checkbox.checked) {
+          const email = String(row.input.value || '').trim();
+          selected.push(email || `${row.label} : adresse manquante`);
+        }
+      }
+
+      recipientsPreview.textContent =
+        selected.length
+          ? `Selection : ${selected.join('; ')}`
+          : 'Aucun destinataire selectionne.';
+    };
+
+    for (const row of Object.values(rows)) {
+      row.checkbox.addEventListener('change', refreshPreview);
+
+      row.input.addEventListener('input', () => {
+        saveAddresses();
+        row.row.style.borderColor = validVfgEmail(row.input.value) ? '#ddd' : '#e0a020';
+        row.row.style.background = validVfgEmail(row.input.value) ? '#fff' : '#fff9e8';
+        refreshPreview();
+      });
+
+      row.input.addEventListener('change', saveAddresses);
+    }
+
+    refreshPreview();
+
+    const shareButton = document.createElement('button');
+    shareButton.type = 'button';
+    shareButton.textContent = 'Envoyer le rapport PDF';
+    shareButton.style.cssText =
+      'width:100%;padding:14px 16px;margin:0 0 10px;border:0;border-radius:10px;' +
+      'background:#111;color:#fff;font-weight:700;font-size:15px;';
+
+    const copyButton = document.createElement('button');
+    copyButton.type = 'button';
+    copyButton.textContent = 'Copier les destinataires';
+    copyButton.style.cssText =
+      'width:100%;padding:13px 16px;margin:0 0 10px;border:0;border-radius:10px;' +
+      'background:#e7e7e7;color:#111;font-weight:700;';
+
+    const openPdfButton = document.createElement('a');
+    openPdfButton.href = pdfUrl;
+    openPdfButton.target = '_blank';
+    openPdfButton.rel = 'noopener';
+    openPdfButton.textContent = 'Ouvrir le rapport PDF';
+    openPdfButton.style.cssText =
+      'display:block;text-align:center;text-decoration:none;padding:13px 16px;' +
+      'margin:0 0 8px;border-radius:10px;border:1px solid #ccc;color:#111;font-weight:700;';
+
+    const closeButton = document.createElement('button');
+    closeButton.type = 'button';
+    closeButton.textContent = 'Fermer';
+    closeButton.style.cssText =
+      'width:100%;padding:12px 16px;border:0;border-radius:10px;' +
+      'background:transparent;font-weight:700;';
+
+    const cleanup = () => {
+      saveAddresses();
+      URL.revokeObjectURL(pdfUrl);
+      overlay.remove();
+    };
+
+    const storeVisitRecipients = emails => {
+      visit.reportRecipients = {
+        agencyName,
+        emails: [...emails],
+        updatedAt: new Date().toISOString()
+      };
+      saveActiveVisit();
+    };
+
+    copyButton.addEventListener('click', async () => {
+      saveAddresses();
+
+      const selection = selectedRecipients();
+
+      if (!selection.ok) {
+        toast(selection.message);
+        selection.row?.input?.focus();
+        return;
+      }
+
+      storeVisitRecipients(selection.emails);
+
+      const copied = await copyVfgText(selection.emails.join('; '));
+      toast(
+        copied
+          ? 'Destinataires copies.'
+          : 'Impossible de copier les destinataires.'
+      );
+    });
+
+    shareButton.addEventListener('click', async () => {
+      saveAddresses();
+
+      const selection = selectedRecipients();
+
+      if (!selection.ok) {
+        toast(selection.message);
+        selection.row?.input?.focus();
+        return;
+      }
+
+      storeVisitRecipients(selection.emails);
+      // V8J1 SAFE TEST MODE:
+      // keep all intended recipients, but redirect the real transmission
+      // to the two private validation addresses only.
+      const intendedRecipients = [...selection.emails];
+
+      const testRecipients = [
+        'cedric.bodet@foselev.fr',
+        'cedric.bodet49@gmail.com'
+      ];
+
+      if (!SERVER_BASE_URL) {
+        alert(
+          'Envoi direct indisponible : ouvre VFG depuis le serveur local du PC.'
+        );
+        return;
+      }
+
+      const originalText = shareButton.textContent;
+      shareButton.disabled = true;
+      shareButton.textContent = 'Envoi en cours...';
+
+      try {
+        const params = new URLSearchParams({
+          to: testRecipients.join(','),
+          requestedTo: intendedRecipients.join(','),
+          machineId,
+          visitDate,
+          filename: pdfFile.name
+        });
+
+        const response = await fetch(
+          `${SERVER_BASE_URL}/api/send-report?${params.toString()}`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/pdf'
+            },
+            body: pdfFile
+          }
+        );
+
+        const result = await response.json().catch(() => ({}));
+
+        if (!response.ok || !result.ok) {
+          throw new Error(
+            result.error ||
+            `Erreur serveur ${response.status}`
+          );
+        }
+
+        visit.reportSentAt =
+          result.sentAt ||
+          new Date().toISOString();
+
+        visit.reportRecipients = {
+          agencyName,
+          emails: [...selection.emails],
+          updatedAt: new Date().toISOString()
+        };
+
+        saveActiveVisit();
+
+        shareButton.textContent = 'Rapport envoye';
+        toast(`Rapport PDF envoye a ${selection.emails[0]}.`);
+
+        setTimeout(() => {
+          if (document.body.contains(overlay)) cleanup();
+        }, 1400);
+
+      } catch (error) {
+        console.error('Envoi direct du rapport impossible :', error);
+
+        alert(
+          `Envoi impossible : ${error.message || error}`
+        );
+
+        shareButton.disabled = false;
+        shareButton.textContent = originalText;
+      }
+    });
+
+closeButton.addEventListener('click', cleanup);
+
+    overlay.addEventListener('click', event => {
+      if (event.target === overlay) cleanup();
+    });
+
+    panel.appendChild(title);
+    panel.appendChild(info);
+    panel.appendChild(help);
+    panel.appendChild(list);
+    panel.appendChild(recipientsPreview);
+    panel.appendChild(shareButton);
+    panel.appendChild(copyButton);
+    panel.appendChild(openPdfButton);
+    panel.appendChild(closeButton);
+    overlay.appendChild(panel);
+    document.body.appendChild(overlay);
+
+    saveAddresses();
+
+    toast('PDF pret - destinataires preselectionnes.');
+    return true;
+  }
+
+async function finishActiveVisit() {
     const visit = state.activeVisit;
     if (!visit) return;
 
@@ -1228,13 +1929,11 @@ renderDashboard();
 
 toast('Visite terminée et enregistrée.');
 
-if (IS_PUBLIC_PILOT) {
-  try {
-    await exportVisitVfgFile(visit);
-  } catch (error) {
-    console.error('Export VFG impossible :', error);
-    toast('Visite enregistrée, mais le fichier VFG n’a pas pu être préparé.');
-  }
+try {
+  await shareVisitPdfToAgency(visit);
+} catch (error) {
+  console.error('Partage PDF impossible :', error);
+  toast("Visite enregistree, mais le PDF n'a pas pu etre prepare.");
 }
   }
 
@@ -6939,8 +7638,9 @@ return;
   }
 
   function reportPage(inner, page, total, title = 'Warranty Inspection System') {
+  const pageClass = page === 1 ? 'report-page report-cover-page' : 'report-page';
   return `<article
-    class="report-page"
+    class="${pageClass}"
     id="report-page-${page}"
     data-report-page="${page}"
   >
@@ -7023,6 +7723,68 @@ return;
       <table class="report-control-table"><thead><tr><th>Point de contrôle</th><th>État</th></tr></thead><tbody>${lines}</tbody></table>`;
   }
 
+
+  // V8K3_4_COMPACT_CONTROL_PAGINATION
+  // Deux chapitres de contrôle sont regroupés sur une même page lorsque
+  // leur hauteur estimée le permet. Un maximum de deux chapitres est
+  // volontairement conservé pour préserver la lisibilité.
+  function reportControlEstimatedHeight(item, visit) {
+    const section = item?.section || {};
+    if (section.id === 'tyres') {
+      const axleCount = Math.max(1, visit?.tyres?.axles?.length || 0);
+      return 150 + (axleCount * 92);
+    }
+
+    const rowCount = Math.max(1, (section.points || []).length);
+    return 115 + (rowCount * 30);
+  }
+
+  function packReportControlPages(items, visit) {
+    const pages = [];
+    const maxCombinedHeight = 860;
+
+    for (let index = 0; index < items.length; index += 1) {
+      const current = items[index];
+      const next = items[index + 1];
+
+      if (
+        next &&
+        current.zoneKey === next.zoneKey &&
+        reportControlEstimatedHeight(current, visit) +
+          reportControlEstimatedHeight(next, visit) <= maxCombinedHeight
+      ) {
+        pages.push([current, next]);
+        index += 1;
+      } else {
+        pages.push([current]);
+      }
+    }
+
+    return pages;
+  }
+
+  function reportControlPageGroup(items, visit) {
+    const doubleClass = items.length > 1
+      ? ' report-control-page-group-double'
+      : '';
+
+    return `<div class="report-control-page-group${doubleClass}">
+      ${items.map(item => `
+        <section
+          class="report-control-chapter"
+          data-report-chapter="${escapeHtml(item.number)}"
+        >
+          ${reportControlPage(
+            item.section,
+            item.zoneTitle,
+            item.number,
+            visit
+          )}
+        </section>
+      `).join('')}
+    </div>`;
+  }
+
   async function reportFindingPage(finding, index, detailPageNumber) {
     const selected = (finding.photos || []).filter(photo => photo.includeInReport);
     const images = [];
@@ -7054,110 +7816,364 @@ return;
   ← Retour à l’anomalie dans la synthèse
 </a>`;  }
 
- async function reportCoverPhoto(visit) {
-  if (!visit) return '';
-
-  const family = machineFamily(state.activeMachine, visit);
-
-  // Photos obligatoires du portail :
-  // documentation-001 = plaque(s) constructeur
-  // documentation-006 = vue d'ensemble
-  const plateIds = linkedPhotoIdsForPoint('documentation-001', visit);
-  const overviewIds = linkedPhotoIdsForPoint('documentation-006', visit);
-
-  const figures = [];
-const usedPhotoIds = new Set();
-
-async function addFirstAvailablePhoto(ids, label) {
-  for (const id of ids) {
-    if (!id || usedPhotoIds.has(id)) continue;
-
-    try {
-      const stored = await photoDbGet(id);
-
-      if (!stored?.blob) continue;
-
-      const url = await blobToDataUrl(stored.blob);
-
-      figures.push(`
-        <figure class="report-cover-photo">
-          <img src="${url}" alt="${escapeHtml(label)}">
-          <figcaption>${escapeHtml(label)}</figcaption>
-        </figure>
-      `);
-
-      usedPhotoIds.add(id);
-      return true;
-
-    } catch (error) {
-      console.warn('Photo indisponible :', id, error);
+ // V8K3_4_PAGE1_DEUX_MODELES_VALIDES
+  // GM / MK : modèle « grues » validé.
+  // CB / CN : modèle « camions » validé.
+  // La photo principale provient exclusivement du point « Vue d’ensemble ».
+  async function reportCoverPhoto(visit) {
+    if (!visit) {
+      return {
+        family: '',
+        overviewUrl: '',
+        plateUrls: [],
+        plateLabels: []
+      };
     }
+
+    const family = machineFamily(state.activeMachine, visit);
+    const plateIds = linkedPhotoIdsForPoint('documentation-001', visit);
+    const overviewIds = linkedPhotoIdsForPoint('documentation-006', visit);
+
+    async function firstAvailableUrl(ids) {
+      for (const id of ids || []) {
+        if (!id) continue;
+        try {
+          const stored = await photoDbGet(id);
+          if (!stored?.blob) continue;
+          return await blobToDataUrl(stored.blob);
+        } catch (error) {
+          console.warn('Photo rapport indisponible :', id, error);
+        }
+      }
+      return '';
+    }
+
+    const overviewUrl = await firstAvailableUrl(overviewIds);
+    const plateUrls = [];
+
+    for (const id of plateIds || []) {
+      if (!id) continue;
+      try {
+        const stored = await photoDbGet(id);
+        if (!stored?.blob) continue;
+        plateUrls.push(await blobToDataUrl(stored.blob));
+      } catch (error) {
+        console.warn('Plaque constructeur indisponible :', id, error);
+      }
+    }
+
+    let plateLabels = ['PLAQUE CONSTRUCTEUR'];
+    let expectedCount = 1;
+
+    if (family === 'CB') {
+      plateLabels = ['PLAQUE CHÂSSIS', 'PLAQUE BRAS'];
+      expectedCount = 2;
+    } else if (family === 'CN') {
+      plateLabels = ['PLAQUE CHÂSSIS', 'PLAQUE NACELLE'];
+      expectedCount = 2;
+    }
+
+    return {
+      family,
+      overviewUrl,
+      plateUrls: plateUrls.slice(0, expectedCount),
+      plateLabels
+    };
   }
 
-  return false;
-}
+  function reportCoverMachineIcon(family) {
+    if (family === 'CN') {
+      return `<svg class="report-cover-machine-icon" viewBox="0 0 160 70" aria-hidden="true">
+        <g fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M15 51h83V31H58v20M98 51h19"/>
+          <path d="M68 31V20h25l8 11"/>
+          <path d="M103 29l34-18 5 9-31 17"/>
+          <path d="M140 10h13v13h-13z"/>
+          <circle cx="39" cy="55" r="10" fill="currentColor" stroke="none"/>
+          <circle cx="91" cy="55" r="10" fill="currentColor" stroke="none"/>
+        </g>
+      </svg>`;
+    }
 
-await addFirstAvailablePhoto(
-  overviewIds,
-  'Vue d’ensemble'
-);
+    if (family === 'CB') {
+      return `<svg class="report-cover-machine-icon" viewBox="0 0 160 70" aria-hidden="true">
+        <g fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M13 51h91V31H59v20M104 51h21"/>
+          <path d="M69 31V19h25l9 12"/>
+          <path d="M104 31l12-16 20 11 11-17"/>
+          <circle cx="38" cy="55" r="10" fill="currentColor" stroke="none"/>
+          <circle cx="94" cy="55" r="10" fill="currentColor" stroke="none"/>
+        </g>
+      </svg>`;
+    }
 
-if (family === 'CN') {
-  const firstPlateAdded = await addFirstAvailablePhoto(
-    plateIds,
-    'Plaque constructeur châssis'
-  );
-
-  if (firstPlateAdded) {
-    await addFirstAvailablePhoto(
-      plateIds.filter(id => !usedPhotoIds.has(id)),
-      'Plaque constructeur nacelle'
-    );
+    return `<svg class="report-cover-machine-icon" viewBox="0 0 160 70" aria-hidden="true">
+      <g fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12 52h104V34H71v18M116 52h20"/>
+        <path d="M72 34V20h27l10 14"/>
+        <path d="M28 33L133 9"/>
+        <path d="M129 10l10 26"/>
+        <path d="M139 36v12"/>
+        <circle cx="37" cy="56" r="10" fill="currentColor" stroke="none"/>
+        <circle cx="82" cy="56" r="10" fill="currentColor" stroke="none"/>
+        <circle cx="116" cy="56" r="10" fill="currentColor" stroke="none"/>
+      </g>
+    </svg>`;
   }
-} else {
-  await addFirstAvailablePhoto(
-    plateIds,
-    'Plaque constructeur'
-  );
-}
-  if (figures.length) {
-    return `
-      <div class="report-cover-photos">
-        ${figures.join('')}
+
+  function reportCoverMainPhoto(media, visit, machine) {
+    const agency = machine?.agency || machine?.city || 'agence FOSELEV';
+    const date = formatVisitDate(visit?.visitDate);
+    const image = media?.overviewUrl
+      ? `<img src="${media.overviewUrl}" alt="Vue d’ensemble de la machine">`
+      : '<div class="report-cover-main-placeholder">Photo non disponible</div>';
+
+    return `<figure class="report-cover-main-photo">
+      <div class="report-cover-main-photo-frame">${image}</div>
+      <figcaption><span class="report-cover-camera">▣</span> PHOTO DE LA MACHINE — PRISE LE ${escapeHtml(date)} À ${escapeHtml(String(agency).toUpperCase())}</figcaption>
+    </figure>`;
+  }
+
+  function reportCoverPlateFigure(media, index, fallbackLabel) {
+    const label = media?.plateLabels?.[index] || fallbackLabel || `PLAQUE ${index + 1}`;
+    const url = media?.plateUrls?.[index] || '';
+
+    return `<figure class="report-cover-plate-figure">
+      <figcaption>${escapeHtml(label)}</figcaption>
+      ${
+        url
+          ? `<img src="${url}" alt="${escapeHtml(label)}">`
+          : '<div class="report-cover-plate-placeholder">Plaque constructeur non photographiée</div>'
+      }
+    </figure>`;
+  }
+
+  function reportCoverValue(value, fallback = '—') {
+    const text = String(value ?? '').trim();
+    return text || fallback;
+  }
+
+  function reportCoverYear(machine) {
+    const raw = String(machine?.firstRegistration || '').trim();
+    if (/^\\d{4}/.test(raw)) return raw.slice(0, 4);
+    return '—';
+  }
+
+  function reportCoverAgencyData(machine) {
+    const agencyBook = window.FOSELEV_AGENCIES || {};
+    const agencyDetails =
+      agencyBook[machine?.agencyId] ||
+      Object.values(agencyBook).find(item =>
+        normalizeVfgAgencyName(item?.name) === normalizeVfgAgencyName(machine?.agency || '')
+      ) ||
+      {};
+
+    const agencyContactData = vfgContactDataForMachine(machine || {});
+    const agencyContact = agencyContactData.agency || {};
+
+    return {
+      name: reportCoverValue(machine?.agency || agencyDetails.name),
+      phone: reportCoverValue(agencyDetails.phone),
+      email: reportCoverValue(agencyDetails.email || agencyContact.agencyEmail)
+    };
+  }
+
+  function reportCoverParkParts(machine) {
+    const parkNumber = String(machine?.parkNumber || machine?.id || '—').trim();
+    const match = parkNumber.match(/^([A-Za-z]+)(.*)$/);
+    return {
+      full: parkNumber,
+      prefix: match ? match[1].toUpperCase() : '',
+      suffix: match ? match[2] : parkNumber
+    };
+  }
+
+  function reportCoverVisitType(visit, family) {
+    const fallback = ['GM', 'MK'].includes(family)
+      ? 'FIN DE GARANTIE'
+      : 'VISITE TECHNIQUE';
+
+    return String(visit?.visitType || visit?.type || fallback).trim().toUpperCase();
+  }
+
+  function reportCoverContactRow({ visit, agency, visitType, family }) {
+    const visitTitle = ['GM', 'MK'].includes(family) ? 'FIN DE GARANTIE' : 'VISITE TECHNIQUE';
+
+    return `<section class="report-cover-contact-row">
+      <div class="report-cover-contact-card">
+        <div class="report-cover-contact-icon">▦</div>
+        <div>
+          <small>AGENCE</small>
+          <strong>${escapeHtml(agency.name)}</strong>
+          <span>☎ ${escapeHtml(agency.phone)}</span>
+          <span>✉ ${escapeHtml(agency.email)}</span>
+        </div>
       </div>
-    `;
+
+      <div class="report-cover-contact-card">
+        <div class="report-cover-contact-icon">●</div>
+        <div>
+          <small>TECHNICIEN CONTRÔLEUR</small>
+          <strong>${escapeHtml(reportCoverValue(visit?.controllerName))}</strong>
+          <span>☎ ${escapeHtml(reportCoverValue(visit?.controllerPhone))}</span>
+          <span>✉ ${escapeHtml(reportCoverValue(visit?.controllerEmail))}</span>
+        </div>
+      </div>
+
+      <div class="report-cover-type-card">
+        <small>TYPE DE VISITE</small>
+        <strong>${escapeHtml(visitTitle)}</strong>
+        <span>${escapeHtml(visitType)}</span>
+        <b>RAPPORT COMPRIS</b>
+      </div>
+    </section>`;
   }
 
-  // Secours : ancien comportement si aucune photo obligatoire n'est disponible.
-  const candidates = (visit.findings || []).flatMap(finding =>
-    (finding.photos || [])
-      .filter(photo => photo.includeInReport)
-      .map(photo => ({ ...photo, finding }))
-  );
-
-  const selected =
-    candidates.find(photo => photo.isMain) ||
-    candidates[0];
-
-  if (!selected) return '';
-
-  try {
-    const stored = await photoDbGet(selected.id);
-    if (!stored?.blob) return '';
-
-    const url = await blobToDataUrl(stored.blob);
-
-    return `
-      <figure class="report-cover-photo">
-        <img src="${url}" alt="Machine contrôlée">
-        <figcaption>Machine contrôlée</figcaption>
-      </figure>
-    `;
-  } catch (error) {
-    console.warn('Photo de couverture indisponible', error);
-    return '';
+  function reportCoverValuesFooter() {
+    return `<div class="report-cover-values">
+      <div><strong>◇</strong><span>SÉCURITÉ<small>NOTRE PRIORITÉ</small></span></div>
+      <div><strong>✓</strong><span>QUALITÉ<small>NOTRE ENGAGEMENT</small></span></div>
+      <div><strong>●●●</strong><span>PROXIMITÉ<small>NOTRE FORCE</small></span></div>
+    </div>
+    <div class="report-cover-bottomline">
+      <span>FOSELEV — EXPERT EN LEVAGE ET MANUTENTION</span>
+      <strong>www.foselev.com</strong>
+    </div>`;
   }
-}
+
+  function renderReportCoverCrane({ visit, machine, media, family }) {
+    const label = family === 'MK' ? 'GRUE À DÉPLOIEMENT RAPIDE' : 'GRUE MOBILE';
+    const park = reportCoverParkParts(machine);
+    const agency = reportCoverAgencyData(machine);
+    const visitType = reportCoverVisitType(visit, family);
+    const capacity = [machine?.capacity, machine?.capacityUnit].filter(Boolean).join(' ') || '—';
+    const model = reportCoverValue(machine?.model || machine?.designation);
+
+    return `<div class="report-cover-v8k33 report-cover-crane">
+      <header class="report-cover-topbar">
+        <div class="report-cover-logo">
+          <strong><span>FOS</span><b>ELEV</b></strong>
+          <small>LIFTING &amp; HANDLING SOLUTIONS</small>
+        </div>
+        <div class="report-cover-heading">
+          <strong>RAPPORT DE VISITE</strong>
+          <span>FIN DE GARANTIE / CONTRÔLE</span>
+        </div>
+        <div class="report-cover-vfg-badge">
+          <span class="report-cover-vfg-icon">✓</span>
+          <div><strong>FOSELEV VFG</strong><small>V8K3.4</small></div>
+        </div>
+      </header>
+
+      <section class="report-cover-identity">
+        <div class="report-cover-family-tile">
+          ${reportCoverMachineIcon(family)}
+          <div><strong>${escapeHtml(family)}</strong><span>${escapeHtml(label)}</span></div>
+        </div>
+        <div class="report-cover-park">
+          <small>N° DE PARC</small>
+          <strong><span>${escapeHtml(park.prefix)}</span><b>${escapeHtml(park.suffix)}</b></strong>
+        </div>
+        <div class="report-cover-visit-meta">
+          <div><small>AGENCE</small><strong>${escapeHtml(agency.name)}</strong></div>
+          <div><small>DATE DE VISITE</small><strong>${escapeHtml(formatVisitDate(visit?.visitDate))}</strong></div>
+        </div>
+      </section>
+
+      ${reportCoverMainPhoto(media, visit, machine)}
+
+      <section class="report-cover-lower report-cover-lower-crane">
+        <div class="report-cover-plates-panel">
+          <div class="report-cover-block-title">⚙&nbsp; PLAQUE CONSTRUCTEUR</div>
+          ${reportCoverPlateFigure(media, 0, 'PLAQUE CONSTRUCTEUR')}
+        </div>
+
+        <div class="report-cover-tech-panel">
+          <div class="report-cover-tech-row"><span>▰</span><small>MARQUE</small><strong>${escapeHtml(reportCoverValue(machine?.brand))}</strong></div>
+          <div class="report-cover-tech-row"><span>⚙</span><small>TYPE</small><strong>${escapeHtml(model)}</strong></div>
+          <div class="report-cover-tech-row"><span>#</span><small>N° SÉRIE</small><strong>${escapeHtml(reportCoverValue(machine?.serialNumber))}</strong></div>
+          <div class="report-cover-tech-row"><span>▣</span><small>ANNÉE DE CONSTRUCTION</small><strong>${escapeHtml(reportCoverYear(machine))}</strong></div>
+          <div class="report-cover-tech-row"><span>⚖</span><small>CAPACITÉ MAX.</small><strong>${escapeHtml(capacity)}</strong></div>
+        </div>
+      </section>
+
+      ${reportCoverContactRow({ visit, agency, visitType, family })}
+      ${reportCoverValuesFooter()}
+    </div>`;
+  }
+
+  function renderReportCoverTruck({ visit, machine, media, family }) {
+    const isCn = family === 'CN';
+    const label = isCn ? 'CAMION NACELLE' : 'CAMION BRAS';
+    const park = reportCoverParkParts(machine);
+    const agency = reportCoverAgencyData(machine);
+    const visitType = reportCoverVisitType(visit, family);
+    const equipment = isCn ? (visit?.cnEquipment || {}) : (visit?.cbEquipment || {});
+    const capacity = [machine?.capacity, machine?.capacityUnit].filter(Boolean).join(' ') || '—';
+    const equipmentName = isCn ? 'NACELLE' : 'BRAS';
+    const finalMetric = isCn ? 'HAUTEUR DE TRAVAIL' : 'CAPACITÉ MAX. LEVAGE';
+    const ptac = reportCoverValue(machine?.ptac || machine?.grossVehicleWeight || machine?.gvw);
+
+    return `<div class="report-cover-v8k33 report-cover-truck">
+      <header class="report-cover-topbar">
+        <div class="report-cover-logo">
+          <strong><span>FOS</span><b>ELEV</b></strong>
+          <small>LIFTING &amp; HANDLING SOLUTIONS</small>
+        </div>
+        <div class="report-cover-heading report-cover-heading-truck">
+          <strong>RAPPORT DE VISITE</strong>
+          <span>${escapeHtml(label)}</span>
+          <small>◈&nbsp; VISITE TECHNIQUE</small>
+        </div>
+        <div class="report-cover-vfg-badge">
+          <span class="report-cover-vfg-icon">✓</span>
+          <div><strong>FOSELEV VFG</strong><small>V8K3.4</small></div>
+        </div>
+      </header>
+
+      <section class="report-cover-identity">
+        <div class="report-cover-family-tile report-cover-family-tile-truck">
+          ${reportCoverMachineIcon(family)}
+          <div><span>${escapeHtml(label)}</span></div>
+        </div>
+        <div class="report-cover-park">
+          <small>N° DE PARC</small>
+          <strong><span>${escapeHtml(park.prefix)}</span><b>${escapeHtml(park.suffix)}</b></strong>
+        </div>
+        <div class="report-cover-visit-meta">
+          <div><small>AGENCE</small><strong>${escapeHtml(agency.name)}</strong></div>
+          <div><small>DATE DE VISITE</small><strong>${escapeHtml(formatVisitDate(visit?.visitDate))}</strong></div>
+        </div>
+      </section>
+
+      ${reportCoverMainPhoto(media, visit, machine)}
+
+      <section class="report-cover-lower report-cover-lower-truck">
+        <div class="report-cover-plates-panel report-cover-plates-panel-double">
+          <div class="report-cover-block-title">⚙&nbsp; PLAQUES CONSTRUCTEUR</div>
+          <div class="report-cover-double-plates">
+            ${reportCoverPlateFigure(media, 0, 'PLAQUE CHÂSSIS')}
+            ${reportCoverPlateFigure(media, 1, isCn ? 'PLAQUE NACELLE' : 'PLAQUE BRAS')}
+          </div>
+        </div>
+
+        <div class="report-cover-tech-panel report-cover-tech-panel-truck">
+          <div class="report-cover-tech-row"><span>▰</span><small>TYPE D’ENGIN</small><strong>${escapeHtml(label)}</strong></div>
+          <div class="report-cover-tech-row"><span>⚙</span><small>MARQUE CHÂSSIS</small><strong>${escapeHtml(reportCoverValue(machine?.brand))}</strong></div>
+          <div class="report-cover-tech-row"><span>▱</span><small>MODÈLE CHÂSSIS</small><strong>${escapeHtml(reportCoverValue(machine?.model || machine?.designation))}</strong></div>
+          <div class="report-cover-tech-row"><span>#</span><small>N° IMMATRICULATION</small><strong>${escapeHtml(reportCoverValue(machine?.registration))}</strong></div>
+          <div class="report-cover-tech-row"><span>▣</span><small>ANNÉE DE MISE EN CIRCULATION</small><strong>${escapeHtml(reportCoverYear(machine))}</strong></div>
+          <div class="report-cover-tech-row"><span>⚖</span><small>PTAC</small><strong>${escapeHtml(ptac)}</strong></div>
+          <div class="report-cover-tech-row"><span>⌁</span><small>MARQUE ${escapeHtml(equipmentName)}</small><strong>${escapeHtml(reportCoverValue(equipment.brand))}</strong></div>
+          <div class="report-cover-tech-row"><span>▱</span><small>MODÈLE ${escapeHtml(equipmentName)}</small><strong>${escapeHtml(reportCoverValue(equipment.type))}</strong></div>
+          <div class="report-cover-tech-row"><span>↕</span><small>${escapeHtml(finalMetric)}</small><strong>${escapeHtml(capacity)}</strong></div>
+        </div>
+      </section>
+
+      ${reportCoverContactRow({ visit, agency, visitType, family })}
+      ${reportCoverValuesFooter()}
+    </div>`;
+  }
 
   async function buildReportPreview({ saveFields = true } = {}) {
     const visit = state.activeVisit;
@@ -7183,41 +8199,53 @@ ensureTyreData(visit, machine);
 
     const carrierSections = visit.zones?.carrier?.sections || [];
     const upperSections = visit.zones?.upper?.sections || [];
-    const sectionPages = [
-      ...carrierSections.map((section, index) => ({ section, zoneTitle: 'Porteur', number: `02.${index + 1}` })),
-      ...upperSections.map((section, index) => ({ section, zoneTitle: 'Tourelle', number: `03.${index + 1}` }))
+    const controlSections = [
+      ...carrierSections.map((section, index) => ({
+        section,
+        zoneKey: 'carrier',
+        zoneTitle: 'Porteur',
+        number: `02.${index + 1}`
+      })),
+      ...upperSections.map((section, index) => ({
+        section,
+        zoneKey: 'upper',
+        zoneTitle: 'Tourelle',
+        number: `03.${index + 1}`
+      }))
     ];
+    const controlPages = packReportControlPages(controlSections, visit);
+    const controlPageNumberBySection = new Map();
+
+    controlPages.forEach((items, pageIndex) => {
+      const pageNumber = 3 + pageIndex;
+      items.forEach(item => {
+        controlPageNumberBySection.set(
+          `${item.zoneKey}:${item.section.id}`,
+          pageNumber
+        );
+      });
+    });
+
     const finalPageCount = 1;
-    const totalPages = 2 + sectionPages.length + findings.length + finalPageCount;
-    const firstFindingPage = 3 + sectionPages.length;
+    const totalPages = 2 + controlPages.length + findings.length + finalPageCount;
+    const firstFindingPage = 3 + controlPages.length;
 
-    const coverPhoto = await reportCoverPhoto(visit);
+    const coverMedia = await reportCoverPhoto(visit);
+    const family = machineFamily(machine, visit);
 
-    const cover = `
-      <div class="report-cover-accent"></div>
-      <p class="report-kicker">FOSELEV VFG</p>
-      <p class="report-cover-system">Warranty Inspection System</p>
-      <h2 class="report-cover-title">Rapport de visite de fin de garantie</h2>
-      ${coverPhoto}
-      <div class="report-machine-title">${escapeHtml(machine.parkNumber || machine.id || '—')}</div>
-      <div class="report-machine-subtitle">${escapeHtml([machine.brand, machine.model || machine.designation].filter(Boolean).join(' · ') || 'Machine')}</div>
-      <div class="report-cover-grid">
-        <div><span>N° de série</span><strong>${escapeHtml(machine.serialNumber || '—')}</strong></div>
-        <div><span>Agence</span><strong>${escapeHtml(machine.agency || '—')}</strong></div>
-        <div><span>Date de la visite</span><strong>${escapeHtml(formatVisitDate(visit.visitDate))}</strong></div>
-        <div><span>Kilométrage porteur</span><strong>${escapeHtml(formatMeter(visit.carrierKm, 'km'))}</strong></div>
-        <div><span>Heures porteur</span><strong>${escapeHtml(formatMeter(visit.carrierHours, 'h'))}</strong></div>
-        <div><span>Heures tourelle</span><strong>${escapeHtml(formatMeter(visit.upperHours, 'h'))}</strong></div>
-        <div><span>Contrôleur</span><strong>${escapeHtml(visit.controllerName || '—')}</strong></div>
-        <div><span>E-mail</span><strong>${escapeHtml(visit.controllerEmail || '—')}</strong></div>
-        <div><span>Téléphone</span><strong>${escapeHtml(visit.controllerPhone || '—')}</strong></div>
-      </div>
-      <div class="report-cover-summary">
-        <div><strong>${controlledPoints}</strong><span>points contrôlés</span></div>
-        <div><strong>${conformPoints}</strong><span>conformes</span></div>
-        <div><strong>${findings.length + tyreHs.length}</strong><span>non-conformités</span></div>
-        <div><strong>${tyreWatch.length}</strong><span>à surveiller</span></div>
-      </div>`;
+    const cover = ['GM', 'MK'].includes(family)
+      ? renderReportCoverCrane({
+          visit,
+          machine,
+          media: coverMedia,
+          family
+        })
+      : renderReportCoverTruck({
+          visit,
+          machine,
+          media: coverMedia,
+          family
+        });
 
     const summaryItems = [];
     findings.forEach((finding, index) => summaryItems.push({
@@ -7227,8 +8255,23 @@ ensureTyreData(visit, machine);
       comment: finding.comment || 'Aucun commentaire.',
       page: firstFindingPage + index
     }));
-    tyreHs.forEach(item => summaryItems.push({ category: 'nonconformity', title: item.label, subtitle: 'Porteur · Pneumatiques', comment: 'Pneumatique HS.', page: 3 + carrierSections.findIndex(s => s.id === 'tyres') }));
-    tyreWatch.forEach(item => summaryItems.push({ category: 'watch', title: item.label, subtitle: 'Porteur · Pneumatiques', comment: 'Usure restante : 25 %.', page: 3 + carrierSections.findIndex(s => s.id === 'tyres') }));
+    const tyreControlPage =
+      controlPageNumberBySection.get('carrier:tyres') || 3;
+
+    tyreHs.forEach(item => summaryItems.push({
+      category: 'nonconformity',
+      title: item.label,
+      subtitle: 'Porteur · Pneumatiques',
+      comment: 'Pneumatique HS.',
+      page: tyreControlPage
+    }));
+    tyreWatch.forEach(item => summaryItems.push({
+      category: 'watch',
+      title: item.label,
+      subtitle: 'Porteur · Pneumatiques',
+      comment: 'Usure restante : 25 %.',
+      page: tyreControlPage
+    }));
 
   const categoryBlock = (category, title) => {
   const items = summaryItems.filter(
@@ -7276,7 +8319,9 @@ ensureTyreData(visit, machine);
       ${categoryBlock('observation', 'Observations')}`;
 
     const innerPages = [cover, summary];
-    sectionPages.forEach(item => innerPages.push(reportControlPage(item.section, item.zoneTitle, item.number, visit)));
+    controlPages.forEach(items =>
+      innerPages.push(reportControlPageGroup(items, visit))
+    );
     for (let index = 0; index < findings.length; index += 1) innerPages.push(await reportFindingPage(findings[index], index, firstFindingPage + index));
     innerPages.push(`${reportSectionHeading('04', 'Observations et signatures')}
       <section class="report-general-observations"><h3>Observations générales</h3><div class="report-writing-lines"></div></section>
@@ -8883,6 +9928,147 @@ function renderCompactRecentMachines() {
       : 'Masquer les récentes';
   });
 }
+
+  // VFG_TEST_PC_V1
+  // API de test locale : ne synchronise ni ne sauvegarde les visites.
+  let vfgPcTestActive = false;
+
+  function vfgPcTestClone(value) {
+    return JSON.parse(JSON.stringify(value));
+  }
+
+  async function vfgPcTestFindVisit(visitId) {
+    const localVisits = loadJson(STORAGE_KEYS.visits, []);
+    let visit = localVisits.find(item => item?.id === visitId) || null;
+
+    if (!visit && SERVER_BASE_URL) {
+      const response = await fetch(`${SERVER_BASE_URL}/api/visits`, {
+        cache: 'no-store'
+      });
+
+      if (!response.ok) {
+        throw new Error(`Impossible de charger les visites : ${response.status}`);
+      }
+
+      const data = await response.json();
+      const visits = Array.isArray(data.visits) ? data.visits : [];
+      visit = visits.find(item => item?.id === visitId) || null;
+    }
+
+    return visit;
+  }
+
+  async function vfgPcTestOpenVisitReport(visitId) {
+    if (!visitId) {
+      throw new Error('Aucune visite sélectionnée.');
+    }
+
+    if (!Array.isArray(state.machines) || !state.machines.length) {
+      throw new Error('Le parc matériel n’est pas encore chargé.');
+    }
+
+    const sourceVisit = await vfgPcTestFindVisit(visitId);
+
+    if (!sourceVisit) {
+      throw new Error(`Visite introuvable : ${visitId}`);
+    }
+
+    const visit = vfgPcTestClone(sourceVisit);
+    const machine = findMachineForVisit(visit);
+
+    if (!machine) {
+      throw new Error(
+        `Machine introuvable pour la visite ${visitId}.`
+      );
+    }
+
+    vfgPcTestActive = true;
+    state.activeMachine = machine;
+
+    const migrated = ensureVisitSchema(visit, machine);
+    state.activeVisit = migrated.visit;
+
+    await buildReportPreview({ saveFields: false });
+
+    const report = $('#reportPreview');
+    const pages = report
+      ? Array.from(report.querySelectorAll('.report-page'))
+      : [];
+
+    return {
+      ok: true,
+      visitId: sourceVisit.id,
+      machineId:
+        sourceVisit.machineId ||
+        sourceVisit.machineSnapshot?.parkNumber ||
+        machine.parkNumber ||
+        machine.id ||
+        '',
+      visitDate: sourceVisit.visitDate || '',
+      status: sourceVisit.status || '',
+      pageCount: pages.length,
+      photoLibraryCount: Array.isArray(sourceVisit.photoLibrary)
+        ? sourceVisit.photoLibrary.length
+        : 0,
+      findingCount: Array.isArray(sourceVisit.findings)
+        ? sourceVisit.findings.length
+        : 0
+    };
+  }
+
+  async function vfgPcTestGeneratePdf(visitId) {
+    const meta = await vfgPcTestOpenVisitReport(visitId);
+    const file = await createVisitPdfFile(state.activeVisit);
+
+    return {
+      ...meta,
+      file,
+      fileName: file.name,
+      size: file.size
+    };
+  }
+
+  function vfgPcTestClear() {
+    vfgPcTestActive = false;
+    state.activeVisit = null;
+    state.activeMachine = null;
+  }
+
+  // Empêche la sauvegarde d'urgence de toucher une visite pendant un test PC.
+  window.addEventListener('pagehide', () => {
+    if (vfgPcTestActive) {
+      state.activeVisit = null;
+      state.activeMachine = null;
+    }
+  });
+
+  window.addEventListener('beforeunload', () => {
+    if (vfgPcTestActive) {
+      state.activeVisit = null;
+      state.activeMachine = null;
+    }
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    if (vfgPcTestActive && document.visibilityState === 'hidden') {
+      state.activeVisit = null;
+      state.activeMachine = null;
+    }
+  });
+
+  window.VFG_TEST_API = Object.freeze({
+    version: 'PC-TEST-1',
+    ready() {
+      return Boolean(
+        Array.isArray(state.machines) &&
+        state.machines.length
+      );
+    },
+    openVisitReport: vfgPcTestOpenVisitReport,
+    generatePdf: vfgPcTestGeneratePdf,
+    clear: vfgPcTestClear
+  });
+
   async function init() {
     ensurePoint1Styles();
     ensureCbEquipmentUi();
