@@ -4,17 +4,39 @@ const IS_PUBLIC_PILOT =
   window.location.hostname === 'cedricbodet49-cpu.github.io' ||
   window.location.hostname.endsWith('.github.io');
 
-const IS_MOBILE_VFG = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || '');
-const VFG_HOTSPOT_PC_URL = 'http://172.20.10.2:3000';
+// V8K3.4 — synchronisation locale via le partage de connexion du téléphone.
+// L'application reste utilisable hors connexion ; seul le canal de synchro dépend du PC.
 const SERVER_BASE_URL =
   window.location.port === '3000'
     ? window.location.origin
     : (
         IS_PUBLIC_PILOT
-          ? (IS_MOBILE_VFG ? VFG_HOTSPOT_PC_URL : 'http://localhost:3000')
+          ? 'http://172.20.10.2:3000'
           : 'http://localhost:3000'
       );
-const SERVER_FETCH_TIMEOUT_MS = 2500;
+
+const SERVER_FETCH_TIMEOUT_MS = 1800;
+const _nativeFetch = window.fetch.bind(window);
+window.fetch = function vfgFetch(input, init = {}) {
+  const url = typeof input === 'string' ? input : (input?.url || '');
+  const isVfgLocalServer = Boolean(SERVER_BASE_URL) && url.startsWith(SERVER_BASE_URL);
+
+  if (!isVfgLocalServer) {
+    return _nativeFetch(input, init);
+  }
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), SERVER_FETCH_TIMEOUT_MS);
+  const options = { ...init, signal: controller.signal };
+
+  // Chrome 142+ : autorise, après accord utilisateur, une page HTTPS à joindre
+  // une adresse IP privée HTTP du réseau local.
+  if (/^http:\/\/(?:10\.|172\.(?:1[6-9]|2\d|3[01])\.|192\.168\.)/.test(url)) {
+    options.targetAddressSpace = 'local';
+  }
+
+  return _nativeFetch(input, options).finally(() => clearTimeout(timeout));
+};
   const VERSION = '4.0.0-S2.01-P4.1';
   const STORAGE_KEYS = {
     recents: 'foselev_v3_recent_machines',
@@ -2657,8 +2679,8 @@ async function syncPhotoToServer(record, visit = state.activeVisit) {
     const dataUrl = await blobToDataUrl(record.blob);
     const base64 = String(dataUrl).split(',')[1] || '';
 
-    const response = await fetchVfgServer(
-      `/api/photos/${encodeURIComponent(record.id)}`,
+    const response = await fetch(
+      `${SERVER_BASE_URL}/api/photos/${encodeURIComponent(record.id)}`,
       {
         method: 'PUT',
         headers: {
@@ -3466,102 +3488,6 @@ async function addSelectedLibraryPhotos() {
       return false;
     }
   }
-
-  async function fetchVfgServer(path, options = {}, timeoutMs = SERVER_FETCH_TIMEOUT_MS) {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), timeoutMs);
-
-    try {
-      return await fetch(`${SERVER_BASE_URL}${path}`, {
-        ...options,
-        signal: controller.signal
-      });
-    } finally {
-      clearTimeout(timer);
-    }
-  }
-
-  async function vfgServerAvailable() {
-    try {
-      const response = await fetchVfgServer('/api/status', { cache: 'no-store' }, 1800);
-      return response.ok;
-    } catch (error) {
-      return false;
-    }
-  }
-
-  function visitPhotoIds(visit) {
-    const ids = new Set();
-
-    (visit?.photoLibrary || []).forEach(photo => {
-      if (photo?.id) ids.add(photo.id);
-    });
-
-    (visit?.findings || []).forEach(finding => {
-      (finding?.photos || []).forEach(photo => {
-        if (photo?.id) ids.add(photo.id);
-      });
-    });
-
-    return Array.from(ids);
-  }
-
-  async function syncPendingLocalData() {
-    if (syncInProgress) return false;
-    syncInProgress = true;
-
-    try {
-      if (!(await vfgServerAvailable())) return false;
-
-      const visits = loadJson(STORAGE_KEYS.visits, []);
-      const pendingVisits = visits.filter(
-        visit => visit?.id && visit.syncStatus !== 'synchronisée'
-      );
-
-      if (!pendingVisits.length) return true;
-
-      let changed = false;
-
-      for (const visit of pendingVisits) {
-        const visitOk = await syncVisitToServer(visit);
-        let photosOk = true;
-
-        if (visitOk) {
-          for (const photoId of visitPhotoIds(visit)) {
-            try {
-              const record = await photoDbGet(photoId);
-              if (!record?.blob) continue;
-              const photoOk = await syncPhotoToServer(record, visit);
-              if (!photoOk) photosOk = false;
-            } catch (error) {
-              photosOk = false;
-              console.warn('Photo locale non synchronisée :', photoId, error);
-            }
-          }
-        } else {
-          photosOk = false;
-        }
-
-        visit.syncStatus = visitOk && photosOk
-          ? 'synchronisée'
-          : 'à synchroniser';
-
-        persistVisitRecord(visit, {
-          touch: false,
-          sync: false
-        });
-        changed = true;
-      }
-
-      if (changed) {
-        console.log(`${pendingVisits.length} visite(s) locale(s) vérifiée(s) pour synchronisation.`);
-      }
-
-      return true;
-    } finally {
-      syncInProgress = false;
-    }
-  }
 async function syncVisitToServer(visit) {
     if (!SERVER_BASE_URL) {
     return false;
@@ -3574,8 +3500,8 @@ async function syncVisitToServer(visit) {
       syncStatus: 'synchronisée'
     };
 
-    const response = await fetchVfgServer(
-      `/api/visits/${encodeURIComponent(visit.id)}`,
+    const response = await fetch(
+      `${SERVER_BASE_URL}/api/visits/${encodeURIComponent(visit.id)}`,
       {
         method: 'PUT',
         headers: {
@@ -3615,6 +3541,70 @@ async function syncVisitToServer(visit) {
     return false;
   }
 }
+
+async function syncPendingLocalDataToServer({ force = false } = {}) {
+  if (!SERVER_BASE_URL || syncInProgress) return false;
+
+  const now = Date.now();
+  if (!force && now - lastAutoSync < 5000) return false;
+  lastAutoSync = now;
+  syncInProgress = true;
+
+  try {
+    const statusResponse = await fetch(`${SERVER_BASE_URL}/api/status`, {
+      cache: 'no-store'
+    });
+
+    if (!statusResponse.ok) {
+      throw new Error(`Serveur VFG indisponible (${statusResponse.status})`);
+    }
+
+    const visits = loadJson(STORAGE_KEYS.visits, []);
+
+    for (const visit of visits) {
+      if (!visit?.id || visit.syncStatus === 'synchronisée') continue;
+
+      let photosOk = true;
+      const photos = Array.isArray(visit.photoLibrary) ? visit.photoLibrary : [];
+
+      for (const photo of photos) {
+        if (!photo?.id) continue;
+
+        try {
+          const record = await photoDbGet(photo.id);
+          if (!record?.blob) {
+            photosOk = false;
+            console.warn('Photo locale introuvable pour la synchronisation :', photo.id);
+            continue;
+          }
+
+          const ok = await syncPhotoToServer(record, visit);
+          if (!ok) photosOk = false;
+        } catch (error) {
+          photosOk = false;
+          console.warn('Synchronisation photo différée :', photo.id, error);
+        }
+      }
+
+      if (photosOk) {
+        await syncVisitToServer(visit);
+      } else {
+        visit.syncStatus = 'à synchroniser';
+        persistVisitRecord(visit, { touch: false, sync: false });
+      }
+    }
+
+    await loadVisitsFromServer();
+    return true;
+
+  } catch (error) {
+    console.warn('Synchronisation locale différée :', error);
+    return false;
+  } finally {
+    syncInProgress = false;
+  }
+}
+
 async function deleteVisitFromServer(visitId) {
     if (!SERVER_BASE_URL) {
     return false;
@@ -3649,8 +3639,8 @@ async function loadVisitsFromServer() {
     return [];
   }
   try {
-    const response = await fetchVfgServer(
-      '/api/visits',
+    const response = await fetch(
+     `${SERVER_BASE_URL}/api/visits`,
       { cache: 'no-store' }
     );
 
@@ -3719,10 +3709,9 @@ async function loadVisitsFromServer() {
     return [];
   }
   try {
-  const response = await fetchVfgServer(
-    '/api/visits',
-    { cache: 'no-store' }
-  );
+  const response = await fetch(
+  `${SERVER_BASE_URL}/api/visits`
+);
 
     if (!response.ok) {
       throw new Error(`Erreur serveur ${response.status}`);
@@ -10046,9 +10035,6 @@ function renderCompactRecentMachines() {
     screens.placeholder = $('#placeholderScreen');
     screens.report = $('#reportScreen');
     await loadVisitsFromServer();
-    syncPendingLocalData().catch(error =>
-      console.warn('Synchronisation différée indisponible :', error)
-    );
 loadRecents();
    renderCompactRecentMachines();
     bindEvents();
@@ -10068,18 +10054,23 @@ loadRecents();
     }
   }
 
-  const retryPendingSync = () => {
-    syncPendingLocalData().catch(error =>
-      console.warn('Nouvelle tentative de synchronisation impossible :', error)
-    );
-  };
-
-  window.addEventListener('online', retryPendingSync);
-  window.addEventListener('focus', retryPendingSync);
-  document.addEventListener('visibilitychange', () => {
-    if (!document.hidden) retryPendingSync();
+  document.addEventListener('DOMContentLoaded', async () => {
+    await init();
+    setTimeout(() => syncPendingLocalDataToServer({ force: true }), 400);
   });
 
-  document.addEventListener('DOMContentLoaded', init);
+  window.addEventListener('online', () => {
+    syncPendingLocalDataToServer({ force: true });
+  });
+
+  window.addEventListener('focus', () => {
+    syncPendingLocalDataToServer();
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      syncPendingLocalDataToServer();
+    }
+  });
 })();
 
