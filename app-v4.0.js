@@ -4,58 +4,18 @@ const IS_PUBLIC_PILOT =
   window.location.hostname === 'cedricbodet49-cpu.github.io' ||
   window.location.hostname.endsWith('.github.io');
 
-// V8K3.4 MOBILE_PERMANENT_ENDPOINT
-// Sur GitHub Pages, le serveur VFG peut etre memorise une fois pour toutes
-// avec ?server=https%3A%2F%2Fnom-du-pc.tailnet.ts.net .
-// L'adresse reste ensuite conservee dans ce navigateur, quel que soit le Wi-Fi.
-const SERVER_URL_KEY = 'FOSELEV_VFG_server_url_v1';
-const CLIENT_ID_KEY = 'FOSELEV_VFG_client_id_v1';
-
-function normalizeVfgServerUrl(value) {
-  const url = String(value || '').trim().replace(/\/+$/, '');
-  if (!url) return '';
-  try {
-    const parsed = new URL(url);
-    if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') return '';
-    return parsed.origin;
-  } catch (_) {
-    return '';
-  }
-}
-
-function ensureVfgClientId() {
-  let id = localStorage.getItem(CLIENT_ID_KEY) || '';
-  if (!id) {
-    id = (globalThis.crypto && typeof globalThis.crypto.randomUUID === 'function')
-      ? globalThis.crypto.randomUUID()
-      : `vfg-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-    localStorage.setItem(CLIENT_ID_KEY, id);
-  }
-  return id;
-}
-
-const VFG_CLIENT_ID = ensureVfgClientId();
-const serverFromQuery = normalizeVfgServerUrl(
-  new URLSearchParams(window.location.search).get('server')
-);
-
-if (serverFromQuery) {
-  localStorage.setItem(SERVER_URL_KEY, serverFromQuery);
-}
-
-const rememberedServerUrl = normalizeVfgServerUrl(
-  localStorage.getItem(SERVER_URL_KEY)
-);
-
+const IS_MOBILE_VFG = /Android|iPhone|iPad|iPod|Mobile/i.test(navigator.userAgent || '');
+const VFG_HOTSPOT_PC_URL = 'http://172.20.10.2:3000';
 const SERVER_BASE_URL =
-  IS_PUBLIC_PILOT
-    ? (serverFromQuery || rememberedServerUrl || null)
+  window.location.port === '3000'
+    ? window.location.origin
     : (
-        window.location.port === '3000'
-          ? window.location.origin
-          : (rememberedServerUrl || 'http://localhost:3000')
+        IS_PUBLIC_PILOT
+          ? (IS_MOBILE_VFG ? VFG_HOTSPOT_PC_URL : 'http://localhost:3000')
+          : 'http://localhost:3000'
       );
-  const VERSION = 'V8K3.4';
+const SERVER_FETCH_TIMEOUT_MS = 2500;
+  const VERSION = '4.0.0-S2.01-P4.1';
   const STORAGE_KEYS = {
     recents: 'foselev_v3_recent_machines',
     activeMachine: 'foselev_v3_active_machine',
@@ -2697,8 +2657,8 @@ async function syncPhotoToServer(record, visit = state.activeVisit) {
     const dataUrl = await blobToDataUrl(record.blob);
     const base64 = String(dataUrl).split(',')[1] || '';
 
-    const response = await fetch(
-      `${SERVER_BASE_URL}/api/photos/${encodeURIComponent(record.id)}`,
+    const response = await fetchVfgServer(
+      `/api/photos/${encodeURIComponent(record.id)}`,
       {
         method: 'PUT',
         headers: {
@@ -3506,6 +3466,102 @@ async function addSelectedLibraryPhotos() {
       return false;
     }
   }
+
+  async function fetchVfgServer(path, options = {}, timeoutMs = SERVER_FETCH_TIMEOUT_MS) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+    try {
+      return await fetch(`${SERVER_BASE_URL}${path}`, {
+        ...options,
+        signal: controller.signal
+      });
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  async function vfgServerAvailable() {
+    try {
+      const response = await fetchVfgServer('/api/status', { cache: 'no-store' }, 1800);
+      return response.ok;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  function visitPhotoIds(visit) {
+    const ids = new Set();
+
+    (visit?.photoLibrary || []).forEach(photo => {
+      if (photo?.id) ids.add(photo.id);
+    });
+
+    (visit?.findings || []).forEach(finding => {
+      (finding?.photos || []).forEach(photo => {
+        if (photo?.id) ids.add(photo.id);
+      });
+    });
+
+    return Array.from(ids);
+  }
+
+  async function syncPendingLocalData() {
+    if (syncInProgress) return false;
+    syncInProgress = true;
+
+    try {
+      if (!(await vfgServerAvailable())) return false;
+
+      const visits = loadJson(STORAGE_KEYS.visits, []);
+      const pendingVisits = visits.filter(
+        visit => visit?.id && visit.syncStatus !== 'synchronisée'
+      );
+
+      if (!pendingVisits.length) return true;
+
+      let changed = false;
+
+      for (const visit of pendingVisits) {
+        const visitOk = await syncVisitToServer(visit);
+        let photosOk = true;
+
+        if (visitOk) {
+          for (const photoId of visitPhotoIds(visit)) {
+            try {
+              const record = await photoDbGet(photoId);
+              if (!record?.blob) continue;
+              const photoOk = await syncPhotoToServer(record, visit);
+              if (!photoOk) photosOk = false;
+            } catch (error) {
+              photosOk = false;
+              console.warn('Photo locale non synchronisée :', photoId, error);
+            }
+          }
+        } else {
+          photosOk = false;
+        }
+
+        visit.syncStatus = visitOk && photosOk
+          ? 'synchronisée'
+          : 'à synchroniser';
+
+        persistVisitRecord(visit, {
+          touch: false,
+          sync: false
+        });
+        changed = true;
+      }
+
+      if (changed) {
+        console.log(`${pendingVisits.length} visite(s) locale(s) vérifiée(s) pour synchronisation.`);
+      }
+
+      return true;
+    } finally {
+      syncInProgress = false;
+    }
+  }
 async function syncVisitToServer(visit) {
     if (!SERVER_BASE_URL) {
     return false;
@@ -3518,8 +3574,8 @@ async function syncVisitToServer(visit) {
       syncStatus: 'synchronisée'
     };
 
-    const response = await fetch(
-      `${SERVER_BASE_URL}/api/visits/${encodeURIComponent(visit.id)}`,
+    const response = await fetchVfgServer(
+      `/api/visits/${encodeURIComponent(visit.id)}`,
       {
         method: 'PUT',
         headers: {
@@ -3593,8 +3649,8 @@ async function loadVisitsFromServer() {
     return [];
   }
   try {
-    const response = await fetch(
-     `${SERVER_BASE_URL}/api/visits`,
+    const response = await fetchVfgServer(
+      '/api/visits',
       { cache: 'no-store' }
     );
 
@@ -3663,9 +3719,10 @@ async function loadVisitsFromServer() {
     return [];
   }
   try {
-  const response = await fetch(
-  `${SERVER_BASE_URL}/api/visits`
-);
+  const response = await fetchVfgServer(
+    '/api/visits',
+    { cache: 'no-store' }
+  );
 
     if (!response.ok) {
       throw new Error(`Erreur serveur ${response.status}`);
@@ -7723,68 +7780,6 @@ return;
       <table class="report-control-table"><thead><tr><th>Point de contrôle</th><th>État</th></tr></thead><tbody>${lines}</tbody></table>`;
   }
 
-
-  // V8K3_4_COMPACT_CONTROL_PAGINATION
-  // Deux chapitres de contrôle sont regroupés sur une même page lorsque
-  // leur hauteur estimée le permet. Un maximum de deux chapitres est
-  // volontairement conservé pour préserver la lisibilité.
-  function reportControlEstimatedHeight(item, visit) {
-    const section = item?.section || {};
-    if (section.id === 'tyres') {
-      const axleCount = Math.max(1, visit?.tyres?.axles?.length || 0);
-      return 150 + (axleCount * 92);
-    }
-
-    const rowCount = Math.max(1, (section.points || []).length);
-    return 115 + (rowCount * 30);
-  }
-
-  function packReportControlPages(items, visit) {
-    const pages = [];
-    const maxCombinedHeight = 860;
-
-    for (let index = 0; index < items.length; index += 1) {
-      const current = items[index];
-      const next = items[index + 1];
-
-      if (
-        next &&
-        current.zoneKey === next.zoneKey &&
-        reportControlEstimatedHeight(current, visit) +
-          reportControlEstimatedHeight(next, visit) <= maxCombinedHeight
-      ) {
-        pages.push([current, next]);
-        index += 1;
-      } else {
-        pages.push([current]);
-      }
-    }
-
-    return pages;
-  }
-
-  function reportControlPageGroup(items, visit) {
-    const doubleClass = items.length > 1
-      ? ' report-control-page-group-double'
-      : '';
-
-    return `<div class="report-control-page-group${doubleClass}">
-      ${items.map(item => `
-        <section
-          class="report-control-chapter"
-          data-report-chapter="${escapeHtml(item.number)}"
-        >
-          ${reportControlPage(
-            item.section,
-            item.zoneTitle,
-            item.number,
-            visit
-          )}
-        </section>
-      `).join('')}
-    </div>`;
-  }
-
   async function reportFindingPage(finding, index, detailPageNumber) {
     const selected = (finding.photos || []).filter(photo => photo.includeInReport);
     const images = [];
@@ -7816,7 +7811,7 @@ return;
   ← Retour à l’anomalie dans la synthèse
 </a>`;  }
 
- // V8K3_4_PAGE1_DEUX_MODELES_VALIDES
+ // V8K3_3_PAGE1_DEUX_MODELES_VALIDES
   // GM / MK : modèle « grues » validé.
   // CB / CN : modèle « camions » validé.
   // La photo principale provient exclusivement du point « Vue d’ensemble ».
@@ -8061,7 +8056,7 @@ return;
         </div>
         <div class="report-cover-vfg-badge">
           <span class="report-cover-vfg-icon">✓</span>
-          <div><strong>FOSELEV VFG</strong><small>V8K3.4</small></div>
+          <div><strong>FOSELEV VFG</strong><small>V8K3.3</small></div>
         </div>
       </header>
 
@@ -8127,7 +8122,7 @@ return;
         </div>
         <div class="report-cover-vfg-badge">
           <span class="report-cover-vfg-icon">✓</span>
-          <div><strong>FOSELEV VFG</strong><small>V8K3.4</small></div>
+          <div><strong>FOSELEV VFG</strong><small>V8K3.3</small></div>
         </div>
       </header>
 
@@ -8199,36 +8194,13 @@ ensureTyreData(visit, machine);
 
     const carrierSections = visit.zones?.carrier?.sections || [];
     const upperSections = visit.zones?.upper?.sections || [];
-    const controlSections = [
-      ...carrierSections.map((section, index) => ({
-        section,
-        zoneKey: 'carrier',
-        zoneTitle: 'Porteur',
-        number: `02.${index + 1}`
-      })),
-      ...upperSections.map((section, index) => ({
-        section,
-        zoneKey: 'upper',
-        zoneTitle: 'Tourelle',
-        number: `03.${index + 1}`
-      }))
+    const sectionPages = [
+      ...carrierSections.map((section, index) => ({ section, zoneTitle: 'Porteur', number: `02.${index + 1}` })),
+      ...upperSections.map((section, index) => ({ section, zoneTitle: 'Tourelle', number: `03.${index + 1}` }))
     ];
-    const controlPages = packReportControlPages(controlSections, visit);
-    const controlPageNumberBySection = new Map();
-
-    controlPages.forEach((items, pageIndex) => {
-      const pageNumber = 3 + pageIndex;
-      items.forEach(item => {
-        controlPageNumberBySection.set(
-          `${item.zoneKey}:${item.section.id}`,
-          pageNumber
-        );
-      });
-    });
-
     const finalPageCount = 1;
-    const totalPages = 2 + controlPages.length + findings.length + finalPageCount;
-    const firstFindingPage = 3 + controlPages.length;
+    const totalPages = 2 + sectionPages.length + findings.length + finalPageCount;
+    const firstFindingPage = 3 + sectionPages.length;
 
     const coverMedia = await reportCoverPhoto(visit);
     const family = machineFamily(machine, visit);
@@ -8255,23 +8227,8 @@ ensureTyreData(visit, machine);
       comment: finding.comment || 'Aucun commentaire.',
       page: firstFindingPage + index
     }));
-    const tyreControlPage =
-      controlPageNumberBySection.get('carrier:tyres') || 3;
-
-    tyreHs.forEach(item => summaryItems.push({
-      category: 'nonconformity',
-      title: item.label,
-      subtitle: 'Porteur · Pneumatiques',
-      comment: 'Pneumatique HS.',
-      page: tyreControlPage
-    }));
-    tyreWatch.forEach(item => summaryItems.push({
-      category: 'watch',
-      title: item.label,
-      subtitle: 'Porteur · Pneumatiques',
-      comment: 'Usure restante : 25 %.',
-      page: tyreControlPage
-    }));
+    tyreHs.forEach(item => summaryItems.push({ category: 'nonconformity', title: item.label, subtitle: 'Porteur · Pneumatiques', comment: 'Pneumatique HS.', page: 3 + carrierSections.findIndex(s => s.id === 'tyres') }));
+    tyreWatch.forEach(item => summaryItems.push({ category: 'watch', title: item.label, subtitle: 'Porteur · Pneumatiques', comment: 'Usure restante : 25 %.', page: 3 + carrierSections.findIndex(s => s.id === 'tyres') }));
 
   const categoryBlock = (category, title) => {
   const items = summaryItems.filter(
@@ -8319,9 +8276,7 @@ ensureTyreData(visit, machine);
       ${categoryBlock('observation', 'Observations')}`;
 
     const innerPages = [cover, summary];
-    controlPages.forEach(items =>
-      innerPages.push(reportControlPageGroup(items, visit))
-    );
+    sectionPages.forEach(item => innerPages.push(reportControlPage(item.section, item.zoneTitle, item.number, visit)));
     for (let index = 0; index < findings.length; index += 1) innerPages.push(await reportFindingPage(findings[index], index, firstFindingPage + index));
     innerPages.push(`${reportSectionHeading('04', 'Observations et signatures')}
       <section class="report-general-observations"><h3>Observations générales</h3><div class="report-writing-lines"></div></section>
@@ -10091,6 +10046,9 @@ function renderCompactRecentMachines() {
     screens.placeholder = $('#placeholderScreen');
     screens.report = $('#reportScreen');
     await loadVisitsFromServer();
+    syncPendingLocalData().catch(error =>
+      console.warn('Synchronisation différée indisponible :', error)
+    );
 loadRecents();
    renderCompactRecentMachines();
     bindEvents();
@@ -10109,6 +10067,18 @@ loadRecents();
       toast(error.message || 'Impossible de charger le parc matériel.');
     }
   }
+
+  const retryPendingSync = () => {
+    syncPendingLocalData().catch(error =>
+      console.warn('Nouvelle tentative de synchronisation impossible :', error)
+    );
+  };
+
+  window.addEventListener('online', retryPendingSync);
+  window.addEventListener('focus', retryPendingSync);
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) retryPendingSync();
+  });
 
   document.addEventListener('DOMContentLoaded', init);
 })();
