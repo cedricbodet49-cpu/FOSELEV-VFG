@@ -11,7 +11,7 @@ const SERVER_BASE_URL =
     ? window.location.origin
     : (
         IS_PUBLIC_PILOT
-          ? 'http://172.20.10.2:3000'
+          ? 'https://172.20.10.2:3443'
           : 'http://localhost:3000'
       );
 
