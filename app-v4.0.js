@@ -4,39 +4,14 @@ const IS_PUBLIC_PILOT =
   window.location.hostname === 'cedricbodet49-cpu.github.io' ||
   window.location.hostname.endsWith('.github.io');
 
-// V8K3.4 — synchronisation locale via le partage de connexion du téléphone.
-// L'application reste utilisable hors connexion ; seul le canal de synchro dépend du PC.
 const SERVER_BASE_URL =
-  window.location.port === '3000'
-    ? window.location.origin
+  IS_PUBLIC_PILOT
+    ? null
     : (
-        IS_PUBLIC_PILOT
-          ? 'https://172.20.10.2:3443'
+        window.location.port === '3000'
+          ? window.location.origin
           : 'http://localhost:3000'
       );
-
-const SERVER_FETCH_TIMEOUT_MS = 1800;
-const _nativeFetch = window.fetch.bind(window);
-window.fetch = function vfgFetch(input, init = {}) {
-  const url = typeof input === 'string' ? input : (input?.url || '');
-  const isVfgLocalServer = Boolean(SERVER_BASE_URL) && url.startsWith(SERVER_BASE_URL);
-
-  if (!isVfgLocalServer) {
-    return _nativeFetch(input, init);
-  }
-
-  const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), SERVER_FETCH_TIMEOUT_MS);
-  const options = { ...init, signal: controller.signal };
-
-  // Chrome 142+ : autorise, après accord utilisateur, une page HTTPS à joindre
-  // une adresse IP privée HTTP du réseau local.
-  if (/^http:\/\/(?:10\.|172\.(?:1[6-9]|2\d|3[01])\.|192\.168\.)/.test(url)) {
-    options.targetAddressSpace = 'local';
-  }
-
-  return _nativeFetch(input, options).finally(() => clearTimeout(timeout));
-};
   const VERSION = '4.0.0-S2.01-P4.1';
   const STORAGE_KEYS = {
     recents: 'foselev_v3_recent_machines',
@@ -55,6 +30,142 @@ let syncInProgress = false;
 let lastAutoSync = 0;
   const VFG_REFERENTIAL = {"version":"1.0.0-P1","sourceWorkbook":"FOSELEV_VFG_Tourelle_GM_MM-BRAS-NACELLE 14-8   12h.xlsx","sourceSheets":["porteur gm-mk-cb-cn","tourelle GM","tourelle MK","BRAS DE GRUE","NACELLE"],"rules":{"optionalDefaultStatus":"na","mandatoryDefaultStatus":"pending","naExcludedFromControlledTotal":true,"allowCustomPoints":true,"familyResolution":"GM dont modèle/désignation contient MK => MK; sinon catégorie GM/CB/CN","modules":{"GM":{"carrier":"required","equipment":"required"},"MK":{"carrier":"required","equipment":"required"},"CB":{"carrier":"selectable","equipment":"selectable"},"CN":{"carrier":"selectable","equipment":"selectable"}}},"families":{"GM":{"carrier":[{"id":"documentation","label":"Documentation et plaques","points":[{"id":"documentation-001","sourceNumber":1,"label":"Plaques constructeur","optional":false,"defaultStatus":"pending","photoRequired":true,"sourceComment":"photos obligatoire ou bouton NA","plateScope":"machine"},{"id":"documentation-002","sourceNumber":2,"label":"Numéro de série","optional":false,"defaultStatus":"pending","sourceComment":"i"},{"id":"documentation-003","sourceNumber":3,"label":"Carte grise","optional":false,"defaultStatus":"pending"},{"id":"documentation-004","sourceNumber":4,"label":"Carnet d’entretien","optional":false,"defaultStatus":"pending"},{"id":"documentation-005","sourceNumber":5,"label":"Documents réglementaires","optional":false,"defaultStatus":"pending"},{"id":"documentation-006","sourceNumber":6,"label":"Vue d’ensemble","optional":false,"defaultStatus":"pending","photoRequired":true,"sourceComment":"photos obligatoire ou bouton NA"}]},{"id":"structure","label":"Châssis / Structure","points":[{"id":"structure-001","sourceNumber":1,"label":"État général du châssis","optional":false,"defaultStatus":"pending"},{"id":"structure-002","sourceNumber":2,"label":"Soudures","optional":false,"defaultStatus":"pending"},{"id":"structure-003","sourceNumber":3,"label":"Fixations","optional":false,"defaultStatus":"pending"},{"id":"structure-004","sourceNumber":4,"label":"Corrosion","optional":false,"defaultStatus":"pending"},{"id":"structure-005","sourceNumber":5,"label":"Déformations","optional":false,"defaultStatus":"pending"},{"id":"structure-006","sourceNumber":6,"label":"Protections","optional":false,"defaultStatus":"pending"}]},{"id":"powertrain","label":"Moteur & Transmission","points":[{"id":"powertrain-001","sourceNumber":1,"label":"Niveau d’huile moteur","optional":false,"defaultStatus":"pending"},{"id":"powertrain-002","sourceNumber":2,"label":"Fuites moteur","optional":false,"defaultStatus":"pending"},{"id":"powertrain-003","sourceNumber":3,"label":"Courroies et tendeurs","optional":false,"defaultStatus":"pending"},{"id":"powertrain-004","sourceNumber":4,"label":"Circuit de refroidissement","optional":false,"defaultStatus":"pending"},{"id":"powertrain-005","sourceNumber":5,"label":"Filtration","optional":false,"defaultStatus":"pending"},{"id":"powertrain-006","sourceNumber":6,"label":"Échappement","optional":false,"defaultStatus":"pending"},{"id":"powertrain-007","sourceNumber":1,"label":"Absence fuite moyeux / ponts","optional":false,"defaultStatus":"pending"},{"id":"powertrain-008","sourceNumber":2,"label":"État suspensions","optional":false,"defaultStatus":"pending"},{"id":"powertrain-009","sourceNumber":3,"label":"Direction, rotules, vérins et modes de direction","optional":false,"defaultStatus":"pending"},{"id":"powertrain-010","sourceNumber":4,"label":"frein de parc","optional":false,"defaultStatus":"pending"},{"id":"powertrain-011","sourceNumber":5,"label":"Frein de service","optional":false,"defaultStatus":"pending","sourceComment":"bouton essaie dynamique O/N"}]},{"id":"stabilisers","label":"Stabilisateurs","points":[{"id":"stabilisers-001","sourceNumber":1,"label":"État structure stabilisateurs","optional":false,"defaultStatus":"pending"},{"id":"stabilisers-002","sourceNumber":2,"label":"Absence fissure poutres stabilisation","optional":false,"defaultStatus":"pending"},{"id":"stabilisers-003","sourceNumber":3,"label":"État vérins stabilisation","optional":false,"defaultStatus":"pending"},{"id":"stabilisers-004","sourceNumber":4,"label":"Absence fuite vérins / flexibles","optional":false,"defaultStatus":"pending"},{"id":"stabilisers-005","sourceNumber":5,"label":"État patins / semelles appui","optional":false,"defaultStatus":"pending"},{"id":"stabilisers-006","sourceNumber":6,"label":"Axes, bagues, goupilles présents et sécurisés","optional":false,"defaultStatus":"pending"},{"id":"stabilisers-007","sourceNumber":7,"label":"Sortie / rentrée stabilisateurs","optional":false,"defaultStatus":"pending"}]},{"id":"tyres","label":"Pneumatiques","points":[{"id":"tyres-001","sourceNumber":1,"label":"Usure","optional":false,"defaultStatus":"pending"},{"id":"tyres-002","sourceNumber":2,"label":"Pression","optional":false,"defaultStatus":"pending"},{"id":"tyres-003","sourceNumber":3,"label":"Flancs","optional":false,"defaultStatus":"pending"},{"id":"tyres-004","sourceNumber":4,"label":"Jantes","optional":false,"defaultStatus":"pending"},{"id":"tyres-005","sourceNumber":5,"label":"Écrous de roues","optional":false,"defaultStatus":"pending"},{"id":"tyres-006","sourceNumber":6,"label":"Valves","optional":false,"defaultStatus":"pending"}]},{"id":"lighting","label":"Éclairage","points":[{"id":"lighting-001","sourceNumber":1,"label":"Feux de route","optional":false,"defaultStatus":"pending"},{"id":"lighting-002","sourceNumber":2,"label":"Feux de position","optional":false,"defaultStatus":"pending"},{"id":"lighting-003","sourceNumber":3,"label":"Clignotants","optional":false,"defaultStatus":"pending"},{"id":"lighting-004","sourceNumber":4,"label":"Feux stop","optional":false,"defaultStatus":"pending"},{"id":"lighting-005","sourceNumber":5,"label":"Feux de recul","optional":false,"defaultStatus":"pending"},{"id":"lighting-006","sourceNumber":6,"label":"Feux de gabarit tourelle","optional":false,"defaultStatus":"pending"}]},{"id":"cab","label":"Cabine porteur","points":[{"id":"cab-001","sourceNumber":1,"label":"État cabine","optional":false,"defaultStatus":"pending"},{"id":"cab-002","sourceNumber":2,"label":"Siège","optional":false,"defaultStatus":"pending"},{"id":"cab-003","sourceNumber":3,"label":"Ceinture","optional":false,"defaultStatus":"pending"},{"id":"cab-004","sourceNumber":4,"label":"Rétroviseurs","optional":false,"defaultStatus":"pending"},{"id":"cab-005","sourceNumber":5,"label":"Essuie-glaces","optional":false,"defaultStatus":"pending"},{"id":"cab-006","sourceNumber":6,"label":"Tableau de bord","optional":false,"defaultStatus":"pending"},{"id":"cab-007","sourceNumber":7,"label":"Avertisseur sonore","optional":false,"defaultStatus":"pending"}]},{"id":"electrical","label":"Électricité porteur","points":[{"id":"electrical-001","sourceNumber":1,"label":"Batteries","optional":false,"defaultStatus":"pending"},{"id":"electrical-002","sourceNumber":2,"label":"Coupe-batterie","optional":false,"defaultStatus":"pending"},{"id":"electrical-003","sourceNumber":3,"label":"Faisceaux","optional":false,"defaultStatus":"pending"},{"id":"electrical-004","sourceNumber":4,"label":"Connecteurs","optional":false,"defaultStatus":"pending"},{"id":"electrical-005","sourceNumber":5,"label":"Fusibles","optional":false,"defaultStatus":"pending"},{"id":"electrical-006","sourceNumber":6,"label":"Alternateur","optional":false,"defaultStatus":"pending"},{"id":"electrical-007","sourceNumber":7,"label":"Démarreur","optional":false,"defaultStatus":"pending"}]},{"id":"hydraulic","label":"Hydraulique porteur","points":[{"id":"hydraulic-001","sourceNumber":1,"label":"Réservoir","optional":false,"defaultStatus":"pending"},{"id":"hydraulic-002","sourceNumber":2,"label":"Niveau d’huile","optional":false,"defaultStatus":"pending"},{"id":"hydraulic-003","sourceNumber":3,"label":"Pompes","optional":false,"defaultStatus":"pending"},{"id":"hydraulic-004","sourceNumber":4,"label":"Flexibles","optional":false,"defaultStatus":"pending"},{"id":"hydraulic-005","sourceNumber":5,"label":"Raccords","optional":false,"defaultStatus":"pending"},{"id":"hydraulic-006","sourceNumber":6,"label":"Distributeurs","optional":false,"defaultStatus":"pending"},{"id":"hydraulic-007","sourceNumber":7,"label":"Vérins","optional":false,"defaultStatus":"pending"},{"id":"hydraulic-008","sourceNumber":8,"label":"Fuites","optional":false,"defaultStatus":"pending"}]},{"id":"access","label":"Coffres / Accès","points":[{"id":"access-001","sourceNumber":1,"label":"Coffres","optional":false,"defaultStatus":"pending"},{"id":"access-002","sourceNumber":2,"label":"Capots","optional":false,"defaultStatus":"pending"},{"id":"access-003","sourceNumber":3,"label":"Échelles","optional":false,"defaultStatus":"pending"},{"id":"access-004","sourceNumber":4,"label":"Marchepieds","optional":false,"defaultStatus":"pending"},{"id":"access-005","sourceNumber":5,"label":"Poignées","optional":false,"defaultStatus":"pending"},{"id":"access-006","sourceNumber":6,"label":"Protections","optional":false,"defaultStatus":"pending"}]}],"upper":[{"id":"upperCab","label":"Cabine tourelle","points":[{"id":"upperCab-001","sourceNumber":1,"label":"État cabine","optional":false,"defaultStatus":"pending"},{"id":"upperCab-002","sourceNumber":2,"label":"Siège","optional":false,"defaultStatus":"pending"},{"id":"upperCab-003","sourceNumber":3,"label":"Ceinture","optional":false,"defaultStatus":"pending"},{"id":"upperCab-004","sourceNumber":4,"label":"Vitrages","optional":false,"defaultStatus":"pending"},{"id":"upperCab-005","sourceNumber":5,"label":"Essuie-glaces","optional":false,"defaultStatus":"pending"},{"id":"upperCab-006","sourceNumber":6,"label":"Commandes","optional":false,"defaultStatus":"pending"},{"id":"upperCab-007","sourceNumber":7,"label":"Écrans","optional":false,"defaultStatus":"pending"},{"id":"upperCab-008","sourceNumber":8,"label":"Climatisation","optional":false,"defaultStatus":"pending"}]},{"id":"cec","label":"CEC / Codes défaut","points":[{"id":"cec-001","sourceNumber":1,"label":"Codes défaut","optional":false,"defaultStatus":"pending"},{"id":"cec-002","sourceNumber":2,"label":"Écrans","optional":false,"defaultStatus":"pending"},{"id":"cec-003","sourceNumber":3,"label":"Alarmes","optional":false,"defaultStatus":"pending"},{"id":"cec-004","sourceNumber":4,"label":"Capteurs","optional":false,"defaultStatus":"pending"},{"id":"cec-005","sourceNumber":5,"label":"Paramètres","optional":false,"defaultStatus":"pending"},{"id":"cec-006","sourceNumber":6,"label":"Historique défauts","optional":false,"defaultStatus":"pending"}]},{"id":"boom","label":"Flèche","points":[{"id":"boom-001","sourceNumber":1,"label":"Structure de flèche","optional":false,"defaultStatus":"pending"},{"id":"boom-002","sourceNumber":2,"label":"Soudures","optional":false,"defaultStatus":"pending"},{"id":"boom-003","sourceNumber":3,"label":"Axes","optional":false,"defaultStatus":"pending"},{"id":"boom-004","sourceNumber":4,"label":"Patins","optional":false,"defaultStatus":"pending"},{"id":"boom-005","sourceNumber":5,"label":"Vérin de relevage","optional":false,"defaultStatus":"pending"},{"id":"boom-006","sourceNumber":6,"label":"Vérins de télescopage","optional":false,"defaultStatus":"pending"},{"id":"boom-007","sourceNumber":7,"label":"Flexibles","optional":false,"defaultStatus":"pending"},{"id":"boom-008","sourceNumber":8,"label":"Enrouleurs","optional":false,"defaultStatus":"pending"},{"id":"boom-009","sourceNumber":9,"label":"Tête de flèche","optional":false,"defaultStatus":"pending"},{"id":"boom-010","sourceNumber":10,"label":"Robot de flèche","optional":false,"defaultStatus":"pending"}]},{"id":"mainWinch","label":"Treuil principal","points":[{"id":"mainWinch-001","sourceNumber":1,"label":"Câble","optional":false,"defaultStatus":"pending"},{"id":"mainWinch-002","sourceNumber":2,"label":"Tambour","optional":false,"defaultStatus":"pending"},{"id":"mainWinch-003","sourceNumber":3,"label":"Réducteur","optional":false,"defaultStatus":"pending"},{"id":"mainWinch-004","sourceNumber":4,"label":"Frein","optional":false,"defaultStatus":"pending"},{"id":"mainWinch-005","sourceNumber":5,"label":"Fixations","optional":false,"defaultStatus":"pending"},{"id":"mainWinch-006","sourceNumber":6,"label":"Graissage","optional":false,"defaultStatus":"pending"},{"id":"mainWinch-007","sourceNumber":7,"label":"Enrouleur","optional":false,"defaultStatus":"pending"},{"id":"mainWinch-008","sourceNumber":8,"label":"Crochet","optional":false,"defaultStatus":"pending"}]},{"id":"auxWinch","label":"Treuil auxiliaire","points":[{"id":"auxWinch-001","sourceNumber":1,"label":"Câble","optional":true,"defaultStatus":"na"},{"id":"auxWinch-002","sourceNumber":2,"label":"Tambour","optional":true,"defaultStatus":"na"},{"id":"auxWinch-003","sourceNumber":3,"label":"Réducteur","optional":true,"defaultStatus":"na"},{"id":"auxWinch-004","sourceNumber":4,"label":"Frein","optional":true,"defaultStatus":"na"},{"id":"auxWinch-005","sourceNumber":5,"label":"Fixations","optional":true,"defaultStatus":"na"},{"id":"auxWinch-006","sourceNumber":6,"label":"Graissage","optional":true,"defaultStatus":"na"},{"id":"auxWinch-007","sourceNumber":7,"label":"Enrouleur","optional":true,"defaultStatus":"na"},{"id":"auxWinch-008","sourceNumber":8,"label":"Crochet","optional":true,"defaultStatus":"na"}]},{"id":"upperElectrical","label":"Électricité tourelle","points":[{"id":"upperElectrical-001","sourceNumber":1,"label":"Batteries","optional":false,"defaultStatus":"pending"},{"id":"upperElectrical-002","sourceNumber":2,"label":"Faisceaux","optional":false,"defaultStatus":"pending"},{"id":"upperElectrical-003","sourceNumber":3,"label":"Connecteurs","optional":false,"defaultStatus":"pending"},{"id":"upperElectrical-004","sourceNumber":4,"label":"Capteurs","optional":false,"defaultStatus":"pending"},{"id":"upperElectrical-005","sourceNumber":5,"label":"Boîtiers","optional":false,"defaultStatus":"pending"},{"id":"upperElectrical-006","sourceNumber":6,"label":"Mise à la masse","optional":false,"defaultStatus":"pending"}]},{"id":"workLights","label":"Éclairage de travail","points":[{"id":"workLights-001","sourceNumber":1,"label":"Projecteurs cabine","optional":false,"defaultStatus":"pending"},{"id":"workLights-002","sourceNumber":2,"label":"Projecteurs flèche","optional":false,"defaultStatus":"pending"},{"id":"workLights-003","sourceNumber":3,"label":"Projecteurs treuils","optional":false,"defaultStatus":"pending"},{"id":"workLights-004","sourceNumber":4,"label":"Projecteurs poutres","optional":false,"defaultStatus":"pending"}]},{"id":"counterweight","label":"Contrepoids","points":[{"id":"counterweight-001","sourceNumber":1,"label":"Éléments de contrepoids","optional":false,"defaultStatus":"pending"},{"id":"counterweight-002","sourceNumber":2,"label":"Verrouillages","optional":false,"defaultStatus":"pending"},{"id":"counterweight-003","sourceNumber":3,"label":"Axes","optional":false,"defaultStatus":"pending"},{"id":"counterweight-004","sourceNumber":4,"label":"Fixations","optional":false,"defaultStatus":"pending"},{"id":"counterweight-005","sourceNumber":5,"label":"Système de dépose","optional":false,"defaultStatus":"pending"}]},{"id":"slewRing","label":"Couronne d’orientation","points":[{"id":"slewRing-001","sourceNumber":1,"label":"Boulonnerie","optional":false,"defaultStatus":"pending"},{"id":"slewRing-002","sourceNumber":2,"label":"Graissage","optional":false,"defaultStatus":"pending"},{"id":"slewRing-003","sourceNumber":3,"label":"Jeu","optional":false,"defaultStatus":"pending"},{"id":"slewRing-004","sourceNumber":4,"label":"Dentures","optional":false,"defaultStatus":"pending"},{"id":"slewRing-005","sourceNumber":5,"label":"Pignon d’orientation","optional":false,"defaultStatus":"pending"},{"id":"slewRing-006","sourceNumber":6,"label":"Frein d’orientation","optional":false,"defaultStatus":"pending"}]},{"id":"upperHydraulic","label":"Hydraulique tourelle","points":[{"id":"upperHydraulic-001","sourceNumber":1,"label":"Réservoir","optional":false,"defaultStatus":"pending"},{"id":"upperHydraulic-002","sourceNumber":2,"label":"Pompes","optional":false,"defaultStatus":"pending"},{"id":"upperHydraulic-003","sourceNumber":3,"label":"Flexibles","optional":false,"defaultStatus":"pending"},{"id":"upperHydraulic-004","sourceNumber":4,"label":"Raccords","optional":false,"defaultStatus":"pending"},{"id":"upperHydraulic-005","sourceNumber":5,"label":"Distributeurs","optional":false,"defaultStatus":"pending"},{"id":"upperHydraulic-006","sourceNumber":6,"label":"Vérins","optional":false,"defaultStatus":"pending"},{"id":"upperHydraulic-007","sourceNumber":7,"label":"Fuites","optional":false,"defaultStatus":"pending"}]},{"id":"lmi","label":"Limiteur de charge","points":[{"id":"lmi-001","sourceNumber":1,"label":"Affichage","optional":false,"defaultStatus":"pending"},{"id":"lmi-002","sourceNumber":2,"label":"Capteurs","optional":false,"defaultStatus":"pending"},{"id":"lmi-003","sourceNumber":3,"label":"Limiteurs","optional":false,"defaultStatus":"pending"},{"id":"lmi-004","sourceNumber":4,"label":"Alarmes","optional":false,"defaultStatus":"pending"},{"id":"lmi-005","sourceNumber":5,"label":"Fin de course","optional":false,"defaultStatus":"pending"},{"id":"lmi-006","sourceNumber":6,"label":"Anémomètre","optional":false,"defaultStatus":"pending"}]},{"id":"engineUpper","label":"Moteur tourelle (si équipé)","points":[{"id":"engineUpper-001","sourceNumber":1,"label":"État général et propreté du moteur","optional":true,"defaultStatus":"na"},{"id":"engineUpper-002","sourceNumber":2,"label":"Niveau d’huile moteur","optional":true,"defaultStatus":"na"},{"id":"engineUpper-003","sourceNumber":3,"label":"Niveau et état du liquide de refroidissement","optional":true,"defaultStatus":"na"},{"id":"engineUpper-004","sourceNumber":4,"label":"Absence de fuite huile / carburant / liquide de refroidissement","optional":true,"defaultStatus":"na"},{"id":"engineUpper-005","sourceNumber":5,"label":"Courroies, durites et colliers","optional":true,"defaultStatus":"na"},{"id":"engineUpper-006","sourceNumber":6,"label":"Supports moteur et silentblocs","optional":true,"defaultStatus":"na"},{"id":"engineUpper-007","sourceNumber":7,"label":"Échappement et protections thermiques","optional":true,"defaultStatus":"na"},{"id":"engineUpper-008","sourceNumber":8,"label":"Démarrage, arrêt et stabilité du régime","optional":true,"defaultStatus":"na"},{"id":"engineUpper-009","sourceNumber":9,"label":"Alarmes et défauts moteur","optional":true,"defaultStatus":"na"},{"id":"engineUpper-010","sourceNumber":10,"label":"Refroidissement et ventilation du compartiment moteur","optional":true,"defaultStatus":"na"}]},{"id":"flyJib","label":"Option fléchette","points":[{"id":"flyJib-001","sourceNumber":1,"label":"Présence de la documentation / tableau de charge correspondant à la fléchette","optional":true,"defaultStatus":"na"},{"id":"flyJib-002","sourceNumber":2,"label":"Identification des éléments et conformité de la longueur montée","optional":true,"defaultStatus":"na"},{"id":"flyJib-003","sourceNumber":3,"label":"État général de l’adaptateur de tête de flèche","optional":true,"defaultStatus":"na"},{"id":"flyJib-004","sourceNumber":4,"label":"État général des éléments treillis","optional":true,"defaultStatus":"na"},{"id":"flyJib-005","sourceNumber":5,"label":"Membrures, diagonales et montants","optional":true,"defaultStatus":"na"},{"id":"flyJib-006","sourceNumber":6,"label":"Soudures et absence de fissure","optional":true,"defaultStatus":"na"},{"id":"flyJib-007","sourceNumber":7,"label":"Absence de déformation / choc","optional":true,"defaultStatus":"na"},{"id":"flyJib-008","sourceNumber":8,"label":"Corrosion et état de surface","optional":true,"defaultStatus":"na"},{"id":"flyJib-009","sourceNumber":9,"label":"Axes d’assemblage","optional":true,"defaultStatus":"na"},{"id":"flyJib-010","sourceNumber":10,"label":"Goupilles, clavettes et sécurités d’axes","optional":true,"defaultStatus":"na"},{"id":"flyJib-011","sourceNumber":11,"label":"Articulations / charnières de repliage si fléchette pliante","optional":true,"defaultStatus":"na"},{"id":"flyJib-012","sourceNumber":12,"label":"Butées et verrouillages de position","optional":true,"defaultStatus":"na"},{"id":"flyJib-013","sourceNumber":13,"label":"Tirants / haubans / barres de suspension","optional":true,"defaultStatus":"na"},{"id":"flyJib-014","sourceNumber":14,"label":"Points d’ancrage des tirants / haubans","optional":true,"defaultStatus":"na"},{"id":"flyJib-015","sourceNumber":15,"label":"Tête de fléchette","optional":true,"defaultStatus":"na"},{"id":"flyJib-016","sourceNumber":16,"label":"Réas et gorges","optional":true,"defaultStatus":"na"},{"id":"flyJib-017","sourceNumber":17,"label":"Guides-câble et protections","optional":true,"defaultStatus":"na"},{"id":"flyJib-018","sourceNumber":18,"label":"Rooster sheave / poulie additionnelle si équipée","optional":true,"defaultStatus":"na"},{"id":"flyJib-019","sourceNumber":19,"label":"Fléchette de montage / traverse crochet si équipée","optional":true,"defaultStatus":"na"},{"id":"flyJib-020","sourceNumber":20,"label":"Supports et verrouillages de transport","optional":true,"defaultStatus":"na"},{"id":"flyJib-021","sourceNumber":21,"label":"Dispositif d’aide au montage / déploiement","optional":true,"defaultStatus":"na"},{"id":"flyJib-022","sourceNumber":22,"label":"Vérin de réglage hydraulique d’inclinaison si équipé","optional":true,"defaultStatus":"na"},{"id":"flyJib-023","sourceNumber":23,"label":"Axes et articulations du vérin de réglage","optional":true,"defaultStatus":"na"},{"id":"flyJib-024","sourceNumber":24,"label":"Flexibles et raccords hydrauliques de la fléchette","optional":true,"defaultStatus":"na"},{"id":"flyJib-025","sourceNumber":25,"label":"Tambour / enrouleur de flexible si équipé","optional":true,"defaultStatus":"na"},{"id":"flyJib-026","sourceNumber":26,"label":"Absence de fuite sur le circuit de réglage","optional":true,"defaultStatus":"na"},{"id":"flyJib-027","sourceNumber":27,"label":"Capteur d’angle / position de fléchette si équipé","optional":true,"defaultStatus":"na"},{"id":"flyJib-028","sourceNumber":28,"label":"Affichage de l’angle / configuration dans LICCON","optional":true,"defaultStatus":"na"},{"id":"flyJib-029","sourceNumber":29,"label":"Sélection du tableau de charge correspondant","optional":true,"defaultStatus":"na"},{"id":"flyJib-030","sourceNumber":30,"label":"Fonctionnement des sécurités liées à la fléchette","optional":true,"defaultStatus":"na"},{"id":"flyJib-031","sourceNumber":31,"label":"Déploiement / repliage sans point dur ni interférence","optional":true,"defaultStatus":"na"},{"id":"flyJib-032","sourceNumber":32,"label":"Réglage d’inclinaison régulier si hydraulique","optional":true,"defaultStatus":"na"},{"id":"flyJib-033","sourceNumber":33,"label":"Essai fonctionnel sans charge","optional":true,"defaultStatus":"na"},{"id":"flyJib-034","sourceNumber":34,"label":"Absence de jeu anormal après montage","optional":true,"defaultStatus":"na"}]},{"id":"luffingJib","label":"Option volée variable","points":[{"id":"luffingJib-001","sourceNumber":1,"label":"Présence de la documentation / tableau de charge correspondant","optional":true,"defaultStatus":"na"},{"id":"luffingJib-002","sourceNumber":2,"label":"Identification de la configuration et de la longueur montée","optional":true,"defaultStatus":"na"},{"id":"luffingJib-003","sourceNumber":3,"label":"État de l’adaptateur de liaison à la flèche télescopique","optional":true,"defaultStatus":"na"},{"id":"luffingJib-004","sourceNumber":4,"label":"État général des éléments treillis de volée variable","optional":true,"defaultStatus":"na"},{"id":"luffingJib-005","sourceNumber":5,"label":"Membrures, diagonales et montants","optional":true,"defaultStatus":"na"},{"id":"luffingJib-006","sourceNumber":6,"label":"Soudures et absence de fissure","optional":true,"defaultStatus":"na"},{"id":"luffingJib-007","sourceNumber":7,"label":"Absence de déformation / choc","optional":true,"defaultStatus":"na"},{"id":"luffingJib-008","sourceNumber":8,"label":"Corrosion et état de surface","optional":true,"defaultStatus":"na"},{"id":"luffingJib-009","sourceNumber":9,"label":"Axes d’assemblage des éléments","optional":true,"defaultStatus":"na"},{"id":"luffingJib-010","sourceNumber":10,"label":"Goupilles, clavettes et sécurités d’axes","optional":true,"defaultStatus":"na"},{"id":"luffingJib-011","sourceNumber":11,"label":"Pied de volée variable et articulations","optional":true,"defaultStatus":"na"},{"id":"luffingJib-012","sourceNumber":12,"label":"Tête de volée variable","optional":true,"defaultStatus":"na"},{"id":"luffingJib-013","sourceNumber":13,"label":"Réas de tête et état des gorges","optional":true,"defaultStatus":"na"},{"id":"luffingJib-014","sourceNumber":14,"label":"Tirants / haubans / câbles de suspension","optional":true,"defaultStatus":"na"},{"id":"luffingJib-015","sourceNumber":15,"label":"Points d’ancrage et ferrures de haubanage","optional":true,"defaultStatus":"na"},{"id":"luffingJib-016","sourceNumber":16,"label":"Chevalet / dispositif de support de volée si équipé","optional":true,"defaultStatus":"na"},{"id":"luffingJib-017","sourceNumber":17,"label":"Articulations du système de relevage","optional":true,"defaultStatus":"na"},{"id":"luffingJib-018","sourceNumber":18,"label":"Treuil de réglage / relevage de la volée variable","optional":true,"defaultStatus":"na"},{"id":"luffingJib-019","sourceNumber":19,"label":"Tambour du treuil de réglage","optional":true,"defaultStatus":"na"},{"id":"luffingJib-020","sourceNumber":20,"label":"Réducteur du treuil de réglage","optional":true,"defaultStatus":"na"},{"id":"luffingJib-021","sourceNumber":21,"label":"Moteur hydraulique du treuil de réglage","optional":true,"defaultStatus":"na"},{"id":"luffingJib-022","sourceNumber":22,"label":"Frein du treuil de réglage","optional":true,"defaultStatus":"na"},{"id":"luffingJib-023","sourceNumber":23,"label":"Fixations du treuil de réglage","optional":true,"defaultStatus":"na"},{"id":"luffingJib-024","sourceNumber":24,"label":"Câble de réglage / relevage","optional":true,"defaultStatus":"na"},{"id":"luffingJib-025","sourceNumber":25,"label":"Ancrage du câble de réglage","optional":true,"defaultStatus":"na"},{"id":"luffingJib-026","sourceNumber":26,"label":"État du mouflage de réglage","optional":true,"defaultStatus":"na"},{"id":"luffingJib-027","sourceNumber":27,"label":"Poulies / réas du système de réglage","optional":true,"defaultStatus":"na"},{"id":"luffingJib-028","sourceNumber":28,"label":"Guides-câble et protections","optional":true,"defaultStatus":"na"},{"id":"luffingJib-029","sourceNumber":29,"label":"Enroulement correct du câble sur le tambour","optional":true,"defaultStatus":"na"},{"id":"luffingJib-030","sourceNumber":30,"label":"Flexibles et raccords hydrauliques associés","optional":true,"defaultStatus":"na"},{"id":"luffingJib-031","sourceNumber":31,"label":"Capteur d’angle de volée variable","optional":true,"defaultStatus":"na"},{"id":"luffingJib-032","sourceNumber":32,"label":"Capteurs de position / fins de course","optional":true,"defaultStatus":"na"},{"id":"luffingJib-033","sourceNumber":33,"label":"Câblage et connecteurs des capteurs","optional":true,"defaultStatus":"na"},{"id":"luffingJib-034","sourceNumber":34,"label":"Affichage de la configuration dans LICCON","optional":true,"defaultStatus":"na"},{"id":"luffingJib-035","sourceNumber":35,"label":"Affichage de l’angle de volée","optional":true,"defaultStatus":"na"},{"id":"luffingJib-036","sourceNumber":36,"label":"Sélection du tableau de charge correspondant","optional":true,"defaultStatus":"na"},{"id":"luffingJib-037","sourceNumber":37,"label":"Interpolation / prise en compte de la capacité lors du relevage","optional":true,"defaultStatus":"na"},{"id":"luffingJib-038","sourceNumber":38,"label":"Fonction d’érection automatique si équipée","optional":true,"defaultStatus":"na"},{"id":"luffingJib-039","sourceNumber":39,"label":"Commande du treuil de réglage par le système de contrôle","optional":true,"defaultStatus":"na"},{"id":"luffingJib-040","sourceNumber":40,"label":"Montée / descente régulière de la volée variable","optional":true,"defaultStatus":"na"},{"id":"luffingJib-041","sourceNumber":41,"label":"Maintien de la position / efficacité du frein","optional":true,"defaultStatus":"na"},{"id":"luffingJib-042","sourceNumber":42,"label":"Fonctionnement des alarmes et sécurités","optional":true,"defaultStatus":"na"},{"id":"luffingJib-043","sourceNumber":43,"label":"Arrêts / limites de mouvement","optional":true,"defaultStatus":"na"},{"id":"luffingJib-044","sourceNumber":44,"label":"Essai fonctionnel sans charge","optional":true,"defaultStatus":"na"},{"id":"luffingJib-045","sourceNumber":45,"label":"Absence de bruit, à-coup, fuite ou échauffement anormal","optional":true,"defaultStatus":"na"},{"id":"luffingJib-046","sourceNumber":46,"label":"Verrouillages et supports de transport après repliage / démontage","optional":true,"defaultStatus":"na"}]}],"upperLabel":"Tourelle"},"MK":{"carrier":[{"id":"documentation","label":"Documentation et plaques","points":[{"id":"documentation-001","sourceNumber":1,"label":"Plaques constructeur","optional":false,"defaultStatus":"pending","photoRequired":true,"sourceComment":"photos obligatoire ou bouton NA","plateScope":"machine"},{"id":"documentation-002","sourceNumber":2,"label":"Numéro de série","optional":false,"defaultStatus":"pending","sourceComment":"i"},{"id":"documentation-003","sourceNumber":3,"label":"Carte grise","optional":false,"defaultStatus":"pending"},{"id":"documentation-004","sourceNumber":4,"label":"Carnet d’entretien","optional":false,"defaultStatus":"pending"},{"id":"documentation-005","sourceNumber":5,"label":"Documents réglementaires","optional":false,"defaultStatus":"pending"},{"id":"documentation-006","sourceNumber":6,"label":"Vue d’ensemble","optional":false,"defaultStatus":"pending","photoRequired":true,"sourceComment":"photos obligatoire ou bouton NA"}]},{"id":"structure","label":"Châssis / Structure","points":[{"id":"structure-001","sourceNumber":1,"label":"État général du châssis","optional":false,"defaultStatus":"pending"},{"id":"structure-002","sourceNumber":2,"label":"Soudures","optional":false,"defaultStatus":"pending"},{"id":"structure-003","sourceNumber":3,"label":"Fixations","optional":false,"defaultStatus":"pending"},{"id":"structure-004","sourceNumber":4,"label":"Corrosion","optional":false,"defaultStatus":"pending"},{"id":"structure-005","sourceNumber":5,"label":"Déformations","optional":false,"defaultStatus":"pending"},{"id":"structure-006","sourceNumber":6,"label":"Protections","optional":false,"defaultStatus":"pending"}]},{"id":"powertrain","label":"Moteur & Transmission","points":[{"id":"powertrain-001","sourceNumber":1,"label":"Niveau d’huile moteur","optional":false,"defaultStatus":"pending"},{"id":"powertrain-002","sourceNumber":2,"label":"Fuites moteur","optional":false,"defaultStatus":"pending"},{"id":"powertrain-003","sourceNumber":3,"label":"Courroies et tendeurs","optional":false,"defaultStatus":"pending"},{"id":"powertrain-004","sourceNumber":4,"label":"Circuit de refroidissement","optional":false,"defaultStatus":"pending"},{"id":"powertrain-005","sourceNumber":5,"label":"Filtration","optional":false,"defaultStatus":"pending"},{"id":"powertrain-006","sourceNumber":6,"label":"Échappement","optional":false,"defaultStatus":"pending"},{"id":"powertrain-007","sourceNumber":1,"label":"Absence fuite moyeux / ponts","optional":false,"defaultStatus":"pending"},{"id":"powertrain-008","sourceNumber":2,"label":"État suspensions","optional":false,"defaultStatus":"pending"},{"id":"powertrain-009","sourceNumber":3,"label":"Direction, rotules, vérins et modes de direction","optional":false,"defaultStatus":"pending"},{"id":"powertrain-010","sourceNumber":4,"label":"frein de parc","optional":false,"defaultStatus":"pending"},{"id":"powertrain-011","sourceNumber":5,"label":"Frein de service","optional":false,"defaultStatus":"pending","sourceComment":"bouton essaie dynamique O/N"}]},{"id":"stabilisers","label":"Stabilisateurs","points":[{"id":"stabilisers-001","sourceNumber":1,"label":"État structure stabilisateurs","optional":false,"defaultStatus":"pending"},{"id":"stabilisers-002","sourceNumber":2,"label":"Absence fissure poutres stabilisation","optional":false,"defaultStatus":"pending"},{"id":"stabilisers-003","sourceNumber":3,"label":"État vérins stabilisation","optional":false,"defaultStatus":"pending"},{"id":"stabilisers-004","sourceNumber":4,"label":"Absence fuite vérins / flexibles","optional":false,"defaultStatus":"pending"},{"id":"stabilisers-005","sourceNumber":5,"label":"État patins / semelles appui","optional":false,"defaultStatus":"pending"},{"id":"stabilisers-006","sourceNumber":6,"label":"Axes, bagues, goupilles présents et sécurisés","optional":false,"defaultStatus":"pending"},{"id":"stabilisers-007","sourceNumber":7,"label":"Sortie / rentrée stabilisateurs","optional":false,"defaultStatus":"pending"}]},{"id":"tyres","label":"Pneumatiques","points":[{"id":"tyres-001","sourceNumber":1,"label":"Usure","optional":false,"defaultStatus":"pending"},{"id":"tyres-002","sourceNumber":2,"label":"Pression","optional":false,"defaultStatus":"pending"},{"id":"tyres-003","sourceNumber":3,"label":"Flancs","optional":false,"defaultStatus":"pending"},{"id":"tyres-004","sourceNumber":4,"label":"Jantes","optional":false,"defaultStatus":"pending"},{"id":"tyres-005","sourceNumber":5,"label":"Écrous de roues","optional":false,"defaultStatus":"pending"},{"id":"tyres-006","sourceNumber":6,"label":"Valves","optional":false,"defaultStatus":"pending"}]},{"id":"lighting","label":"Éclairage","points":[{"id":"lighting-001","sourceNumber":1,"label":"Feux de route","optional":false,"defaultStatus":"pending"},{"id":"lighting-002","sourceNumber":2,"label":"Feux de position","optional":false,"defaultStatus":"pending"},{"id":"lighting-003","sourceNumber":3,"label":"Clignotants","optional":false,"defaultStatus":"pending"},{"id":"lighting-004","sourceNumber":4,"label":"Feux stop","optional":false,"defaultStatus":"pending"},{"id":"lighting-005","sourceNumber":5,"label":"Feux de recul","optional":false,"defaultStatus":"pending"},{"id":"lighting-006","sourceNumber":6,"label":"Feux de gabarit tourelle","optional":false,"defaultStatus":"pending"}]},{"id":"cab","label":"Cabine porteur","points":[{"id":"cab-001","sourceNumber":1,"label":"État cabine","optional":false,"defaultStatus":"pending"},{"id":"cab-002","sourceNumber":2,"label":"Siège","optional":false,"defaultStatus":"pending"},{"id":"cab-003","sourceNumber":3,"label":"Ceinture","optional":false,"defaultStatus":"pending"},{"id":"cab-004","sourceNumber":4,"label":"Rétroviseurs","optional":false,"defaultStatus":"pending"},{"id":"cab-005","sourceNumber":5,"label":"Essuie-glaces","optional":false,"defaultStatus":"pending"},{"id":"cab-006","sourceNumber":6,"label":"Tableau de bord","optional":false,"defaultStatus":"pending"},{"id":"cab-007","sourceNumber":7,"label":"Avertisseur sonore","optional":false,"defaultStatus":"pending"}]},{"id":"electrical","label":"Électricité porteur","points":[{"id":"electrical-001","sourceNumber":1,"label":"Batteries","optional":false,"defaultStatus":"pending"},{"id":"electrical-002","sourceNumber":2,"label":"Coupe-batterie","optional":false,"defaultStatus":"pending"},{"id":"electrical-003","sourceNumber":3,"label":"Faisceaux","optional":false,"defaultStatus":"pending"},{"id":"electrical-004","sourceNumber":4,"label":"Connecteurs","optional":false,"defaultStatus":"pending"},{"id":"electrical-005","sourceNumber":5,"label":"Fusibles","optional":false,"defaultStatus":"pending"},{"id":"electrical-006","sourceNumber":6,"label":"Alternateur","optional":false,"defaultStatus":"pending"},{"id":"electrical-007","sourceNumber":7,"label":"Démarreur","optional":false,"defaultStatus":"pending"}]},{"id":"hydraulic","label":"Hydraulique porteur","points":[{"id":"hydraulic-001","sourceNumber":1,"label":"Réservoir","optional":false,"defaultStatus":"pending"},{"id":"hydraulic-002","sourceNumber":2,"label":"Niveau d’huile","optional":false,"defaultStatus":"pending"},{"id":"hydraulic-003","sourceNumber":3,"label":"Pompes","optional":false,"defaultStatus":"pending"},{"id":"hydraulic-004","sourceNumber":4,"label":"Flexibles","optional":false,"defaultStatus":"pending"},{"id":"hydraulic-005","sourceNumber":5,"label":"Raccords","optional":false,"defaultStatus":"pending"},{"id":"hydraulic-006","sourceNumber":6,"label":"Distributeurs","optional":false,"defaultStatus":"pending"},{"id":"hydraulic-007","sourceNumber":7,"label":"Vérins","optional":false,"defaultStatus":"pending"},{"id":"hydraulic-008","sourceNumber":8,"label":"Fuites","optional":false,"defaultStatus":"pending"}]},{"id":"access","label":"Coffres / Accès","points":[{"id":"access-001","sourceNumber":1,"label":"Coffres","optional":false,"defaultStatus":"pending"},{"id":"access-002","sourceNumber":2,"label":"Capots","optional":false,"defaultStatus":"pending"},{"id":"access-003","sourceNumber":3,"label":"Échelles","optional":false,"defaultStatus":"pending"},{"id":"access-004","sourceNumber":4,"label":"Marchepieds","optional":false,"defaultStatus":"pending"},{"id":"access-005","sourceNumber":5,"label":"Poignées","optional":false,"defaultStatus":"pending"},{"id":"access-006","sourceNumber":6,"label":"Protections","optional":false,"defaultStatus":"pending"}]}],"upper":[{"id":"structure-mat-tour-fleche","label":"Structure mât / tour / flèche","points":[{"id":"structure-mat-tour-fleche-001","sourceNumber":1,"label":"État général structure mât / tour","optional":false,"defaultStatus":"pending"},{"id":"structure-mat-tour-fleche-002","sourceNumber":2,"label":"Absence de fissure / déformation / choc","optional":false,"defaultStatus":"pending"},{"id":"structure-mat-tour-fleche-003","sourceNumber":3,"label":"Soudures","optional":false,"defaultStatus":"pending"},{"id":"structure-mat-tour-fleche-004","sourceNumber":4,"label":"Axes","optional":false,"defaultStatus":"pending"},{"id":"structure-mat-tour-fleche-005","sourceNumber":5,"label":"Bagues / jeux anormaux","optional":false,"defaultStatus":"pending"},{"id":"structure-mat-tour-fleche-006","sourceNumber":6,"label":"Verrouillages mécaniques","optional":false,"defaultStatus":"pending"},{"id":"structure-mat-tour-fleche-007","sourceNumber":7,"label":"Graissage des articulations","optional":false,"defaultStatus":"pending"},{"id":"structure-mat-tour-fleche-008","sourceNumber":8,"label":"État général de la flèche","optional":false,"defaultStatus":"pending"},{"id":"structure-mat-tour-fleche-009","sourceNumber":9,"label":"Tirants / haubans / renvois","optional":false,"defaultStatus":"pending"},{"id":"structure-mat-tour-fleche-010","sourceNumber":10,"label":"Galets / guidages","optional":false,"defaultStatus":"pending"},{"id":"structure-mat-tour-fleche-011","sourceNumber":11,"label":"Rails de chariot","optional":false,"defaultStatus":"pending"},{"id":"structure-mat-tour-fleche-012","sourceNumber":12,"label":"Câblage / chaînes porte-câbles","optional":false,"defaultStatus":"pending"}]},{"id":"orientation","label":"Orientation","points":[{"id":"orientation-001","sourceNumber":1,"label":"Boulonnerie de couronne","optional":false,"defaultStatus":"pending"},{"id":"orientation-002","sourceNumber":2,"label":"Graissage","optional":false,"defaultStatus":"pending"},{"id":"orientation-003","sourceNumber":3,"label":"Jeu","optional":false,"defaultStatus":"pending"},{"id":"orientation-004","sourceNumber":4,"label":"Dentures","optional":false,"defaultStatus":"pending"},{"id":"orientation-005","sourceNumber":5,"label":"Pignon / motoréducteur d’orientation","optional":false,"defaultStatus":"pending"},{"id":"orientation-006","sourceNumber":6,"label":"Frein d’orientation","optional":false,"defaultStatus":"pending"},{"id":"orientation-007","sourceNumber":7,"label":"Rotation gauche / droite","optional":false,"defaultStatus":"pending"},{"id":"orientation-008","sourceNumber":8,"label":"Progressivité de la commande","optional":false,"defaultStatus":"pending"},{"id":"orientation-009","sourceNumber":9,"label":"Limitation de zone si applicable","optional":true,"defaultStatus":"na"}]},{"id":"treuil-cable-crochet","label":"Treuil / câble / crochet","points":[{"id":"treuil-cable-crochet-001","sourceNumber":1,"label":"Câble","optional":false,"defaultStatus":"pending"},{"id":"treuil-cable-crochet-002","sourceNumber":2,"label":"Tambour","optional":false,"defaultStatus":"pending"},{"id":"treuil-cable-crochet-003","sourceNumber":3,"label":"Guide-câble","optional":false,"defaultStatus":"pending"},{"id":"treuil-cable-crochet-004","sourceNumber":4,"label":"Réducteur / motoréducteur","optional":false,"defaultStatus":"pending"},{"id":"treuil-cable-crochet-005","sourceNumber":5,"label":"Frein","optional":false,"defaultStatus":"pending"},{"id":"treuil-cable-crochet-006","sourceNumber":6,"label":"Fixations","optional":false,"defaultStatus":"pending"},{"id":"treuil-cable-crochet-007","sourceNumber":7,"label":"Graissage","optional":false,"defaultStatus":"pending"},{"id":"treuil-cable-crochet-008","sourceNumber":8,"label":"Enroulement du câble","optional":false,"defaultStatus":"pending"},{"id":"treuil-cable-crochet-009","sourceNumber":9,"label":"Poulies / réas / gorges","optional":false,"defaultStatus":"pending"},{"id":"treuil-cable-crochet-010","sourceNumber":10,"label":"Fixation extrémité câble","optional":false,"defaultStatus":"pending"},{"id":"treuil-cable-crochet-011","sourceNumber":11,"label":"Crochet","optional":false,"defaultStatus":"pending"},{"id":"treuil-cable-crochet-012","sourceNumber":12,"label":"Linguet de sécurité","optional":false,"defaultStatus":"pending"},{"id":"treuil-cable-crochet-013","sourceNumber":13,"label":"Rotation du crochet","optional":false,"defaultStatus":"pending"},{"id":"treuil-cable-crochet-014","sourceNumber":14,"label":"Marquage CMU","optional":false,"defaultStatus":"pending"},{"id":"treuil-cable-crochet-015","sourceNumber":15,"label":"État général moufle / accessoires de levage","optional":false,"defaultStatus":"pending"}]},{"id":"chariot-de-distribution","label":"Chariot de distribution","points":[{"id":"chariot-de-distribution-001","sourceNumber":1,"label":"Structure du chariot","optional":false,"defaultStatus":"pending"},{"id":"chariot-de-distribution-002","sourceNumber":2,"label":"Galets / roulements","optional":false,"defaultStatus":"pending"},{"id":"chariot-de-distribution-003","sourceNumber":3,"label":"Rails / guidages","optional":false,"defaultStatus":"pending"},{"id":"chariot-de-distribution-004","sourceNumber":4,"label":"Câble / chaîne de distribution","optional":false,"defaultStatus":"pending"},{"id":"chariot-de-distribution-005","sourceNumber":5,"label":"Motorisation","optional":false,"defaultStatus":"pending"},{"id":"chariot-de-distribution-006","sourceNumber":6,"label":"Frein","optional":false,"defaultStatus":"pending"},{"id":"chariot-de-distribution-007","sourceNumber":7,"label":"Fin de course avant","optional":false,"defaultStatus":"pending"},{"id":"chariot-de-distribution-008","sourceNumber":8,"label":"Fin de course arrière","optional":false,"defaultStatus":"pending"},{"id":"chariot-de-distribution-009","sourceNumber":9,"label":"Butées mécaniques","optional":false,"defaultStatus":"pending"},{"id":"chariot-de-distribution-010","sourceNumber":10,"label":"Déplacement avant / arrière et progressivité","optional":false,"defaultStatus":"pending"}]},{"id":"hydraulique","label":"Hydraulique","points":[{"id":"hydraulique-001","sourceNumber":1,"label":"Réservoir","optional":false,"defaultStatus":"pending"},{"id":"hydraulique-002","sourceNumber":2,"label":"Niveau d’huile","optional":false,"defaultStatus":"pending"},{"id":"hydraulique-003","sourceNumber":3,"label":"Pompes","optional":false,"defaultStatus":"pending"},{"id":"hydraulique-004","sourceNumber":4,"label":"Filtration","optional":false,"defaultStatus":"pending"},{"id":"hydraulique-005","sourceNumber":5,"label":"Flexibles","optional":false,"defaultStatus":"pending"},{"id":"hydraulique-006","sourceNumber":6,"label":"Raccords","optional":false,"defaultStatus":"pending"},{"id":"hydraulique-007","sourceNumber":7,"label":"Distributeurs","optional":false,"defaultStatus":"pending"},{"id":"hydraulique-008","sourceNumber":8,"label":"Vérins","optional":false,"defaultStatus":"pending"},{"id":"hydraulique-009","sourceNumber":9,"label":"Fuites","optional":false,"defaultStatus":"pending"}]},{"id":"electricite-commande","label":"Électricité / commande","points":[{"id":"electricite-commande-001","sourceNumber":1,"label":"Batteries","optional":false,"defaultStatus":"pending"},{"id":"electricite-commande-002","sourceNumber":2,"label":"Coupe-batterie","optional":false,"defaultStatus":"pending"},{"id":"electricite-commande-003","sourceNumber":3,"label":"Faisceaux","optional":false,"defaultStatus":"pending"},{"id":"electricite-commande-004","sourceNumber":4,"label":"Connecteurs","optional":false,"defaultStatus":"pending"},{"id":"electricite-commande-005","sourceNumber":5,"label":"Armoires / boîtiers électriques","optional":false,"defaultStatus":"pending"},{"id":"electricite-commande-006","sourceNumber":6,"label":"Capteurs / fins de course","optional":false,"defaultStatus":"pending"},{"id":"electricite-commande-007","sourceNumber":7,"label":"Pupitre de commande","optional":false,"defaultStatus":"pending"},{"id":"electricite-commande-008","sourceNumber":8,"label":"Écran / diagnostic","optional":false,"defaultStatus":"pending"},{"id":"electricite-commande-009","sourceNumber":9,"label":"Télécommande si équipée","optional":true,"defaultStatus":"na"},{"id":"electricite-commande-010","sourceNumber":10,"label":"Arrêts d’urgence","optional":false,"defaultStatus":"pending"},{"id":"electricite-commande-011","sourceNumber":11,"label":"Avertisseur sonore","optional":false,"defaultStatus":"pending"},{"id":"electricite-commande-012","sourceNumber":12,"label":"Éclairage de travail","optional":false,"defaultStatus":"pending"}]},{"id":"securites-grue","label":"Sécurités grue","points":[{"id":"securites-grue-001","sourceNumber":1,"label":"Limiteur de moment / charge","optional":false,"defaultStatus":"pending"},{"id":"securites-grue-002","sourceNumber":2,"label":"Affichage charge / portée","optional":false,"defaultStatus":"pending"},{"id":"securites-grue-003","sourceNumber":3,"label":"Fin de course haut crochet","optional":false,"defaultStatus":"pending"},{"id":"securites-grue-004","sourceNumber":4,"label":"Fin de course bas crochet","optional":false,"defaultStatus":"pending"},{"id":"securites-grue-005","sourceNumber":5,"label":"Fins de course chariot","optional":false,"defaultStatus":"pending"},{"id":"securites-grue-006","sourceNumber":6,"label":"Sécurité d’orientation","optional":false,"defaultStatus":"pending"},{"id":"securites-grue-007","sourceNumber":7,"label":"Sécurité de stabilisation","optional":false,"defaultStatus":"pending"},{"id":"securites-grue-008","sourceNumber":8,"label":"Anémomètre","optional":false,"defaultStatus":"pending"},{"id":"securites-grue-009","sourceNumber":9,"label":"Alarme surcharge","optional":false,"defaultStatus":"pending"},{"id":"securites-grue-010","sourceNumber":10,"label":"Coupure des mouvements dangereux en surcharge","optional":false,"defaultStatus":"pending"},{"id":"securites-grue-011","sourceNumber":11,"label":"Arrêts d’urgence fonctionnels","optional":false,"defaultStatus":"pending"},{"id":"securites-grue-012","sourceNumber":12,"label":"Verrouillages transport","optional":false,"defaultStatus":"pending"}]},{"id":"deploiement-repliement","label":"Déploiement / repliement","points":[{"id":"deploiement-repliement-001","sourceNumber":1,"label":"Séquence de déploiement","optional":false,"defaultStatus":"pending"},{"id":"deploiement-repliement-002","sourceNumber":2,"label":"Séquence de repliement","optional":false,"defaultStatus":"pending"},{"id":"deploiement-repliement-003","sourceNumber":3,"label":"Verrouillages de déploiement","optional":false,"defaultStatus":"pending"},{"id":"deploiement-repliement-004","sourceNumber":4,"label":"Capteurs de position","optional":false,"defaultStatus":"pending"},{"id":"deploiement-repliement-005","sourceNumber":5,"label":"Synchronisation des mouvements","optional":false,"defaultStatus":"pending"},{"id":"deploiement-repliement-006","sourceNumber":6,"label":"Absence d’interférence / collision","optional":false,"defaultStatus":"pending"},{"id":"deploiement-repliement-007","sourceNumber":7,"label":"Position travail correctement détectée","optional":false,"defaultStatus":"pending"},{"id":"deploiement-repliement-008","sourceNumber":8,"label":"Position transport correctement détectée","optional":false,"defaultStatus":"pending"}]},{"id":"essais-fonctionnels-sans-charge","label":"Essais fonctionnels sans charge","points":[{"id":"essais-fonctionnels-sans-charge-001","sourceNumber":1,"label":"Levage montée","optional":false,"defaultStatus":"pending"},{"id":"essais-fonctionnels-sans-charge-002","sourceNumber":2,"label":"Levage descente","optional":false,"defaultStatus":"pending"},{"id":"essais-fonctionnels-sans-charge-003","sourceNumber":3,"label":"Distribution chariot avant","optional":false,"defaultStatus":"pending"},{"id":"essais-fonctionnels-sans-charge-004","sourceNumber":4,"label":"Distribution chariot arrière","optional":false,"defaultStatus":"pending"},{"id":"essais-fonctionnels-sans-charge-005","sourceNumber":5,"label":"Orientation gauche","optional":false,"defaultStatus":"pending"},{"id":"essais-fonctionnels-sans-charge-006","sourceNumber":6,"label":"Orientation droite","optional":false,"defaultStatus":"pending"},{"id":"essais-fonctionnels-sans-charge-007","sourceNumber":7,"label":"Modes lents / rapides","optional":false,"defaultStatus":"pending"},{"id":"essais-fonctionnels-sans-charge-008","sourceNumber":8,"label":"Arrêt immédiat des mouvements","optional":false,"defaultStatus":"pending"},{"id":"essais-fonctionnels-sans-charge-009","sourceNumber":9,"label":"Fonctionnement des sécurités pendant les essais","optional":false,"defaultStatus":"pending"},{"id":"essais-fonctionnels-sans-charge-010","sourceNumber":10,"label":"Absence de bruit anormal","optional":false,"defaultStatus":"pending"},{"id":"essais-fonctionnels-sans-charge-011","sourceNumber":11,"label":"Absence d’échauffement anormal","optional":false,"defaultStatus":"pending"}]},{"id":"essais-avec-charge","label":"Essais avec charge","points":[{"id":"essais-avec-charge-001","sourceNumber":1,"label":"Levage avec charge","optional":false,"defaultStatus":"pending"},{"id":"essais-avec-charge-002","sourceNumber":2,"label":"Maintien de la charge suspendue","optional":false,"defaultStatus":"pending"},{"id":"essais-avec-charge-003","sourceNumber":3,"label":"Frein de levage","optional":false,"defaultStatus":"pending"},{"id":"essais-avec-charge-004","sourceNumber":4,"label":"Translation chariot avec charge","optional":false,"defaultStatus":"pending"},{"id":"essais-avec-charge-005","sourceNumber":5,"label":"Orientation avec charge","optional":false,"defaultStatus":"pending"},{"id":"essais-avec-charge-006","sourceNumber":6,"label":"Contrôle affichage charge / portée","optional":false,"defaultStatus":"pending"},{"id":"essais-avec-charge-007","sourceNumber":7,"label":"Contrôle limiteur de moment selon procédure applicable","optional":false,"defaultStatus":"pending"}]}],"upperLabel":"Grue MK"},"CB":{"carrier":[{"id":"documentation","label":"Documentation et plaques","points":[{"id":"documentation-001","sourceNumber":1,"label":"Plaques constructeur","optional":false,"defaultStatus":"pending","photoRequired":true,"sourceComment":"photos obligatoire ou bouton NA","plateScope":"chassis+equipment"},{"id":"documentation-002","sourceNumber":2,"label":"Numéro de série","optional":false,"defaultStatus":"pending","sourceComment":"i"},{"id":"documentation-003","sourceNumber":3,"label":"Carte grise","optional":false,"defaultStatus":"pending"},{"id":"documentation-004","sourceNumber":4,"label":"Carnet d’entretien","optional":false,"defaultStatus":"pending"},{"id":"documentation-005","sourceNumber":5,"label":"Documents réglementaires","optional":false,"defaultStatus":"pending"},{"id":"documentation-006","sourceNumber":6,"label":"Vue d’ensemble","optional":false,"defaultStatus":"pending","photoRequired":true,"sourceComment":"photos obligatoire ou bouton NA"}]},{"id":"structure","label":"Châssis / Structure","points":[{"id":"structure-001","sourceNumber":1,"label":"État général du châssis","optional":false,"defaultStatus":"pending"},{"id":"structure-002","sourceNumber":2,"label":"Soudures","optional":false,"defaultStatus":"pending"},{"id":"structure-003","sourceNumber":3,"label":"Fixations","optional":false,"defaultStatus":"pending"},{"id":"structure-004","sourceNumber":4,"label":"Corrosion","optional":false,"defaultStatus":"pending"},{"id":"structure-005","sourceNumber":5,"label":"Déformations","optional":false,"defaultStatus":"pending"},{"id":"structure-006","sourceNumber":6,"label":"Protections","optional":false,"defaultStatus":"pending"}]},{"id":"powertrain","label":"Moteur & Transmission","points":[{"id":"powertrain-001","sourceNumber":1,"label":"Niveau d’huile moteur","optional":false,"defaultStatus":"pending"},{"id":"powertrain-002","sourceNumber":2,"label":"Fuites moteur","optional":false,"defaultStatus":"pending"},{"id":"powertrain-003","sourceNumber":3,"label":"Courroies et tendeurs","optional":false,"defaultStatus":"pending"},{"id":"powertrain-004","sourceNumber":4,"label":"Circuit de refroidissement","optional":false,"defaultStatus":"pending"},{"id":"powertrain-005","sourceNumber":5,"label":"Filtration","optional":false,"defaultStatus":"pending"},{"id":"powertrain-006","sourceNumber":6,"label":"Échappement","optional":false,"defaultStatus":"pending"},{"id":"powertrain-007","sourceNumber":1,"label":"Absence fuite moyeux / ponts","optional":false,"defaultStatus":"pending"},{"id":"powertrain-008","sourceNumber":2,"label":"État suspensions","optional":false,"defaultStatus":"pending"},{"id":"powertrain-009","sourceNumber":3,"label":"Direction, rotules, vérins et modes de direction","optional":false,"defaultStatus":"pending"},{"id":"powertrain-010","sourceNumber":4,"label":"frein de parc","optional":false,"defaultStatus":"pending"},{"id":"powertrain-011","sourceNumber":5,"label":"Frein de service","optional":false,"defaultStatus":"pending","sourceComment":"bouton essaie dynamique O/N"}]},{"id":"stabilisers","label":"Stabilisateurs","points":[{"id":"stabilisers-001","sourceNumber":1,"label":"État structure stabilisateurs","optional":false,"defaultStatus":"pending"},{"id":"stabilisers-002","sourceNumber":2,"label":"Absence fissure poutres stabilisation","optional":false,"defaultStatus":"pending"},{"id":"stabilisers-003","sourceNumber":3,"label":"État vérins stabilisation","optional":false,"defaultStatus":"pending"},{"id":"stabilisers-004","sourceNumber":4,"label":"Absence fuite vérins / flexibles","optional":false,"defaultStatus":"pending"},{"id":"stabilisers-005","sourceNumber":5,"label":"État patins / semelles appui","optional":false,"defaultStatus":"pending"},{"id":"stabilisers-006","sourceNumber":6,"label":"Axes, bagues, goupilles présents et sécurisés","optional":false,"defaultStatus":"pending"},{"id":"stabilisers-007","sourceNumber":7,"label":"Sortie / rentrée stabilisateurs","optional":false,"defaultStatus":"pending"}]},{"id":"tyres","label":"Pneumatiques","points":[{"id":"tyres-001","sourceNumber":1,"label":"Usure","optional":false,"defaultStatus":"pending"},{"id":"tyres-002","sourceNumber":2,"label":"Pression","optional":false,"defaultStatus":"pending"},{"id":"tyres-003","sourceNumber":3,"label":"Flancs","optional":false,"defaultStatus":"pending"},{"id":"tyres-004","sourceNumber":4,"label":"Jantes","optional":false,"defaultStatus":"pending"},{"id":"tyres-005","sourceNumber":5,"label":"Écrous de roues","optional":false,"defaultStatus":"pending"},{"id":"tyres-006","sourceNumber":6,"label":"Valves","optional":false,"defaultStatus":"pending"}]},{"id":"lighting","label":"Éclairage","points":[{"id":"lighting-001","sourceNumber":1,"label":"Feux de route","optional":false,"defaultStatus":"pending"},{"id":"lighting-002","sourceNumber":2,"label":"Feux de position","optional":false,"defaultStatus":"pending"},{"id":"lighting-003","sourceNumber":3,"label":"Clignotants","optional":false,"defaultStatus":"pending"},{"id":"lighting-004","sourceNumber":4,"label":"Feux stop","optional":false,"defaultStatus":"pending"},{"id":"lighting-005","sourceNumber":5,"label":"Feux de recul","optional":false,"defaultStatus":"pending"},{"id":"lighting-006","sourceNumber":6,"label":"Feux de gabarit tourelle","optional":false,"defaultStatus":"pending"}]},{"id":"cab","label":"Cabine porteur","points":[{"id":"cab-001","sourceNumber":1,"label":"État cabine","optional":false,"defaultStatus":"pending"},{"id":"cab-002","sourceNumber":2,"label":"Siège","optional":false,"defaultStatus":"pending"},{"id":"cab-003","sourceNumber":3,"label":"Ceinture","optional":false,"defaultStatus":"pending"},{"id":"cab-004","sourceNumber":4,"label":"Rétroviseurs","optional":false,"defaultStatus":"pending"},{"id":"cab-005","sourceNumber":5,"label":"Essuie-glaces","optional":false,"defaultStatus":"pending"},{"id":"cab-006","sourceNumber":6,"label":"Tableau de bord","optional":false,"defaultStatus":"pending"},{"id":"cab-007","sourceNumber":7,"label":"Avertisseur sonore","optional":false,"defaultStatus":"pending"}]},{"id":"electrical","label":"Électricité porteur","points":[{"id":"electrical-001","sourceNumber":1,"label":"Batteries","optional":false,"defaultStatus":"pending"},{"id":"electrical-002","sourceNumber":2,"label":"Coupe-batterie","optional":false,"defaultStatus":"pending"},{"id":"electrical-003","sourceNumber":3,"label":"Faisceaux","optional":false,"defaultStatus":"pending"},{"id":"electrical-004","sourceNumber":4,"label":"Connecteurs","optional":false,"defaultStatus":"pending"},{"id":"electrical-005","sourceNumber":5,"label":"Fusibles","optional":false,"defaultStatus":"pending"},{"id":"electrical-006","sourceNumber":6,"label":"Alternateur","optional":false,"defaultStatus":"pending"},{"id":"electrical-007","sourceNumber":7,"label":"Démarreur","optional":false,"defaultStatus":"pending"}]},{"id":"hydraulic","label":"Hydraulique porteur","points":[{"id":"hydraulic-001","sourceNumber":1,"label":"Réservoir","optional":false,"defaultStatus":"pending"},{"id":"hydraulic-002","sourceNumber":2,"label":"Niveau d’huile","optional":false,"defaultStatus":"pending"},{"id":"hydraulic-003","sourceNumber":3,"label":"Pompes","optional":false,"defaultStatus":"pending"},{"id":"hydraulic-004","sourceNumber":4,"label":"Flexibles","optional":false,"defaultStatus":"pending"},{"id":"hydraulic-005","sourceNumber":5,"label":"Raccords","optional":false,"defaultStatus":"pending"},{"id":"hydraulic-006","sourceNumber":6,"label":"Distributeurs","optional":false,"defaultStatus":"pending"},{"id":"hydraulic-007","sourceNumber":7,"label":"Vérins","optional":false,"defaultStatus":"pending"},{"id":"hydraulic-008","sourceNumber":8,"label":"Fuites","optional":false,"defaultStatus":"pending"}]},{"id":"access","label":"Coffres / Accès","points":[{"id":"access-001","sourceNumber":1,"label":"Coffres","optional":false,"defaultStatus":"pending"},{"id":"access-002","sourceNumber":2,"label":"Capots","optional":false,"defaultStatus":"pending"},{"id":"access-003","sourceNumber":3,"label":"Échelles","optional":false,"defaultStatus":"pending"},{"id":"access-004","sourceNumber":4,"label":"Marchepieds","optional":false,"defaultStatus":"pending"},{"id":"access-005","sourceNumber":5,"label":"Poignées","optional":false,"defaultStatus":"pending"},{"id":"access-006","sourceNumber":6,"label":"Protections","optional":false,"defaultStatus":"pending"}]}],"upper":[{"id":"embase-faux-chassis","label":"Embase / faux-châssis","points":[{"id":"embase-faux-chassis-001","sourceNumber":1,"label":"État général embase / faux-châssis","optional":false,"defaultStatus":"pending"},{"id":"embase-faux-chassis-002","sourceNumber":2,"label":"Boulonnerie de fixation","optional":false,"defaultStatus":"pending"},{"id":"embase-faux-chassis-003","sourceNumber":3,"label":"Soudures","optional":false,"defaultStatus":"pending"},{"id":"embase-faux-chassis-004","sourceNumber":4,"label":"Absence de fissure","optional":false,"defaultStatus":"pending"},{"id":"embase-faux-chassis-005","sourceNumber":5,"label":"Absence de déformation","optional":false,"defaultStatus":"pending"},{"id":"embase-faux-chassis-006","sourceNumber":6,"label":"Corrosion","optional":false,"defaultStatus":"pending"},{"id":"embase-faux-chassis-007","sourceNumber":7,"label":"Platines / renforts","optional":false,"defaultStatus":"pending"},{"id":"embase-faux-chassis-008","sourceNumber":8,"label":"Fixations accessoires / protections","optional":false,"defaultStatus":"pending"}]},{"id":"colonne-orientation","label":"Colonne / orientation","points":[{"id":"colonne-orientation-001","sourceNumber":1,"label":"État général de la colonne","optional":false,"defaultStatus":"pending"},{"id":"colonne-orientation-002","sourceNumber":2,"label":"Boulonnerie de couronne","optional":false,"defaultStatus":"pending"},{"id":"colonne-orientation-003","sourceNumber":3,"label":"Graissage","optional":false,"defaultStatus":"pending"},{"id":"colonne-orientation-004","sourceNumber":4,"label":"Jeu","optional":false,"defaultStatus":"pending"},{"id":"colonne-orientation-005","sourceNumber":5,"label":"Dentures","optional":false,"defaultStatus":"pending"},{"id":"colonne-orientation-006","sourceNumber":6,"label":"Pignon / motoréducteur d’orientation","optional":false,"defaultStatus":"pending"},{"id":"colonne-orientation-007","sourceNumber":7,"label":"Frein d’orientation","optional":false,"defaultStatus":"pending"},{"id":"colonne-orientation-008","sourceNumber":8,"label":"Rotation gauche / droite","optional":false,"defaultStatus":"pending"},{"id":"colonne-orientation-009","sourceNumber":9,"label":"Butées / limitation d’orientation","optional":false,"defaultStatus":"pending"},{"id":"colonne-orientation-010","sourceNumber":10,"label":"Flexibles / passage tournant","optional":false,"defaultStatus":"pending"}]},{"id":"bras-principal-secondaire","label":"Bras principal / secondaire","points":[{"id":"bras-principal-secondaire-001","sourceNumber":1,"label":"État général des bras","optional":false,"defaultStatus":"pending"},{"id":"bras-principal-secondaire-002","sourceNumber":2,"label":"Absence de fissure / déformation / choc","optional":false,"defaultStatus":"pending"},{"id":"bras-principal-secondaire-003","sourceNumber":3,"label":"Soudures","optional":false,"defaultStatus":"pending"},{"id":"bras-principal-secondaire-004","sourceNumber":4,"label":"Axes","optional":false,"defaultStatus":"pending"},{"id":"bras-principal-secondaire-005","sourceNumber":5,"label":"Bagues / jeux","optional":false,"defaultStatus":"pending"},{"id":"bras-principal-secondaire-006","sourceNumber":6,"label":"Graissage articulations","optional":false,"defaultStatus":"pending"},{"id":"bras-principal-secondaire-007","sourceNumber":7,"label":"Butées","optional":false,"defaultStatus":"pending"},{"id":"bras-principal-secondaire-008","sourceNumber":8,"label":"Passage flexibles / câbles","optional":false,"defaultStatus":"pending"},{"id":"bras-principal-secondaire-009","sourceNumber":9,"label":"Protections","optional":false,"defaultStatus":"pending"},{"id":"bras-principal-secondaire-010","sourceNumber":10,"label":"Repères / marquages","optional":false,"defaultStatus":"pending"}]},{"id":"extensions-telescopiques","label":"Extensions télescopiques","points":[{"id":"extensions-telescopiques-001","sourceNumber":1,"label":"État des éléments télescopiques","optional":false,"defaultStatus":"pending"},{"id":"extensions-telescopiques-002","sourceNumber":2,"label":"Patins / guidages","optional":false,"defaultStatus":"pending"},{"id":"extensions-telescopiques-003","sourceNumber":3,"label":"Jeux","optional":false,"defaultStatus":"pending"},{"id":"extensions-telescopiques-004","sourceNumber":4,"label":"Vérin(s) de télescopage","optional":false,"defaultStatus":"pending"},{"id":"extensions-telescopiques-005","sourceNumber":5,"label":"Chaînes / câbles de synchronisation si équipés","optional":true,"defaultStatus":"na"},{"id":"extensions-telescopiques-006","sourceNumber":6,"label":"Flexibles / enrouleurs","optional":false,"defaultStatus":"pending"},{"id":"extensions-telescopiques-007","sourceNumber":7,"label":"Fin de course / détection de position","optional":false,"defaultStatus":"pending"},{"id":"extensions-telescopiques-008","sourceNumber":8,"label":"Sortie / rentrée complète","optional":false,"defaultStatus":"pending"},{"id":"extensions-telescopiques-009","sourceNumber":9,"label":"Absence de point dur","optional":false,"defaultStatus":"pending"}]},{"id":"verins-articulations","label":"Vérins / articulations","points":[{"id":"verins-articulations-001","sourceNumber":1,"label":"Vérin de levage principal","optional":false,"defaultStatus":"pending"},{"id":"verins-articulations-002","sourceNumber":2,"label":"Vérin de bras secondaire","optional":false,"defaultStatus":"pending"},{"id":"verins-articulations-003","sourceNumber":3,"label":"Autres vérins de mouvement","optional":false,"defaultStatus":"pending"},{"id":"verins-articulations-004","sourceNumber":4,"label":"Tiges de vérins","optional":false,"defaultStatus":"pending"},{"id":"verins-articulations-005","sourceNumber":5,"label":"Joints / suintements","optional":false,"defaultStatus":"pending"},{"id":"verins-articulations-006","sourceNumber":6,"label":"Axes","optional":false,"defaultStatus":"pending"},{"id":"verins-articulations-007","sourceNumber":7,"label":"Bagues","optional":false,"defaultStatus":"pending"},{"id":"verins-articulations-008","sourceNumber":8,"label":"Goupilles / sécurisation","optional":false,"defaultStatus":"pending"},{"id":"verins-articulations-009","sourceNumber":9,"label":"Graissage","optional":false,"defaultStatus":"pending"},{"id":"verins-articulations-010","sourceNumber":10,"label":"Jeux anormaux","optional":false,"defaultStatus":"pending"}]},{"id":"hydraulique-grue","label":"Hydraulique grue","points":[{"id":"hydraulique-grue-001","sourceNumber":1,"label":"Réservoir","optional":false,"defaultStatus":"pending"},{"id":"hydraulique-grue-002","sourceNumber":2,"label":"Niveau d’huile","optional":false,"defaultStatus":"pending"},{"id":"hydraulique-grue-003","sourceNumber":3,"label":"Pompe(s)","optional":false,"defaultStatus":"pending"},{"id":"hydraulique-grue-004","sourceNumber":4,"label":"Filtration","optional":false,"defaultStatus":"pending"},{"id":"hydraulique-grue-005","sourceNumber":5,"label":"Flexibles","optional":false,"defaultStatus":"pending"},{"id":"hydraulique-grue-006","sourceNumber":6,"label":"Raccords","optional":false,"defaultStatus":"pending"},{"id":"hydraulique-grue-007","sourceNumber":7,"label":"Distributeurs","optional":false,"defaultStatus":"pending"},{"id":"hydraulique-grue-008","sourceNumber":8,"label":"Clapets / valves de sécurité","optional":false,"defaultStatus":"pending"},{"id":"hydraulique-grue-009","sourceNumber":9,"label":"Passage tournant","optional":false,"defaultStatus":"pending"},{"id":"hydraulique-grue-010","sourceNumber":10,"label":"Fuites","optional":false,"defaultStatus":"pending"},{"id":"hydraulique-grue-011","sourceNumber":11,"label":"Température / bruit anormal","optional":false,"defaultStatus":"pending"}]},{"id":"commandes-radiocommande","label":"Commandes / radiocommande","points":[{"id":"commandes-radiocommande-001","sourceNumber":1,"label":"Commandes au poste fixe","optional":false,"defaultStatus":"pending"},{"id":"commandes-radiocommande-002","sourceNumber":2,"label":"Radiocommande si équipée","optional":true,"defaultStatus":"na"},{"id":"commandes-radiocommande-003","sourceNumber":3,"label":"Sélecteur poste de commande","optional":false,"defaultStatus":"pending"},{"id":"commandes-radiocommande-004","sourceNumber":4,"label":"Arrêt d’urgence","optional":false,"defaultStatus":"pending"},{"id":"commandes-radiocommande-005","sourceNumber":5,"label":"Commande homme mort / validation","optional":false,"defaultStatus":"pending"},{"id":"commandes-radiocommande-006","sourceNumber":6,"label":"Progressivité des mouvements","optional":false,"defaultStatus":"pending"},{"id":"commandes-radiocommande-007","sourceNumber":7,"label":"Retour au neutre","optional":false,"defaultStatus":"pending"},{"id":"commandes-radiocommande-008","sourceNumber":8,"label":"Affichage / voyants","optional":false,"defaultStatus":"pending"},{"id":"commandes-radiocommande-009","sourceNumber":9,"label":"Batterie / chargeur radiocommande","optional":false,"defaultStatus":"pending"},{"id":"commandes-radiocommande-010","sourceNumber":10,"label":"Avertisseur sonore","optional":false,"defaultStatus":"pending"}]},{"id":"securites-limiteur-de-charge","label":"Sécurités / limiteur de charge","points":[{"id":"securites-limiteur-de-charge-001","sourceNumber":1,"label":"Limiteur de charge / moment","optional":false,"defaultStatus":"pending"},{"id":"securites-limiteur-de-charge-002","sourceNumber":2,"label":"Affichage charge / portée si équipé","optional":true,"defaultStatus":"na"},{"id":"securites-limiteur-de-charge-003","sourceNumber":3,"label":"Capteurs de position","optional":false,"defaultStatus":"pending"},{"id":"securites-limiteur-de-charge-004","sourceNumber":4,"label":"Sécurité stabilisation","optional":false,"defaultStatus":"pending"},{"id":"securites-limiteur-de-charge-005","sourceNumber":5,"label":"Limitation de zone / hauteur si équipée","optional":true,"defaultStatus":"na"},{"id":"securites-limiteur-de-charge-006","sourceNumber":6,"label":"Alarmes","optional":false,"defaultStatus":"pending"},{"id":"securites-limiteur-de-charge-007","sourceNumber":7,"label":"Arrêts d’urgence","optional":false,"defaultStatus":"pending"},{"id":"securites-limiteur-de-charge-008","sourceNumber":8,"label":"Coupure des mouvements dangereux","optional":false,"defaultStatus":"pending"},{"id":"securites-limiteur-de-charge-009","sourceNumber":9,"label":"Verrouillages transport","optional":false,"defaultStatus":"pending"},{"id":"securites-limiteur-de-charge-010","sourceNumber":10,"label":"Signalisation / avertisseurs","optional":false,"defaultStatus":"pending"}]},{"id":"crochet-accessoires","label":"Crochet / accessoires","points":[{"id":"crochet-accessoires-001","sourceNumber":1,"label":"Crochet","optional":false,"defaultStatus":"pending"},{"id":"crochet-accessoires-002","sourceNumber":2,"label":"Linguet de sécurité","optional":false,"defaultStatus":"pending"},{"id":"crochet-accessoires-003","sourceNumber":3,"label":"Marquage CMU","optional":false,"defaultStatus":"pending"},{"id":"crochet-accessoires-004","sourceNumber":4,"label":"Émerillon / rotation","optional":false,"defaultStatus":"pending"},{"id":"crochet-accessoires-005","sourceNumber":5,"label":"Manilles / accessoires fournis","optional":false,"defaultStatus":"pending"},{"id":"crochet-accessoires-006","sourceNumber":6,"label":"Poulies / moufle si équipé","optional":true,"defaultStatus":"na"},{"id":"crochet-accessoires-007","sourceNumber":7,"label":"Fixation des accessoires","optional":false,"defaultStatus":"pending"},{"id":"crochet-accessoires-008","sourceNumber":8,"label":"Rangement / verrouillage transport","optional":false,"defaultStatus":"pending"}]},{"id":"treuil-si-equipe","label":"Treuil si équipé","points":[{"id":"treuil-si-equipe-001","sourceNumber":1,"label":"Câble","optional":true,"defaultStatus":"na"},{"id":"treuil-si-equipe-002","sourceNumber":2,"label":"Tambour","optional":true,"defaultStatus":"na"},{"id":"treuil-si-equipe-003","sourceNumber":3,"label":"Guide-câble","optional":true,"defaultStatus":"na"},{"id":"treuil-si-equipe-004","sourceNumber":4,"label":"Réducteur","optional":true,"defaultStatus":"na"},{"id":"treuil-si-equipe-005","sourceNumber":5,"label":"Frein","optional":true,"defaultStatus":"na"},{"id":"treuil-si-equipe-006","sourceNumber":6,"label":"Fixations","optional":true,"defaultStatus":"na"},{"id":"treuil-si-equipe-007","sourceNumber":7,"label":"Enroulement","optional":true,"defaultStatus":"na"},{"id":"treuil-si-equipe-008","sourceNumber":8,"label":"Poulies / réas","optional":true,"defaultStatus":"na"},{"id":"treuil-si-equipe-009","sourceNumber":9,"label":"Fin de course","optional":true,"defaultStatus":"na"},{"id":"treuil-si-equipe-010","sourceNumber":10,"label":"Crochet / moufle","optional":true,"defaultStatus":"na"}]},{"id":"essais-fonctionnels-sans-charge","label":"Essais fonctionnels sans charge","points":[{"id":"essais-fonctionnels-sans-charge-001","sourceNumber":1,"label":"Levage / abaissement bras principal","optional":false,"defaultStatus":"pending"},{"id":"essais-fonctionnels-sans-charge-002","sourceNumber":2,"label":"Ouverture / fermeture bras secondaire","optional":false,"defaultStatus":"pending"},{"id":"essais-fonctionnels-sans-charge-003","sourceNumber":3,"label":"Télescopage sortie / rentrée","optional":false,"defaultStatus":"pending"},{"id":"essais-fonctionnels-sans-charge-004","sourceNumber":4,"label":"Orientation gauche / droite","optional":false,"defaultStatus":"pending"},{"id":"essais-fonctionnels-sans-charge-005","sourceNumber":5,"label":"Fonctionnement commandes au poste fixe","optional":false,"defaultStatus":"pending"},{"id":"essais-fonctionnels-sans-charge-006","sourceNumber":6,"label":"Fonctionnement radiocommande si équipée","optional":true,"defaultStatus":"na"},{"id":"essais-fonctionnels-sans-charge-007","sourceNumber":7,"label":"Progressivité / retour au neutre","optional":false,"defaultStatus":"pending"},{"id":"essais-fonctionnels-sans-charge-008","sourceNumber":8,"label":"Arrêt d’urgence","optional":false,"defaultStatus":"pending"},{"id":"essais-fonctionnels-sans-charge-009","sourceNumber":9,"label":"Fonctionnement des sécurités","optional":false,"defaultStatus":"pending"},{"id":"essais-fonctionnels-sans-charge-010","sourceNumber":10,"label":"Absence de bruit anormal","optional":false,"defaultStatus":"pending"},{"id":"essais-fonctionnels-sans-charge-011","sourceNumber":11,"label":"Absence de fuite pendant les mouvements","optional":false,"defaultStatus":"pending"}]},{"id":"essais-avec-charge","label":"Essais avec charge","points":[{"id":"essais-avec-charge-001","sourceNumber":1,"label":"Levage avec charge selon procédure applicable","optional":false,"defaultStatus":"pending"},{"id":"essais-avec-charge-002","sourceNumber":2,"label":"Maintien de la charge","optional":false,"defaultStatus":"pending"},{"id":"essais-avec-charge-003","sourceNumber":3,"label":"Fonctionnement clapets de maintien","optional":false,"defaultStatus":"pending"},{"id":"essais-avec-charge-004","sourceNumber":4,"label":"Orientation avec charge","optional":false,"defaultStatus":"pending"},{"id":"essais-avec-charge-005","sourceNumber":5,"label":"Télescopage avec charge si autorisé","optional":false,"defaultStatus":"pending"},{"id":"essais-avec-charge-006","sourceNumber":6,"label":"Contrôle du limiteur de charge / moment","optional":false,"defaultStatus":"pending"},{"id":"essais-avec-charge-007","sourceNumber":7,"label":"Contrôle des alarmes et coupures","optional":false,"defaultStatus":"pending"}]}],"upperLabel":"Bras de grue"},"CN":{"carrier":[{"id":"documentation","label":"Documentation et plaques","points":[{"id":"documentation-001","sourceNumber":1,"label":"Plaques constructeur","optional":false,"defaultStatus":"pending","photoRequired":true,"sourceComment":"photos obligatoire ou bouton NA","plateScope":"chassis+equipment"},{"id":"documentation-002","sourceNumber":2,"label":"Numéro de série","optional":false,"defaultStatus":"pending","sourceComment":"i"},{"id":"documentation-003","sourceNumber":3,"label":"Carte grise","optional":false,"defaultStatus":"pending"},{"id":"documentation-004","sourceNumber":4,"label":"Carnet d’entretien","optional":false,"defaultStatus":"pending"},{"id":"documentation-005","sourceNumber":5,"label":"Documents réglementaires","optional":false,"defaultStatus":"pending"},{"id":"documentation-006","sourceNumber":6,"label":"Vue d’ensemble","optional":false,"defaultStatus":"pending","photoRequired":true,"sourceComment":"photos obligatoire ou bouton NA"}]},{"id":"structure","label":"Châssis / Structure","points":[{"id":"structure-001","sourceNumber":1,"label":"État général du châssis","optional":false,"defaultStatus":"pending"},{"id":"structure-002","sourceNumber":2,"label":"Soudures","optional":false,"defaultStatus":"pending"},{"id":"structure-003","sourceNumber":3,"label":"Fixations","optional":false,"defaultStatus":"pending"},{"id":"structure-004","sourceNumber":4,"label":"Corrosion","optional":false,"defaultStatus":"pending"},{"id":"structure-005","sourceNumber":5,"label":"Déformations","optional":false,"defaultStatus":"pending"},{"id":"structure-006","sourceNumber":6,"label":"Protections","optional":false,"defaultStatus":"pending"}]},{"id":"powertrain","label":"Moteur & Transmission","points":[{"id":"powertrain-001","sourceNumber":1,"label":"Niveau d’huile moteur","optional":false,"defaultStatus":"pending"},{"id":"powertrain-002","sourceNumber":2,"label":"Fuites moteur","optional":false,"defaultStatus":"pending"},{"id":"powertrain-003","sourceNumber":3,"label":"Courroies et tendeurs","optional":false,"defaultStatus":"pending"},{"id":"powertrain-004","sourceNumber":4,"label":"Circuit de refroidissement","optional":false,"defaultStatus":"pending"},{"id":"powertrain-005","sourceNumber":5,"label":"Filtration","optional":false,"defaultStatus":"pending"},{"id":"powertrain-006","sourceNumber":6,"label":"Échappement","optional":false,"defaultStatus":"pending"},{"id":"powertrain-007","sourceNumber":1,"label":"Absence fuite moyeux / ponts","optional":false,"defaultStatus":"pending"},{"id":"powertrain-008","sourceNumber":2,"label":"État suspensions","optional":false,"defaultStatus":"pending"},{"id":"powertrain-009","sourceNumber":3,"label":"Direction, rotules, vérins et modes de direction","optional":false,"defaultStatus":"pending"},{"id":"powertrain-010","sourceNumber":4,"label":"frein de parc","optional":false,"defaultStatus":"pending"},{"id":"powertrain-011","sourceNumber":5,"label":"Frein de service","optional":false,"defaultStatus":"pending","sourceComment":"bouton essaie dynamique O/N"}]},{"id":"stabilisers","label":"Stabilisateurs","points":[{"id":"stabilisers-001","sourceNumber":1,"label":"État structure stabilisateurs","optional":false,"defaultStatus":"pending"},{"id":"stabilisers-002","sourceNumber":2,"label":"Absence fissure poutres stabilisation","optional":false,"defaultStatus":"pending"},{"id":"stabilisers-003","sourceNumber":3,"label":"État vérins stabilisation","optional":false,"defaultStatus":"pending"},{"id":"stabilisers-004","sourceNumber":4,"label":"Absence fuite vérins / flexibles","optional":false,"defaultStatus":"pending"},{"id":"stabilisers-005","sourceNumber":5,"label":"État patins / semelles appui","optional":false,"defaultStatus":"pending"},{"id":"stabilisers-006","sourceNumber":6,"label":"Axes, bagues, goupilles présents et sécurisés","optional":false,"defaultStatus":"pending"},{"id":"stabilisers-007","sourceNumber":7,"label":"Sortie / rentrée stabilisateurs","optional":false,"defaultStatus":"pending"}]},{"id":"tyres","label":"Pneumatiques","points":[{"id":"tyres-001","sourceNumber":1,"label":"Usure","optional":false,"defaultStatus":"pending"},{"id":"tyres-002","sourceNumber":2,"label":"Pression","optional":false,"defaultStatus":"pending"},{"id":"tyres-003","sourceNumber":3,"label":"Flancs","optional":false,"defaultStatus":"pending"},{"id":"tyres-004","sourceNumber":4,"label":"Jantes","optional":false,"defaultStatus":"pending"},{"id":"tyres-005","sourceNumber":5,"label":"Écrous de roues","optional":false,"defaultStatus":"pending"},{"id":"tyres-006","sourceNumber":6,"label":"Valves","optional":false,"defaultStatus":"pending"}]},{"id":"lighting","label":"Éclairage","points":[{"id":"lighting-001","sourceNumber":1,"label":"Feux de route","optional":false,"defaultStatus":"pending"},{"id":"lighting-002","sourceNumber":2,"label":"Feux de position","optional":false,"defaultStatus":"pending"},{"id":"lighting-003","sourceNumber":3,"label":"Clignotants","optional":false,"defaultStatus":"pending"},{"id":"lighting-004","sourceNumber":4,"label":"Feux stop","optional":false,"defaultStatus":"pending"},{"id":"lighting-005","sourceNumber":5,"label":"Feux de recul","optional":false,"defaultStatus":"pending"},{"id":"lighting-006","sourceNumber":6,"label":"Feux de gabarit tourelle","optional":false,"defaultStatus":"pending"}]},{"id":"cab","label":"Cabine porteur","points":[{"id":"cab-001","sourceNumber":1,"label":"État cabine","optional":false,"defaultStatus":"pending"},{"id":"cab-002","sourceNumber":2,"label":"Siège","optional":false,"defaultStatus":"pending"},{"id":"cab-003","sourceNumber":3,"label":"Ceinture","optional":false,"defaultStatus":"pending"},{"id":"cab-004","sourceNumber":4,"label":"Rétroviseurs","optional":false,"defaultStatus":"pending"},{"id":"cab-005","sourceNumber":5,"label":"Essuie-glaces","optional":false,"defaultStatus":"pending"},{"id":"cab-006","sourceNumber":6,"label":"Tableau de bord","optional":false,"defaultStatus":"pending"},{"id":"cab-007","sourceNumber":7,"label":"Avertisseur sonore","optional":false,"defaultStatus":"pending"}]},{"id":"electrical","label":"Électricité porteur","points":[{"id":"electrical-001","sourceNumber":1,"label":"Batteries","optional":false,"defaultStatus":"pending"},{"id":"electrical-002","sourceNumber":2,"label":"Coupe-batterie","optional":false,"defaultStatus":"pending"},{"id":"electrical-003","sourceNumber":3,"label":"Faisceaux","optional":false,"defaultStatus":"pending"},{"id":"electrical-004","sourceNumber":4,"label":"Connecteurs","optional":false,"defaultStatus":"pending"},{"id":"electrical-005","sourceNumber":5,"label":"Fusibles","optional":false,"defaultStatus":"pending"},{"id":"electrical-006","sourceNumber":6,"label":"Alternateur","optional":false,"defaultStatus":"pending"},{"id":"electrical-007","sourceNumber":7,"label":"Démarreur","optional":false,"defaultStatus":"pending"}]},{"id":"hydraulic","label":"Hydraulique porteur","points":[{"id":"hydraulic-001","sourceNumber":1,"label":"Réservoir","optional":false,"defaultStatus":"pending"},{"id":"hydraulic-002","sourceNumber":2,"label":"Niveau d’huile","optional":false,"defaultStatus":"pending"},{"id":"hydraulic-003","sourceNumber":3,"label":"Pompes","optional":false,"defaultStatus":"pending"},{"id":"hydraulic-004","sourceNumber":4,"label":"Flexibles","optional":false,"defaultStatus":"pending"},{"id":"hydraulic-005","sourceNumber":5,"label":"Raccords","optional":false,"defaultStatus":"pending"},{"id":"hydraulic-006","sourceNumber":6,"label":"Distributeurs","optional":false,"defaultStatus":"pending"},{"id":"hydraulic-007","sourceNumber":7,"label":"Vérins","optional":false,"defaultStatus":"pending"},{"id":"hydraulic-008","sourceNumber":8,"label":"Fuites","optional":false,"defaultStatus":"pending"}]},{"id":"access","label":"Coffres / Accès","points":[{"id":"access-001","sourceNumber":1,"label":"Coffres","optional":false,"defaultStatus":"pending"},{"id":"access-002","sourceNumber":2,"label":"Capots","optional":false,"defaultStatus":"pending"},{"id":"access-003","sourceNumber":3,"label":"Échelles","optional":false,"defaultStatus":"pending"},{"id":"access-004","sourceNumber":4,"label":"Marchepieds","optional":false,"defaultStatus":"pending"},{"id":"access-005","sourceNumber":5,"label":"Poignées","optional":false,"defaultStatus":"pending"},{"id":"access-006","sourceNumber":6,"label":"Protections","optional":false,"defaultStatus":"pending"}]}],"upper":[{"id":"tourelle-orientation","label":"Tourelle / orientation","points":[{"id":"tourelle-orientation-001","sourceNumber":1,"label":"État général tourelle / embase","optional":false,"defaultStatus":"pending"},{"id":"tourelle-orientation-002","sourceNumber":2,"label":"Boulonnerie de couronne","optional":false,"defaultStatus":"pending"},{"id":"tourelle-orientation-003","sourceNumber":3,"label":"Graissage","optional":false,"defaultStatus":"pending"},{"id":"tourelle-orientation-004","sourceNumber":4,"label":"Jeu","optional":false,"defaultStatus":"pending"},{"id":"tourelle-orientation-005","sourceNumber":5,"label":"Dentures","optional":false,"defaultStatus":"pending"},{"id":"tourelle-orientation-006","sourceNumber":6,"label":"Motoréducteur d’orientation","optional":false,"defaultStatus":"pending"},{"id":"tourelle-orientation-007","sourceNumber":7,"label":"Frein d’orientation","optional":false,"defaultStatus":"pending"},{"id":"tourelle-orientation-008","sourceNumber":8,"label":"Rotation gauche / droite","optional":false,"defaultStatus":"pending"},{"id":"tourelle-orientation-009","sourceNumber":9,"label":"Butées / limitation d’orientation","optional":false,"defaultStatus":"pending"},{"id":"tourelle-orientation-010","sourceNumber":10,"label":"Passage tournant / flexibles","optional":false,"defaultStatus":"pending"}]},{"id":"structure-des-bras","label":"Structure des bras","points":[{"id":"structure-des-bras-001","sourceNumber":1,"label":"État général des bras","optional":false,"defaultStatus":"pending"},{"id":"structure-des-bras-002","sourceNumber":2,"label":"Absence de fissure / déformation / choc","optional":false,"defaultStatus":"pending"},{"id":"structure-des-bras-003","sourceNumber":3,"label":"Soudures","optional":false,"defaultStatus":"pending"},{"id":"structure-des-bras-004","sourceNumber":4,"label":"Axes","optional":false,"defaultStatus":"pending"},{"id":"structure-des-bras-005","sourceNumber":5,"label":"Bagues / jeux","optional":false,"defaultStatus":"pending"},{"id":"structure-des-bras-006","sourceNumber":6,"label":"Graissage articulations","optional":false,"defaultStatus":"pending"},{"id":"structure-des-bras-007","sourceNumber":7,"label":"Butées","optional":false,"defaultStatus":"pending"},{"id":"structure-des-bras-008","sourceNumber":8,"label":"Passage flexibles / câbles","optional":false,"defaultStatus":"pending"},{"id":"structure-des-bras-009","sourceNumber":9,"label":"Protections","optional":false,"defaultStatus":"pending"},{"id":"structure-des-bras-010","sourceNumber":10,"label":"Marquages / repères","optional":false,"defaultStatus":"pending"}]},{"id":"extensions-telescopiques","label":"Extensions télescopiques","points":[{"id":"extensions-telescopiques-001","sourceNumber":1,"label":"État des éléments télescopiques","optional":false,"defaultStatus":"pending"},{"id":"extensions-telescopiques-002","sourceNumber":2,"label":"Patins / guidages","optional":false,"defaultStatus":"pending"},{"id":"extensions-telescopiques-003","sourceNumber":3,"label":"Jeux","optional":false,"defaultStatus":"pending"},{"id":"extensions-telescopiques-004","sourceNumber":4,"label":"Vérin(s) de télescopage","optional":false,"defaultStatus":"pending"},{"id":"extensions-telescopiques-005","sourceNumber":5,"label":"Chaînes / câbles de synchronisation si équipés","optional":true,"defaultStatus":"na"},{"id":"extensions-telescopiques-006","sourceNumber":6,"label":"Flexibles / enrouleurs","optional":false,"defaultStatus":"pending"},{"id":"extensions-telescopiques-007","sourceNumber":7,"label":"Fin de course / détection de position","optional":false,"defaultStatus":"pending"},{"id":"extensions-telescopiques-008","sourceNumber":8,"label":"Sortie / rentrée complète","optional":false,"defaultStatus":"pending"},{"id":"extensions-telescopiques-009","sourceNumber":9,"label":"Absence de point dur","optional":false,"defaultStatus":"pending"}]},{"id":"verins-articulations","label":"Vérins / articulations","points":[{"id":"verins-articulations-001","sourceNumber":1,"label":"Vérins de levage","optional":false,"defaultStatus":"pending"},{"id":"verins-articulations-002","sourceNumber":2,"label":"Vérins d’articulation","optional":false,"defaultStatus":"pending"},{"id":"verins-articulations-003","sourceNumber":3,"label":"Vérin(s) de télescopage","optional":false,"defaultStatus":"pending"},{"id":"verins-articulations-004","sourceNumber":4,"label":"Vérin de mise à niveau panier","optional":false,"defaultStatus":"pending"},{"id":"verins-articulations-005","sourceNumber":5,"label":"Tiges de vérins","optional":false,"defaultStatus":"pending"},{"id":"verins-articulations-006","sourceNumber":6,"label":"Joints / suintements","optional":false,"defaultStatus":"pending"},{"id":"verins-articulations-007","sourceNumber":7,"label":"Axes / bagues","optional":false,"defaultStatus":"pending"},{"id":"verins-articulations-008","sourceNumber":8,"label":"Goupilles / sécurisation","optional":false,"defaultStatus":"pending"},{"id":"verins-articulations-009","sourceNumber":9,"label":"Graissage","optional":false,"defaultStatus":"pending"},{"id":"verins-articulations-010","sourceNumber":10,"label":"Jeux anormaux","optional":false,"defaultStatus":"pending"}]},{"id":"hydraulique-nacelle","label":"Hydraulique nacelle","points":[{"id":"hydraulique-nacelle-001","sourceNumber":1,"label":"Réservoir","optional":false,"defaultStatus":"pending"},{"id":"hydraulique-nacelle-002","sourceNumber":2,"label":"Niveau d’huile","optional":false,"defaultStatus":"pending"},{"id":"hydraulique-nacelle-003","sourceNumber":3,"label":"Pompe(s)","optional":false,"defaultStatus":"pending"},{"id":"hydraulique-nacelle-004","sourceNumber":4,"label":"Filtration","optional":false,"defaultStatus":"pending"},{"id":"hydraulique-nacelle-005","sourceNumber":5,"label":"Flexibles","optional":false,"defaultStatus":"pending"},{"id":"hydraulique-nacelle-006","sourceNumber":6,"label":"Raccords","optional":false,"defaultStatus":"pending"},{"id":"hydraulique-nacelle-007","sourceNumber":7,"label":"Distributeurs","optional":false,"defaultStatus":"pending"},{"id":"hydraulique-nacelle-008","sourceNumber":8,"label":"Clapets / valves de sécurité","optional":false,"defaultStatus":"pending"},{"id":"hydraulique-nacelle-009","sourceNumber":9,"label":"Passage tournant","optional":false,"defaultStatus":"pending"},{"id":"hydraulique-nacelle-010","sourceNumber":10,"label":"Fuites","optional":false,"defaultStatus":"pending"},{"id":"hydraulique-nacelle-011","sourceNumber":11,"label":"Pompe de secours si équipée","optional":true,"defaultStatus":"na"}]},{"id":"panier-nacelle","label":"Panier / nacelle","points":[{"id":"panier-nacelle-001","sourceNumber":1,"label":"État général du panier","optional":false,"defaultStatus":"pending"},{"id":"panier-nacelle-002","sourceNumber":2,"label":"Structure / soudures","optional":false,"defaultStatus":"pending"},{"id":"panier-nacelle-003","sourceNumber":3,"label":"Plancher antidérapant","optional":false,"defaultStatus":"pending"},{"id":"panier-nacelle-004","sourceNumber":4,"label":"Garde-corps","optional":false,"defaultStatus":"pending"},{"id":"panier-nacelle-005","sourceNumber":5,"label":"Portillon / fermeture","optional":false,"defaultStatus":"pending"},{"id":"panier-nacelle-006","sourceNumber":6,"label":"Verrouillage du portillon","optional":false,"defaultStatus":"pending"},{"id":"panier-nacelle-007","sourceNumber":7,"label":"Points d’ancrage EPI","optional":false,"defaultStatus":"pending"},{"id":"panier-nacelle-008","sourceNumber":8,"label":"Plaque charge nominale / nombre de personnes","optional":false,"defaultStatus":"pending"},{"id":"panier-nacelle-009","sourceNumber":9,"label":"Fixation du panier","optional":false,"defaultStatus":"pending"},{"id":"panier-nacelle-010","sourceNumber":10,"label":"Rotation panier si équipée","optional":true,"defaultStatus":"na"},{"id":"panier-nacelle-011","sourceNumber":11,"label":"Mise à niveau panier","optional":false,"defaultStatus":"pending"},{"id":"panier-nacelle-012","sourceNumber":12,"label":"Absence de déformation / corrosion","optional":false,"defaultStatus":"pending"}]},{"id":"commandes-au-sol","label":"Commandes au sol","points":[{"id":"commandes-au-sol-001","sourceNumber":1,"label":"Pupitre / boîtier de commande","optional":false,"defaultStatus":"pending"},{"id":"commandes-au-sol-002","sourceNumber":2,"label":"Sélecteur sol / panier","optional":false,"defaultStatus":"pending"},{"id":"commandes-au-sol-003","sourceNumber":3,"label":"Arrêt d’urgence","optional":false,"defaultStatus":"pending"},{"id":"commandes-au-sol-004","sourceNumber":4,"label":"Commande homme mort / validation","optional":false,"defaultStatus":"pending"},{"id":"commandes-au-sol-005","sourceNumber":5,"label":"Commandes de mouvements","optional":false,"defaultStatus":"pending"},{"id":"commandes-au-sol-006","sourceNumber":6,"label":"Retour au neutre","optional":false,"defaultStatus":"pending"},{"id":"commandes-au-sol-007","sourceNumber":7,"label":"Affichage / voyants","optional":false,"defaultStatus":"pending"},{"id":"commandes-au-sol-008","sourceNumber":8,"label":"Avertisseur sonore","optional":false,"defaultStatus":"pending"},{"id":"commandes-au-sol-009","sourceNumber":9,"label":"Commandes de secours","optional":false,"defaultStatus":"pending"},{"id":"commandes-au-sol-010","sourceNumber":10,"label":"Repérage des commandes","optional":false,"defaultStatus":"pending"}]},{"id":"commandes-panier","label":"Commandes panier","points":[{"id":"commandes-panier-001","sourceNumber":1,"label":"Pupitre de commande","optional":false,"defaultStatus":"pending"},{"id":"commandes-panier-002","sourceNumber":2,"label":"Arrêt d’urgence","optional":false,"defaultStatus":"pending"},{"id":"commandes-panier-003","sourceNumber":3,"label":"Commande homme mort / validation","optional":false,"defaultStatus":"pending"},{"id":"commandes-panier-004","sourceNumber":4,"label":"Commandes de mouvements","optional":false,"defaultStatus":"pending"},{"id":"commandes-panier-005","sourceNumber":5,"label":"Retour au neutre","optional":false,"defaultStatus":"pending"},{"id":"commandes-panier-006","sourceNumber":6,"label":"Progressivité","optional":false,"defaultStatus":"pending"},{"id":"commandes-panier-007","sourceNumber":7,"label":"Avertisseur sonore","optional":false,"defaultStatus":"pending"},{"id":"commandes-panier-008","sourceNumber":8,"label":"Affichage / voyants","optional":false,"defaultStatus":"pending"},{"id":"commandes-panier-009","sourceNumber":9,"label":"Sélecteurs / autorisations","optional":false,"defaultStatus":"pending"},{"id":"commandes-panier-010","sourceNumber":10,"label":"Protection du pupitre","optional":false,"defaultStatus":"pending"}]},{"id":"electricite-capteurs","label":"Électricité / capteurs","points":[{"id":"electricite-capteurs-001","sourceNumber":1,"label":"Batteries / alimentation","optional":false,"defaultStatus":"pending"},{"id":"electricite-capteurs-002","sourceNumber":2,"label":"Coupe-batterie","optional":false,"defaultStatus":"pending"},{"id":"electricite-capteurs-003","sourceNumber":3,"label":"Faisceaux","optional":false,"defaultStatus":"pending"},{"id":"electricite-capteurs-004","sourceNumber":4,"label":"Connecteurs","optional":false,"defaultStatus":"pending"},{"id":"electricite-capteurs-005","sourceNumber":5,"label":"Boîtiers électriques","optional":false,"defaultStatus":"pending"},{"id":"electricite-capteurs-006","sourceNumber":6,"label":"Capteurs d’angle / position","optional":false,"defaultStatus":"pending"},{"id":"electricite-capteurs-007","sourceNumber":7,"label":"Capteur d’inclinaison","optional":false,"defaultStatus":"pending"},{"id":"electricite-capteurs-008","sourceNumber":8,"label":"Fins de course","optional":false,"defaultStatus":"pending"},{"id":"electricite-capteurs-009","sourceNumber":9,"label":"Mise à la masse","optional":false,"defaultStatus":"pending"},{"id":"electricite-capteurs-010","sourceNumber":10,"label":"Éclairage de travail","optional":false,"defaultStatus":"pending"}]},{"id":"securites-limitations","label":"Sécurités / limitations","points":[{"id":"securites-limitations-001","sourceNumber":1,"label":"Limiteur de charge / moment si équipé","optional":true,"defaultStatus":"na"},{"id":"securites-limitations-002","sourceNumber":2,"label":"Limitation de portée / hauteur","optional":false,"defaultStatus":"pending"},{"id":"securites-limitations-003","sourceNumber":3,"label":"Capteur d’inclinaison / dévers","optional":false,"defaultStatus":"pending"},{"id":"securites-limitations-004","sourceNumber":4,"label":"Sécurité stabilisation","optional":false,"defaultStatus":"pending"},{"id":"securites-limitations-005","sourceNumber":5,"label":"Interverrouillage sol / panier","optional":false,"defaultStatus":"pending"},{"id":"securites-limitations-006","sourceNumber":6,"label":"Arrêts d’urgence","optional":false,"defaultStatus":"pending"},{"id":"securites-limitations-007","sourceNumber":7,"label":"Commande homme mort","optional":false,"defaultStatus":"pending"},{"id":"securites-limitations-008","sourceNumber":8,"label":"Coupure des mouvements dangereux","optional":false,"defaultStatus":"pending"},{"id":"securites-limitations-009","sourceNumber":9,"label":"Alarmes sonores / visuelles","optional":false,"defaultStatus":"pending"},{"id":"securites-limitations-010","sourceNumber":10,"label":"Sécurité de mise à niveau panier","optional":false,"defaultStatus":"pending"},{"id":"securites-limitations-011","sourceNumber":11,"label":"Protection contre mouvements incompatibles","optional":false,"defaultStatus":"pending"},{"id":"securites-limitations-012","sourceNumber":12,"label":"Verrouillages transport","optional":false,"defaultStatus":"pending"}]},{"id":"dispositifs-de-secours","label":"Dispositifs de secours","points":[{"id":"dispositifs-de-secours-001","sourceNumber":1,"label":"Descente d’urgence","optional":false,"defaultStatus":"pending"},{"id":"dispositifs-de-secours-002","sourceNumber":2,"label":"Pompe manuelle / électrique de secours","optional":false,"defaultStatus":"pending"},{"id":"dispositifs-de-secours-003","sourceNumber":3,"label":"Commandes de secours au sol","optional":false,"defaultStatus":"pending"},{"id":"dispositifs-de-secours-004","sourceNumber":4,"label":"Procédure de récupération opérateur disponible","optional":false,"defaultStatus":"pending"},{"id":"dispositifs-de-secours-005","sourceNumber":5,"label":"Fonctionnement en cas de perte d’alimentation principale","optional":false,"defaultStatus":"pending"},{"id":"dispositifs-de-secours-006","sourceNumber":6,"label":"Accès aux dispositifs de secours","optional":false,"defaultStatus":"pending"},{"id":"dispositifs-de-secours-007","sourceNumber":7,"label":"Repérage / instructions lisibles","optional":false,"defaultStatus":"pending"}]},{"id":"essais-fonctionnels","label":"Essais fonctionnels","points":[{"id":"essais-fonctionnels-001","sourceNumber":1,"label":"Élévation / abaissement","optional":false,"defaultStatus":"pending"},{"id":"essais-fonctionnels-002","sourceNumber":2,"label":"Déploiement / repliement","optional":false,"defaultStatus":"pending"},{"id":"essais-fonctionnels-003","sourceNumber":3,"label":"Télescopage sortie / rentrée","optional":false,"defaultStatus":"pending"},{"id":"essais-fonctionnels-004","sourceNumber":4,"label":"Orientation gauche / droite","optional":false,"defaultStatus":"pending"},{"id":"essais-fonctionnels-005","sourceNumber":5,"label":"Rotation panier si équipée","optional":true,"defaultStatus":"na"},{"id":"essais-fonctionnels-006","sourceNumber":6,"label":"Mise à niveau panier","optional":false,"defaultStatus":"pending"},{"id":"essais-fonctionnels-007","sourceNumber":7,"label":"Commandes au sol","optional":false,"defaultStatus":"pending"},{"id":"essais-fonctionnels-008","sourceNumber":8,"label":"Commandes panier","optional":false,"defaultStatus":"pending"},{"id":"essais-fonctionnels-009","sourceNumber":9,"label":"Progressivité / retour au neutre","optional":false,"defaultStatus":"pending"},{"id":"essais-fonctionnels-010","sourceNumber":10,"label":"Arrêts d’urgence","optional":false,"defaultStatus":"pending"},{"id":"essais-fonctionnels-011","sourceNumber":11,"label":"Dispositifs de secours","optional":false,"defaultStatus":"pending"},{"id":"essais-fonctionnels-012","sourceNumber":12,"label":"Fonctionnement des sécurités","optional":false,"defaultStatus":"pending"},{"id":"essais-fonctionnels-013","sourceNumber":13,"label":"Absence de bruit anormal","optional":false,"defaultStatus":"pending"},{"id":"essais-fonctionnels-014","sourceNumber":14,"label":"Absence de fuite pendant les mouvements","optional":false,"defaultStatus":"pending"}]},{"id":"essai-avec-charge-si-applicable","label":"Essai avec charge si applicable","points":[{"id":"essai-avec-charge-si-applicable-001","sourceNumber":1,"label":"Essai avec charge selon procédure constructeur / réglementation applicable","optional":true,"defaultStatus":"na"},{"id":"essai-avec-charge-si-applicable-002","sourceNumber":2,"label":"Maintien en position","optional":true,"defaultStatus":"na"},{"id":"essai-avec-charge-si-applicable-003","sourceNumber":3,"label":"Mise à niveau panier sous charge","optional":true,"defaultStatus":"na"},{"id":"essai-avec-charge-si-applicable-004","sourceNumber":4,"label":"Fonctionnement des sécurités sous charge","optional":true,"defaultStatus":"na"},{"id":"essai-avec-charge-si-applicable-005","sourceNumber":5,"label":"Contrôle des alarmes / limitations","optional":true,"defaultStatus":"na"}]}],"upperLabel":"Nacelle"}}};
   const REFERENTIAL_VERSION = VFG_REFERENTIAL.version || '1.0.0-P1';
+
+  // V8A 3.4 - Informations generales + visite de controle ciblee
+  const GENERAL_CONTROL_POINT_IDS = new Set([
+    'documentation-006', // Vue d'ensemble
+    'documentation-001'  // Plaque constructeur
+  ]);
+
+  const GENERAL_CONTROL_DEFINITIONS = [
+    {
+      id: 'documentation-006',
+      label: 'Vue d’ensemble',
+      photoRequired: true,
+      defaultStatus: 'pending'
+    },
+    {
+      id: 'documentation-001',
+      label: 'Plaque constructeur',
+      photoRequired: true,
+      defaultStatus: 'pending'
+    }
+  ];
+
+  function visitType(visit = state.activeVisit) {
+    return visit?.visitType === 'control' ? 'control' : 'vfg';
+  }
+
+  function visitTypeLabel(visit = state.activeVisit) {
+    return visitType(visit) === 'control'
+      ? 'Visite de contrôle'
+      : 'Visite de fin de garantie';
+  }
+
+  function reportHideNa(visit = state.activeVisit) {
+    // Une visite de contrôle ne montre jamais les points N/A.
+    if (visitType(visit) === 'control') return true;
+    return visit?.reportHideNa !== false;
+  }
+
+  function createGeneralControls(existingVisit = null) {
+    const previous = new Map();
+
+    (existingVisit?.generalControls?.points || []).forEach(point => {
+      if (point?.id) previous.set(point.id, point);
+    });
+
+    // Migration : les deux photos vivaient auparavant dans Documentation et plaques.
+    const oldDocumentation = existingVisit?.zones?.carrier?.sections
+      ?.find(section => section.id === 'documentation');
+
+    (oldDocumentation?.points || []).forEach(point => {
+      if (point?.id && GENERAL_CONTROL_POINT_IDS.has(point.id) && !previous.has(point.id)) {
+        previous.set(point.id, point);
+      }
+    });
+
+    const section = {
+      id: 'general-controls',
+      label: 'Informations générales',
+      general: true,
+      total: 0,
+      remaining: 0,
+      ncOpen: 0,
+      ncTotal: 0,
+      naTotal: 0,
+      points: GENERAL_CONTROL_DEFINITIONS.map(definition => {
+        const old = previous.get(definition.id);
+        const hasPhoto = existingVisit
+          ? linkedPhotoIdsForPoint(definition.id, existingVisit).length > 0
+          : false;
+
+        return {
+          id: definition.id,
+          label: definition.label,
+          photoRequired: true,
+          optional: false,
+          defaultStatus: 'pending',
+          status: hasPhoto
+            ? 'conform'
+            : (old?.status === 'conform' ? 'conform' : 'pending'),
+          findingId: null,
+          neReason: '',
+          neComment: ''
+        };
+      })
+    };
+
+    recalculateSection(section);
+    return section;
+  }
+
+  function ensureGeneralControls(visit = state.activeVisit) {
+    if (!visit) return null;
+
+    const current = visit.generalControls;
+    const rebuilt = createGeneralControls(visit);
+
+    const valid = current &&
+      current.id === 'general-controls' &&
+      Array.isArray(current.points) &&
+      GENERAL_CONTROL_DEFINITIONS.every(definition =>
+        current.points.some(point => point.id === definition.id)
+      );
+
+    if (!valid) {
+      visit.generalControls = rebuilt;
+      return visit.generalControls;
+    }
+
+    const currentById = new Map(current.points.map(point => [point.id, point]));
+    current.points = GENERAL_CONTROL_DEFINITIONS.map(definition => {
+      const old = currentById.get(definition.id) || {};
+      const hasPhoto = linkedPhotoIdsForPoint(definition.id, visit).length > 0;
+      return {
+        ...old,
+        id: definition.id,
+        label: definition.label,
+        photoRequired: true,
+        optional: false,
+        defaultStatus: 'pending',
+        status: hasPhoto
+          ? 'conform'
+          : (old.status === 'conform' ? 'conform' : 'pending'),
+        findingId: null,
+        neReason: '',
+        neComment: ''
+      };
+    });
+    current.general = true;
+    current.label = 'Informations générales';
+    recalculateSection(current);
+    return current;
+  }
+
+  function generalControlsSection(visit = state.activeVisit) {
+    return ensureGeneralControls(visit);
+  }
 
   function machineLooksLikeMk(machine = {}) {
     const source = `${machine.model || ''} ${machine.designation || ''}`;
@@ -176,6 +287,10 @@ let lastAutoSync = 0;
   function visitHasStarted(visit) {
     if (!visit) return false;
 
+    const generalControlled = (generalControlsSection(visit)?.points || []).some(point =>
+      point?.status === 'conform'
+    );
+
     const controlled = ['carrier', 'upper'].some(zone =>
       (visit.zones?.[zone]?.sections || []).some(section => {
         if (section?.wholeNa === true || section?.wholeNe === true) return true;
@@ -196,7 +311,7 @@ let lastAutoSync = 0;
       (axle.tyres || []).some(tyre => tyre?.value && tyre.value !== 'pending')
     );
 
-    return controlled || tyreControlled || (visit.findings || []).length > 0;
+    return generalControlled || controlled || tyreControlled || (visit.findings || []).length > 0;
   }
 
 
@@ -247,6 +362,18 @@ let lastAutoSync = 0;
   function visitPointContexts(visit = state.activeVisit) {
     const contexts = [];
     if (!visit) return contexts;
+
+    const general = generalControlsSection(visit);
+    (general?.points || []).forEach(point => {
+      contexts.push({
+        zone: 'general',
+        zoneLabel: 'Informations générales',
+        section: general,
+        sectionId: general.id,
+        sectionLabel: general.label,
+        point
+      });
+    });
 
     for (const zone of ['carrier', 'upper']) {
       if (!zoneEnabled(visit, zone)) continue;
@@ -337,6 +464,23 @@ let lastAutoSync = 0;
         message: `À compléter : ${cnEquipmentMissingLabel(missing)}.`,
         action: 'cn-identity'
       });
+    }
+
+    const general = generalControlsSection(visit);
+    for (const point of general?.points || []) {
+      if (!pointHasRequiredPhoto(point, visit)) {
+        issues.push({
+          type: 'general-photo-required',
+          zone: 'general',
+          zoneLabel: 'Informations générales',
+          sectionId: general.id,
+          sectionLabel: general.label,
+          pointId: point.id,
+          pointLabel: point.label,
+          message: 'Photo obligatoire manquante.',
+          action: 'general-photo'
+        });
+      }
     }
 
     const contexts = visitPointContexts(visit);
@@ -756,6 +900,13 @@ let lastAutoSync = 0;
       renderDashboard();
       showScreen('dashboard');
       toast('Vérifiez le référentiel GM / MK de cette visite.');
+      return;
+    }
+
+    if (issue.action === 'general-photo' && issue.pointId) {
+      renderDashboard();
+      showScreen('dashboard');
+      await openGeneralPhotoPoint(issue.pointId);
       return;
     }
 
@@ -1866,6 +2017,11 @@ closeButton.addEventListener('click', cleanup);
 async function finishActiveVisit() {
     const visit = state.activeVisit;
     if (!visit) return;
+
+    if (visitType(visit) === 'control' && visitProgressSummary(visit).total === 0) {
+      toast('Visite de contrôle : réactivez au moins un point applicable.');
+      return;
+    }
 
     const unfinished = unfinishedVisitSections(visit);
 
@@ -3541,70 +3697,6 @@ async function syncVisitToServer(visit) {
     return false;
   }
 }
-
-async function syncPendingLocalDataToServer({ force = false } = {}) {
-  if (!SERVER_BASE_URL || syncInProgress) return false;
-
-  const now = Date.now();
-  if (!force && now - lastAutoSync < 5000) return false;
-  lastAutoSync = now;
-  syncInProgress = true;
-
-  try {
-    const statusResponse = await fetch(`${SERVER_BASE_URL}/api/status`, {
-      cache: 'no-store'
-    });
-
-    if (!statusResponse.ok) {
-      throw new Error(`Serveur VFG indisponible (${statusResponse.status})`);
-    }
-
-    const visits = loadJson(STORAGE_KEYS.visits, []);
-
-    for (const visit of visits) {
-      if (!visit?.id || visit.syncStatus === 'synchronisée') continue;
-
-      let photosOk = true;
-      const photos = Array.isArray(visit.photoLibrary) ? visit.photoLibrary : [];
-
-      for (const photo of photos) {
-        if (!photo?.id) continue;
-
-        try {
-          const record = await photoDbGet(photo.id);
-          if (!record?.blob) {
-            photosOk = false;
-            console.warn('Photo locale introuvable pour la synchronisation :', photo.id);
-            continue;
-          }
-
-          const ok = await syncPhotoToServer(record, visit);
-          if (!ok) photosOk = false;
-        } catch (error) {
-          photosOk = false;
-          console.warn('Synchronisation photo différée :', photo.id, error);
-        }
-      }
-
-      if (photosOk) {
-        await syncVisitToServer(visit);
-      } else {
-        visit.syncStatus = 'à synchroniser';
-        persistVisitRecord(visit, { touch: false, sync: false });
-      }
-    }
-
-    await loadVisitsFromServer();
-    return true;
-
-  } catch (error) {
-    console.warn('Synchronisation locale différée :', error);
-    return false;
-  } finally {
-    syncInProgress = false;
-  }
-}
-
 async function deleteVisitFromServer(visitId) {
     if (!SERVER_BASE_URL) {
     return false;
@@ -3801,10 +3893,16 @@ async function loadVisitsFromServer() {
     const sections = Array.isArray(profile[zone]) ? profile[zone] : [];
 
     return sections.map(definition => {
+      const pointDefinitions = Array.isArray(definition.points)
+        ? definition.points.filter(point =>
+            !(zone === 'carrier' && GENERAL_CONTROL_POINT_IDS.has(point?.id))
+          )
+        : [];
+
       const section = {
         id: definition.id,
         label: definition.label,
-        pointDefinitions: Array.isArray(definition.points) ? definition.points : [],
+        pointDefinitions,
         total: 0,
         remaining: 0,
         ncOpen: 0,
@@ -3965,6 +4063,9 @@ async function loadVisitsFromServer() {
       workflowVersion: 'POINT2-FINAL',
       specialCasesVersion: 'POINT3.6.4',
       syncVersion: 'POINT4.1',
+      visitType: 'vfg',
+      reportHideNa: true,
+      generalControls: null,
       cbEquipment: {
         brand: '',
         type: '',
@@ -4009,6 +4110,7 @@ async function loadVisitsFromServer() {
       tyres: createTyreData(machine)
     };
 
+    visit.generalControls = createGeneralControls(visit);
     visit.zones.carrier.sections = createSections('carrier', machine, visit);
     visit.zones.upper.sections = createSections('upper', machine, visit);
     syncTyreSection(visit);
@@ -4034,6 +4136,13 @@ async function loadVisitsFromServer() {
     if (!visit.machineSnapshot || typeof visit.machineSnapshot !== 'object') {
       visit.machineSnapshot = createVisit(machine).machineSnapshot;
       changed = true;
+    }
+
+    for (const field of ['model', 'serialNumber']) {
+      if (typeof visit.machineSnapshot[field] !== 'string') {
+        visit.machineSnapshot[field] = '';
+        changed = true;
+      }
     }
 
     const existingControlled = visitHasStarted(visit);
@@ -4130,6 +4239,22 @@ async function loadVisitsFromServer() {
 
     if (visit.syncVersion !== 'POINT4.1') {
       visit.syncVersion = 'POINT4.1';
+      changed = true;
+    }
+
+    if (!['vfg', 'control'].includes(visit.visitType)) {
+      visit.visitType = 'vfg';
+      changed = true;
+    }
+
+    if (typeof visit.reportHideNa !== 'boolean') {
+      visit.reportHideNa = true;
+      changed = true;
+    }
+
+    const beforeGeneral = JSON.stringify(visit.generalControls || null);
+    ensureGeneralControls(visit);
+    if (JSON.stringify(visit.generalControls) !== beforeGeneral) {
       changed = true;
     }
 
@@ -4691,6 +4816,10 @@ async function loadVisitsFromServer() {
   }
 
   function currentSection() {
+    if (state.activeSectionId === 'general-controls') {
+      return generalControlsSection(state.activeVisit);
+    }
+
     const standard = state.activeVisit?.zones?.[state.activeZone]?.sections
       ?.find(section => section.id === state.activeSectionId);
 
@@ -6423,6 +6552,25 @@ async function loadVisitsFromServer() {
 
     clearWholeSectionStatus(section);
 
+    // En visite de contrôle, un clic sur un point N/A le rend d'abord applicable.
+    // Le point reste à contrôler ; un second clic permettra de le valider conforme.
+    if (visitType(state.activeVisit) === 'control' && point.status === 'na') {
+      if (point.optional) {
+        point.optionPresent = true;
+        if (isOptionalEquipmentSection(section)) section.optionPresent = true;
+      }
+      point.status = 'pending';
+      point.findingId = null;
+      point.neReason = '';
+      point.neComment = '';
+      recalculateSection(section);
+      saveActiveVisit();
+      closePointActions();
+      renderInspection();
+      toast('Point applicable : à contrôler.');
+      return;
+    }
+
     // Pour une rubrique entièrement optionnelle, un premier clic active
     // l'équipement complet afin que tous ses contrôles deviennent applicables.
     if (
@@ -6918,8 +7066,16 @@ if (saveButton) {
     state.requiredPhotoZone = null;
     restoreFindingCriticalityUi();
     clearPhotoObjectUrls();
-    if (state.activeSectionId === 'tyres') { renderTyreInspection(); showScreen('tyres'); }
-    else { renderInspection(); showScreen('inspection'); }
+    if (state.activeSectionId === 'general-controls') {
+      renderDashboard();
+      showScreen('dashboard');
+    } else if (state.activeSectionId === 'tyres') {
+      renderTyreInspection();
+      showScreen('tyres');
+    } else {
+      renderInspection();
+      showScreen('inspection');
+    }
   }
 
   function renderZone(zone) {
@@ -7134,6 +7290,129 @@ if (saveButton) {
     input.value = value === null ? '' : formatReading(value);
   }
 
+  // V8A34_IDENTITE_MANUELLE
+  function baseMachineModel(machine = state.activeMachine) {
+    return String(machine?.model || machine?.designation || '').trim();
+  }
+
+  function baseMachineSerial(machine = state.activeMachine) {
+    return String(machine?.serialNumber || '').trim();
+  }
+
+  function effectiveMachineForVisit(machine = state.activeMachine, visit = state.activeVisit) {
+    if (!machine) return machine;
+
+    const snapshot = visit?.machineSnapshot || {};
+    const model = baseMachineModel(machine) || String(snapshot.model || '').trim();
+    const serialNumber = baseMachineSerial(machine) || String(snapshot.serialNumber || '').trim();
+
+    return {
+      ...machine,
+      model,
+      designation: String(machine.designation || snapshot.designation || model || '').trim(),
+      serialNumber
+    };
+  }
+
+  function renderMachineIdentityFields() {
+    const visit = state.activeVisit;
+    const machine = state.activeMachine;
+    if (!visit || !machine) return;
+
+    const modelInput = $('#dashboardMachineModel');
+    const serialInput = $('#dashboardMachineSerial');
+    const modelSource = $('#dashboardMachineModelSource');
+    const serialSource = $('#dashboardMachineSerialSource');
+    if (!modelInput || !serialInput) return;
+
+    const baseModel = baseMachineModel(machine);
+    const baseSerial = baseMachineSerial(machine);
+    const snapshot = visit.machineSnapshot || (visit.machineSnapshot = {});
+
+    if (baseModel) {
+      modelInput.value = baseModel;
+      modelInput.readOnly = true;
+      modelInput.classList.add('is-from-database');
+      if (modelSource) modelSource.textContent = 'Base parc · automatique';
+    } else {
+      modelInput.value = String(snapshot.model || '').trim();
+      modelInput.readOnly = false;
+      modelInput.classList.remove('is-from-database');
+      if (modelSource) modelSource.textContent = 'Saisie manuelle · modèle absent du parc';
+    }
+
+    if (baseSerial) {
+      serialInput.value = baseSerial;
+      serialInput.readOnly = true;
+      serialInput.classList.add('is-from-database');
+      if (serialSource) serialSource.textContent = 'Base parc · automatique';
+    } else {
+      serialInput.value = String(snapshot.serialNumber || '').trim();
+      serialInput.readOnly = false;
+      serialInput.classList.remove('is-from-database');
+      if (serialSource) serialSource.textContent = 'Saisie manuelle · n° de série absent du parc';
+    }
+  }
+
+  function updateMachineIdentitySummary() {
+    const machine = effectiveMachineForVisit();
+    const visit = state.activeVisit;
+    if (!machine || !visit) return;
+
+    $('#dashboardTitle').textContent = `${machine.parkNumber || machine.id} – ${machine.model || machine.designation || 'Machine'}`;
+    $('#dashboardSubtitle').textContent = [
+      machine.brand,
+      machine.serialNumber ? `Série ${machine.serialNumber}` : '',
+      machine.agency,
+      visit.status ? `Statut : ${visit.status}` : ''
+    ].filter(Boolean).join(' · ');
+  }
+
+  function saveMachineIdentityDetails() {
+    if (!markVisitDraft()) return;
+    const visit = state.activeVisit;
+    const machine = state.activeMachine;
+    if (!visit || !machine) return;
+
+    if (!visit.machineSnapshot || typeof visit.machineSnapshot !== 'object') {
+      visit.machineSnapshot = createVisit(machine).machineSnapshot;
+    }
+
+    const modelInput = $('#dashboardMachineModel');
+    const serialInput = $('#dashboardMachineSerial');
+
+    if (!baseMachineModel(machine) && modelInput) {
+      visit.machineSnapshot.model = modelInput.value.trim();
+    }
+
+    if (!baseMachineSerial(machine) && serialInput) {
+      visit.machineSnapshot.serialNumber = serialInput.value.trim();
+    }
+
+    saveActiveVisit();
+    updateMachineIdentitySummary();
+  }
+
+  function bindMachineIdentitySequence() {
+    const fields = [
+      $('#dashboardMachineModel'),
+      $('#dashboardMachineSerial')
+    ].filter(Boolean);
+
+    fields.forEach((field, index) => {
+      field.addEventListener('change', saveMachineIdentityDetails);
+      field.addEventListener('blur', saveMachineIdentityDetails);
+      field.addEventListener('keydown', event => {
+        if (event.key !== 'Enter') return;
+        event.preventDefault();
+        saveMachineIdentityDetails();
+        const next = fields[index + 1];
+        if (next && !next.readOnly) next.focus();
+        else field.blur();
+      });
+    });
+  }
+
   function saveDashboardReadings() {
     if (!markVisitDraft()) return;
     const visit = state.activeVisit;
@@ -7223,9 +7502,250 @@ if (saveButton) {
     });
   }
 
-  function renderDashboard() {
-    const machine = state.activeMachine;
+  async function openGeneralPhotoPoint(pointId) {
+    const section = generalControlsSection(state.activeVisit);
+    const point = section?.points?.find(item => item.id === pointId);
+    if (!point) return;
+
+    state.activeZone = 'general';
+    state.activeSectionId = section.id;
+    state.activePointId = point.id;
+
+    await openFindingForm({
+      requiredPhotoPortalFlow: true,
+      preserveRequiredPhotoContext: true
+    });
+  }
+
+  function renderGeneralControlsCard() {
+    const section = generalControlsSection(state.activeVisit);
+    if (!section) return;
+
+    for (const point of section.points || []) {
+      const button = document.querySelector(`[data-general-photo="${point.id}"]`);
+      if (!button) continue;
+      const ok = pointHasRequiredPhoto(point, state.activeVisit);
+      button.classList.toggle('is-complete', ok);
+      const status = button.querySelector('.general-control-status');
+      if (status) status.textContent = ok ? '✓ Photo OK' : '📷 Photo obligatoire';
+    }
+  }
+
+  function zoneIsAllNa(visit, zone) {
+    const sections = [
+      ...(visit?.zones?.[zone]?.sections || []),
+      supplementarySection(zone, visit)
+    ].filter(section => section && (section.points || []).length > 0);
+
+    if (!sections.length) {
+      const standard = visit?.zones?.[zone]?.sections || [];
+      return standard.length > 0 && standard.every(section =>
+        (section.points || []).every(point => point.status === 'na')
+      );
+    }
+
+    return sections.every(section =>
+      (section.points || []).every(point => point.status === 'na')
+    );
+  }
+
+  async function removeFindingsForZone(zone) {
     const visit = state.activeVisit;
+    if (!visit) return;
+
+    const findings = (visit.findings || []).filter(finding => finding.zone === zone);
+    for (const finding of findings) {
+      await deleteFindingPhotos(finding);
+    }
+    visit.findings = (visit.findings || []).filter(finding => finding.zone !== zone);
+  }
+
+  function setSectionNaDirect(section) {
+    if (!section) return;
+    section.wholeNa = true;
+    section.wholeNe = false;
+    section.neReason = '';
+    section.neComment = '';
+
+    section.points.forEach(point => {
+      point.status = 'na';
+      point.findingId = null;
+      point.neReason = '';
+      point.neComment = '';
+    });
+
+    if (section.id === 'tyres') {
+      (state.activeVisit?.tyres?.axles || []).forEach(axle => {
+        (axle.tyres || []).forEach(tyre => { tyre.findingId = null; });
+      });
+    }
+
+    recalculateSection(section);
+  }
+
+  function restoreZoneDefaults(zone) {
+    const visit = state.activeVisit;
+    if (!visit) return;
+
+    (visit.zones?.[zone]?.sections || []).forEach(section => {
+      restoreSectionDefaultStatuses(section);
+    });
+
+    const extra = supplementarySection(zone, visit);
+    if (extra) {
+      extra.wholeNa = false;
+      extra.wholeNe = false;
+      extra.neReason = '';
+      extra.neComment = '';
+      (extra.points || []).forEach(point => {
+        point.status = 'pending';
+        point.findingId = null;
+        point.neReason = '';
+        point.neComment = '';
+      });
+      recalculateSection(extra);
+    }
+
+    if (zone === 'carrier') {
+      (visit.tyres?.axles || []).forEach(axle => {
+        (axle.tyres || []).forEach(tyre => {
+          tyre.value = 'pending';
+          tyre.findingId = null;
+        });
+      });
+      syncTyreSection(visit);
+    }
+  }
+
+  async function toggleWholeZoneNa(zone) {
+    const visit = state.activeVisit;
+    if (!visit || !['carrier', 'upper'].includes(zone)) return;
+    if (!markVisitDraft()) return;
+
+    const label = zoneDisplayLabel(state.activeMachine, zone, visit);
+    const allNa = zoneIsAllNa(visit, zone);
+
+    if (allNa) {
+      restoreZoneDefaults(zone);
+      saveActiveVisit();
+      renderDashboard();
+      toast(`${label} réactivé : points remis à contrôler.`);
+      return;
+    }
+
+    const hasData = (visit.findings || []).some(finding => finding.zone === zone) ||
+      (visit.zones?.[zone]?.sections || []).some(section =>
+        (section.points || []).some(point => ['conform', 'finding', 'ne'].includes(point.status))
+      );
+
+    if (hasData) {
+      const confirmed = confirm(
+        `${label} contient déjà des contrôles ou des constats.
+
+` +
+        `Tout passer en N/A supprimera ces états et les constats associés.
+
+Continuer ?`
+      );
+      if (!confirmed) return;
+    }
+
+    await removeFindingsForZone(zone);
+    (visit.zones?.[zone]?.sections || []).forEach(setSectionNaDirect);
+    const extra = supplementarySection(zone, visit);
+    if (extra && (extra.points || []).length) setSectionNaDirect(extra);
+    saveActiveVisit();
+    renderDashboard();
+    toast(`${label} : toutes les rubriques sont N/A.`);
+  }
+
+  async function toggleTargetedControlMode() {
+    const visit = state.activeVisit;
+    if (!visit) return;
+    if (!markVisitDraft()) return;
+
+    if (visitType(visit) === 'control') {
+      const confirmed = confirm(
+        'Revenir à une VFG complète ?\n\n' +
+        'Tous les points du référentiel seront remis à contrôler et les constats de la visite de contrôle seront supprimés.'
+      );
+      if (!confirmed) return;
+
+      await removeFindingsForZone('carrier');
+      await removeFindingsForZone('upper');
+      restoreZoneDefaults('carrier');
+      restoreZoneDefaults('upper');
+      visit.visitType = 'vfg';
+      visit.reportHideNa = true;
+      saveActiveVisit();
+      renderDashboard();
+      toast('Mode VFG complète rétabli.');
+      return;
+    }
+
+    const hasData = visitHasStarted(visit) || (visit.findings || []).length > 0;
+    if (hasData) {
+      const confirmed = confirm(
+        'Passer en « Visite de contrôle » ?\n\n' +
+        'Tous les contrôles techniques seront classés N/A. Les constats existants seront supprimés.\n' +
+        'Les deux photos générales restent indépendantes.\n\nContinuer ?'
+      );
+      if (!confirmed) return;
+    }
+
+    await removeFindingsForZone('carrier');
+    await removeFindingsForZone('upper');
+    (visit.zones?.carrier?.sections || []).forEach(setSectionNaDirect);
+    (visit.zones?.upper?.sections || []).forEach(setSectionNaDirect);
+    const carrierExtra = supplementarySection('carrier', visit);
+    const upperExtra = supplementarySection('upper', visit);
+    if (carrierExtra && (carrierExtra.points || []).length) setSectionNaDirect(carrierExtra);
+    if (upperExtra && (upperExtra.points || []).length) setSectionNaDirect(upperExtra);
+
+    visit.visitType = 'control';
+    visit.reportHideNa = true;
+    saveActiveVisit();
+    renderDashboard();
+    toast('Visite de contrôle : réactivez uniquement les points à contrôler.');
+  }
+
+  function renderVisitModeUi() {
+    const visit = state.activeVisit;
+    if (!visit) return;
+
+    const isControl = visitType(visit) === 'control';
+    const label = $('#visitTypeLabel');
+    const button = $('#toggleControlVisitMode');
+    const hideNa = $('#reportHideNa');
+
+    if (label) label.textContent = visitTypeLabel(visit);
+    if (button) {
+      button.classList.toggle('is-active', isControl);
+      button.textContent = isControl
+        ? 'Revenir à une VFG complète'
+        : 'Tout passer en N/A · Visite de contrôle';
+    }
+    if (hideNa) {
+      hideNa.checked = reportHideNa(visit);
+      hideNa.disabled = isControl;
+      hideNa.closest('label')?.classList.toggle('is-locked', isControl);
+    }
+
+    for (const zone of ['carrier', 'upper']) {
+      const zoneButton = document.querySelector(`[data-zone-na="${zone}"]`);
+      if (!zoneButton) continue;
+      const allNa = zoneIsAllNa(visit, zone);
+      const zoneLabel = zoneDisplayLabel(state.activeMachine, zone, visit);
+      zoneButton.classList.toggle('is-active', allNa);
+      zoneButton.textContent = allNa
+        ? `Réactiver ${zoneLabel}`
+        : `${zoneLabel} complet → N/A`;
+    }
+  }
+
+  function renderDashboard() {
+    const visit = state.activeVisit;
+    const machine = effectiveMachineForVisit(state.activeMachine, visit);
     $('#dashboardTitle').textContent = `${machine.parkNumber || machine.id} – ${machine.model || machine.designation || 'Machine'}`;
     $('#dashboardSubtitle').textContent = [
       machine.brand,
@@ -7233,6 +7753,7 @@ if (saveButton) {
       machine.agency,
       visit.status ? `Statut : ${visit.status}` : ''
     ].filter(Boolean).join(' · ');
+    renderMachineIdentityFields();
     $('#dashboardVisitDate').value = visit.visitDate || todayIsoDate();
     $('#dashboardCarrierKm').value = Number.isFinite(Number(visit.carrierKm)) ? formatReading(visit.carrierKm) : '';
     $('#dashboardCarrierHours').value = Number.isFinite(Number(visit.carrierHours)) ? formatReading(visit.carrierHours) : '';
@@ -7303,6 +7824,8 @@ if (saveButton) {
     renderCnEquipmentIdentity();
     refreshVisitScopeSummary();
     renderSupplementaryDashboardStatus();
+    renderGeneralControlsCard();
+    renderVisitModeUi();
     refreshFinishVisitButton();
   }
 
@@ -7684,9 +8207,8 @@ return;
   }
 
   function reportPage(inner, page, total, title = 'Warranty Inspection System') {
-  const pageClass = page === 1 ? 'report-page report-cover-page' : 'report-page';
   return `<article
-    class="${pageClass}"
+    class="report-page"
     id="report-page-${page}"
     data-report-page="${page}"
   >
@@ -7757,7 +8279,9 @@ return;
         <p class="report-intro">État individuel de chaque pneumatique. Les valeurs à 25 % sont signalées « À surveiller ». Les pneumatiques HS sont classés en non-conformité.</p>
         <div class="report-tyre-diagram">${axleHtml || '<div class="report-empty">Aucune configuration pneumatique enregistrée.</div>'}</div>`;
     }
-    const points = section.points || [];
+    const points = (section.points || []).filter(point =>
+      !reportHideNa(visit) || point.status !== 'na'
+    );
     const lines = points.map(point => {
       const finding = point.findingId ? (visit.findings || []).find(item => item.id === point.findingId) : null;
       return `<tr>
@@ -7800,377 +8324,135 @@ return;
   ← Retour à l’anomalie dans la synthèse
 </a>`;  }
 
- // V8K3_3_PAGE1_DEUX_MODELES_VALIDES
-  // GM / MK : modèle « grues » validé.
-  // CB / CN : modèle « camions » validé.
-  // La photo principale provient exclusivement du point « Vue d’ensemble ».
-  async function reportCoverPhoto(visit) {
-    if (!visit) {
-      return {
-        family: '',
-        overviewUrl: '',
-        plateUrls: [],
-        plateLabels: []
-      };
+ async function reportCoverPhoto(visit) {
+  if (!visit) return '';
+
+  const family = machineFamily(state.activeMachine, visit);
+
+  // Photos obligatoires du portail :
+  // documentation-001 = plaque(s) constructeur
+  // documentation-006 = vue d'ensemble
+  const plateIds = linkedPhotoIdsForPoint('documentation-001', visit);
+  const overviewIds = linkedPhotoIdsForPoint('documentation-006', visit);
+
+  const figures = [];
+const usedPhotoIds = new Set();
+
+async function addFirstAvailablePhoto(ids, label) {
+  for (const id of ids) {
+    if (!id || usedPhotoIds.has(id)) continue;
+
+    try {
+      const stored = await photoDbGet(id);
+
+      if (!stored?.blob) continue;
+
+      const url = await blobToDataUrl(stored.blob);
+
+      figures.push(`
+        <figure class="report-cover-photo">
+          <img src="${url}" alt="${escapeHtml(label)}">
+          <figcaption>${escapeHtml(label)}</figcaption>
+        </figure>
+      `);
+
+      usedPhotoIds.add(id);
+      return true;
+
+    } catch (error) {
+      console.warn('Photo indisponible :', id, error);
     }
-
-    const family = machineFamily(state.activeMachine, visit);
-    const plateIds = linkedPhotoIdsForPoint('documentation-001', visit);
-    const overviewIds = linkedPhotoIdsForPoint('documentation-006', visit);
-
-    async function firstAvailableUrl(ids) {
-      for (const id of ids || []) {
-        if (!id) continue;
-        try {
-          const stored = await photoDbGet(id);
-          if (!stored?.blob) continue;
-          return await blobToDataUrl(stored.blob);
-        } catch (error) {
-          console.warn('Photo rapport indisponible :', id, error);
-        }
-      }
-      return '';
-    }
-
-    const overviewUrl = await firstAvailableUrl(overviewIds);
-    const plateUrls = [];
-
-    for (const id of plateIds || []) {
-      if (!id) continue;
-      try {
-        const stored = await photoDbGet(id);
-        if (!stored?.blob) continue;
-        plateUrls.push(await blobToDataUrl(stored.blob));
-      } catch (error) {
-        console.warn('Plaque constructeur indisponible :', id, error);
-      }
-    }
-
-    let plateLabels = ['PLAQUE CONSTRUCTEUR'];
-    let expectedCount = 1;
-
-    if (family === 'CB') {
-      plateLabels = ['PLAQUE CHÂSSIS', 'PLAQUE BRAS'];
-      expectedCount = 2;
-    } else if (family === 'CN') {
-      plateLabels = ['PLAQUE CHÂSSIS', 'PLAQUE NACELLE'];
-      expectedCount = 2;
-    }
-
-    return {
-      family,
-      overviewUrl,
-      plateUrls: plateUrls.slice(0, expectedCount),
-      plateLabels
-    };
   }
 
-  function reportCoverMachineIcon(family) {
-    if (family === 'CN') {
-      return `<svg class="report-cover-machine-icon" viewBox="0 0 160 70" aria-hidden="true">
-        <g fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M15 51h83V31H58v20M98 51h19"/>
-          <path d="M68 31V20h25l8 11"/>
-          <path d="M103 29l34-18 5 9-31 17"/>
-          <path d="M140 10h13v13h-13z"/>
-          <circle cx="39" cy="55" r="10" fill="currentColor" stroke="none"/>
-          <circle cx="91" cy="55" r="10" fill="currentColor" stroke="none"/>
-        </g>
-      </svg>`;
-    }
+  return false;
+}
 
-    if (family === 'CB') {
-      return `<svg class="report-cover-machine-icon" viewBox="0 0 160 70" aria-hidden="true">
-        <g fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M13 51h91V31H59v20M104 51h21"/>
-          <path d="M69 31V19h25l9 12"/>
-          <path d="M104 31l12-16 20 11 11-17"/>
-          <circle cx="38" cy="55" r="10" fill="currentColor" stroke="none"/>
-          <circle cx="94" cy="55" r="10" fill="currentColor" stroke="none"/>
-        </g>
-      </svg>`;
-    }
+await addFirstAvailablePhoto(
+  overviewIds,
+  'Vue d’ensemble'
+);
 
-    return `<svg class="report-cover-machine-icon" viewBox="0 0 160 70" aria-hidden="true">
-      <g fill="none" stroke="currentColor" stroke-width="6" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M12 52h104V34H71v18M116 52h20"/>
-        <path d="M72 34V20h27l10 14"/>
-        <path d="M28 33L133 9"/>
-        <path d="M129 10l10 26"/>
-        <path d="M139 36v12"/>
-        <circle cx="37" cy="56" r="10" fill="currentColor" stroke="none"/>
-        <circle cx="82" cy="56" r="10" fill="currentColor" stroke="none"/>
-        <circle cx="116" cy="56" r="10" fill="currentColor" stroke="none"/>
-      </g>
-    </svg>`;
+if (family === 'CN') {
+  const firstPlateAdded = await addFirstAvailablePhoto(
+    plateIds,
+    'Plaque constructeur châssis'
+  );
+
+  if (firstPlateAdded) {
+    await addFirstAvailablePhoto(
+      plateIds.filter(id => !usedPhotoIds.has(id)),
+      'Plaque constructeur nacelle'
+    );
   }
-
-  function reportCoverMainPhoto(media, visit, machine) {
-    const agency = machine?.agency || machine?.city || 'agence FOSELEV';
-    const date = formatVisitDate(visit?.visitDate);
-    const image = media?.overviewUrl
-      ? `<img src="${media.overviewUrl}" alt="Vue d’ensemble de la machine">`
-      : '<div class="report-cover-main-placeholder">Photo non disponible</div>';
-
-    return `<figure class="report-cover-main-photo">
-      <div class="report-cover-main-photo-frame">${image}</div>
-      <figcaption><span class="report-cover-camera">▣</span> PHOTO DE LA MACHINE — PRISE LE ${escapeHtml(date)} À ${escapeHtml(String(agency).toUpperCase())}</figcaption>
-    </figure>`;
-  }
-
-  function reportCoverPlateFigure(media, index, fallbackLabel) {
-    const label = media?.plateLabels?.[index] || fallbackLabel || `PLAQUE ${index + 1}`;
-    const url = media?.plateUrls?.[index] || '';
-
-    return `<figure class="report-cover-plate-figure">
-      <figcaption>${escapeHtml(label)}</figcaption>
-      ${
-        url
-          ? `<img src="${url}" alt="${escapeHtml(label)}">`
-          : '<div class="report-cover-plate-placeholder">Plaque constructeur non photographiée</div>'
-      }
-    </figure>`;
-  }
-
-  function reportCoverValue(value, fallback = '—') {
-    const text = String(value ?? '').trim();
-    return text || fallback;
-  }
-
-  function reportCoverYear(machine) {
-    const raw = String(machine?.firstRegistration || '').trim();
-    if (/^\\d{4}/.test(raw)) return raw.slice(0, 4);
-    return '—';
-  }
-
-  function reportCoverAgencyData(machine) {
-    const agencyBook = window.FOSELEV_AGENCIES || {};
-    const agencyDetails =
-      agencyBook[machine?.agencyId] ||
-      Object.values(agencyBook).find(item =>
-        normalizeVfgAgencyName(item?.name) === normalizeVfgAgencyName(machine?.agency || '')
-      ) ||
-      {};
-
-    const agencyContactData = vfgContactDataForMachine(machine || {});
-    const agencyContact = agencyContactData.agency || {};
-
-    return {
-      name: reportCoverValue(machine?.agency || agencyDetails.name),
-      phone: reportCoverValue(agencyDetails.phone),
-      email: reportCoverValue(agencyDetails.email || agencyContact.agencyEmail)
-    };
-  }
-
-  function reportCoverParkParts(machine) {
-    const parkNumber = String(machine?.parkNumber || machine?.id || '—').trim();
-    const match = parkNumber.match(/^([A-Za-z]+)(.*)$/);
-    return {
-      full: parkNumber,
-      prefix: match ? match[1].toUpperCase() : '',
-      suffix: match ? match[2] : parkNumber
-    };
-  }
-
-  function reportCoverVisitType(visit, family) {
-    const fallback = ['GM', 'MK'].includes(family)
-      ? 'FIN DE GARANTIE'
-      : 'VISITE TECHNIQUE';
-
-    return String(visit?.visitType || visit?.type || fallback).trim().toUpperCase();
-  }
-
-  function reportCoverContactRow({ visit, agency, visitType, family }) {
-    const visitTitle = ['GM', 'MK'].includes(family) ? 'FIN DE GARANTIE' : 'VISITE TECHNIQUE';
-
-    return `<section class="report-cover-contact-row">
-      <div class="report-cover-contact-card">
-        <div class="report-cover-contact-icon">▦</div>
-        <div>
-          <small>AGENCE</small>
-          <strong>${escapeHtml(agency.name)}</strong>
-          <span>☎ ${escapeHtml(agency.phone)}</span>
-          <span>✉ ${escapeHtml(agency.email)}</span>
-        </div>
+} else {
+  await addFirstAvailablePhoto(
+    plateIds,
+    'Plaque constructeur'
+  );
+}
+  if (figures.length) {
+    return `
+      <div class="report-cover-photos">
+        ${figures.join('')}
       </div>
-
-      <div class="report-cover-contact-card">
-        <div class="report-cover-contact-icon">●</div>
-        <div>
-          <small>TECHNICIEN CONTRÔLEUR</small>
-          <strong>${escapeHtml(reportCoverValue(visit?.controllerName))}</strong>
-          <span>☎ ${escapeHtml(reportCoverValue(visit?.controllerPhone))}</span>
-          <span>✉ ${escapeHtml(reportCoverValue(visit?.controllerEmail))}</span>
-        </div>
-      </div>
-
-      <div class="report-cover-type-card">
-        <small>TYPE DE VISITE</small>
-        <strong>${escapeHtml(visitTitle)}</strong>
-        <span>${escapeHtml(visitType)}</span>
-        <b>RAPPORT COMPRIS</b>
-      </div>
-    </section>`;
+    `;
   }
 
-  function reportCoverValuesFooter() {
-    return `<div class="report-cover-values">
-      <div><strong>◇</strong><span>SÉCURITÉ<small>NOTRE PRIORITÉ</small></span></div>
-      <div><strong>✓</strong><span>QUALITÉ<small>NOTRE ENGAGEMENT</small></span></div>
-      <div><strong>●●●</strong><span>PROXIMITÉ<small>NOTRE FORCE</small></span></div>
-    </div>
-    <div class="report-cover-bottomline">
-      <span>FOSELEV — EXPERT EN LEVAGE ET MANUTENTION</span>
-      <strong>www.foselev.com</strong>
-    </div>`;
+  // Secours : ancien comportement si aucune photo obligatoire n'est disponible.
+  const candidates = (visit.findings || []).flatMap(finding =>
+    (finding.photos || [])
+      .filter(photo => photo.includeInReport)
+      .map(photo => ({ ...photo, finding }))
+  );
+
+  const selected =
+    candidates.find(photo => photo.isMain) ||
+    candidates[0];
+
+  if (!selected) return '';
+
+  try {
+    const stored = await photoDbGet(selected.id);
+    if (!stored?.blob) return '';
+
+    const url = await blobToDataUrl(stored.blob);
+
+    return `
+      <figure class="report-cover-photo">
+        <img src="${url}" alt="Machine contrôlée">
+        <figcaption>Machine contrôlée</figcaption>
+      </figure>
+    `;
+  } catch (error) {
+    console.warn('Photo de couverture indisponible', error);
+    return '';
   }
-
-  function renderReportCoverCrane({ visit, machine, media, family }) {
-    const label = family === 'MK' ? 'GRUE À DÉPLOIEMENT RAPIDE' : 'GRUE MOBILE';
-    const park = reportCoverParkParts(machine);
-    const agency = reportCoverAgencyData(machine);
-    const visitType = reportCoverVisitType(visit, family);
-    const capacity = [machine?.capacity, machine?.capacityUnit].filter(Boolean).join(' ') || '—';
-    const model = reportCoverValue(machine?.model || machine?.designation);
-
-    return `<div class="report-cover-v8k33 report-cover-crane">
-      <header class="report-cover-topbar">
-        <div class="report-cover-logo">
-          <strong><span>FOS</span><b>ELEV</b></strong>
-          <small>LIFTING &amp; HANDLING SOLUTIONS</small>
-        </div>
-        <div class="report-cover-heading">
-          <strong>RAPPORT DE VISITE</strong>
-          <span>FIN DE GARANTIE / CONTRÔLE</span>
-        </div>
-        <div class="report-cover-vfg-badge">
-          <span class="report-cover-vfg-icon">✓</span>
-          <div><strong>FOSELEV VFG</strong><small>V8K3.3</small></div>
-        </div>
-      </header>
-
-      <section class="report-cover-identity">
-        <div class="report-cover-family-tile">
-          ${reportCoverMachineIcon(family)}
-          <div><strong>${escapeHtml(family)}</strong><span>${escapeHtml(label)}</span></div>
-        </div>
-        <div class="report-cover-park">
-          <small>N° DE PARC</small>
-          <strong><span>${escapeHtml(park.prefix)}</span><b>${escapeHtml(park.suffix)}</b></strong>
-        </div>
-        <div class="report-cover-visit-meta">
-          <div><small>AGENCE</small><strong>${escapeHtml(agency.name)}</strong></div>
-          <div><small>DATE DE VISITE</small><strong>${escapeHtml(formatVisitDate(visit?.visitDate))}</strong></div>
-        </div>
-      </section>
-
-      ${reportCoverMainPhoto(media, visit, machine)}
-
-      <section class="report-cover-lower report-cover-lower-crane">
-        <div class="report-cover-plates-panel">
-          <div class="report-cover-block-title">⚙&nbsp; PLAQUE CONSTRUCTEUR</div>
-          ${reportCoverPlateFigure(media, 0, 'PLAQUE CONSTRUCTEUR')}
-        </div>
-
-        <div class="report-cover-tech-panel">
-          <div class="report-cover-tech-row"><span>▰</span><small>MARQUE</small><strong>${escapeHtml(reportCoverValue(machine?.brand))}</strong></div>
-          <div class="report-cover-tech-row"><span>⚙</span><small>TYPE</small><strong>${escapeHtml(model)}</strong></div>
-          <div class="report-cover-tech-row"><span>#</span><small>N° SÉRIE</small><strong>${escapeHtml(reportCoverValue(machine?.serialNumber))}</strong></div>
-          <div class="report-cover-tech-row"><span>▣</span><small>ANNÉE DE CONSTRUCTION</small><strong>${escapeHtml(reportCoverYear(machine))}</strong></div>
-          <div class="report-cover-tech-row"><span>⚖</span><small>CAPACITÉ MAX.</small><strong>${escapeHtml(capacity)}</strong></div>
-        </div>
-      </section>
-
-      ${reportCoverContactRow({ visit, agency, visitType, family })}
-      ${reportCoverValuesFooter()}
-    </div>`;
-  }
-
-  function renderReportCoverTruck({ visit, machine, media, family }) {
-    const isCn = family === 'CN';
-    const label = isCn ? 'CAMION NACELLE' : 'CAMION BRAS';
-    const park = reportCoverParkParts(machine);
-    const agency = reportCoverAgencyData(machine);
-    const visitType = reportCoverVisitType(visit, family);
-    const equipment = isCn ? (visit?.cnEquipment || {}) : (visit?.cbEquipment || {});
-    const capacity = [machine?.capacity, machine?.capacityUnit].filter(Boolean).join(' ') || '—';
-    const equipmentName = isCn ? 'NACELLE' : 'BRAS';
-    const finalMetric = isCn ? 'HAUTEUR DE TRAVAIL' : 'CAPACITÉ MAX. LEVAGE';
-    const ptac = reportCoverValue(machine?.ptac || machine?.grossVehicleWeight || machine?.gvw);
-
-    return `<div class="report-cover-v8k33 report-cover-truck">
-      <header class="report-cover-topbar">
-        <div class="report-cover-logo">
-          <strong><span>FOS</span><b>ELEV</b></strong>
-          <small>LIFTING &amp; HANDLING SOLUTIONS</small>
-        </div>
-        <div class="report-cover-heading report-cover-heading-truck">
-          <strong>RAPPORT DE VISITE</strong>
-          <span>${escapeHtml(label)}</span>
-          <small>◈&nbsp; VISITE TECHNIQUE</small>
-        </div>
-        <div class="report-cover-vfg-badge">
-          <span class="report-cover-vfg-icon">✓</span>
-          <div><strong>FOSELEV VFG</strong><small>V8K3.3</small></div>
-        </div>
-      </header>
-
-      <section class="report-cover-identity">
-        <div class="report-cover-family-tile report-cover-family-tile-truck">
-          ${reportCoverMachineIcon(family)}
-          <div><span>${escapeHtml(label)}</span></div>
-        </div>
-        <div class="report-cover-park">
-          <small>N° DE PARC</small>
-          <strong><span>${escapeHtml(park.prefix)}</span><b>${escapeHtml(park.suffix)}</b></strong>
-        </div>
-        <div class="report-cover-visit-meta">
-          <div><small>AGENCE</small><strong>${escapeHtml(agency.name)}</strong></div>
-          <div><small>DATE DE VISITE</small><strong>${escapeHtml(formatVisitDate(visit?.visitDate))}</strong></div>
-        </div>
-      </section>
-
-      ${reportCoverMainPhoto(media, visit, machine)}
-
-      <section class="report-cover-lower report-cover-lower-truck">
-        <div class="report-cover-plates-panel report-cover-plates-panel-double">
-          <div class="report-cover-block-title">⚙&nbsp; PLAQUES CONSTRUCTEUR</div>
-          <div class="report-cover-double-plates">
-            ${reportCoverPlateFigure(media, 0, 'PLAQUE CHÂSSIS')}
-            ${reportCoverPlateFigure(media, 1, isCn ? 'PLAQUE NACELLE' : 'PLAQUE BRAS')}
-          </div>
-        </div>
-
-        <div class="report-cover-tech-panel report-cover-tech-panel-truck">
-          <div class="report-cover-tech-row"><span>▰</span><small>TYPE D’ENGIN</small><strong>${escapeHtml(label)}</strong></div>
-          <div class="report-cover-tech-row"><span>⚙</span><small>MARQUE CHÂSSIS</small><strong>${escapeHtml(reportCoverValue(machine?.brand))}</strong></div>
-          <div class="report-cover-tech-row"><span>▱</span><small>MODÈLE CHÂSSIS</small><strong>${escapeHtml(reportCoverValue(machine?.model || machine?.designation))}</strong></div>
-          <div class="report-cover-tech-row"><span>#</span><small>N° IMMATRICULATION</small><strong>${escapeHtml(reportCoverValue(machine?.registration))}</strong></div>
-          <div class="report-cover-tech-row"><span>▣</span><small>ANNÉE DE MISE EN CIRCULATION</small><strong>${escapeHtml(reportCoverYear(machine))}</strong></div>
-          <div class="report-cover-tech-row"><span>⚖</span><small>PTAC</small><strong>${escapeHtml(ptac)}</strong></div>
-          <div class="report-cover-tech-row"><span>⌁</span><small>MARQUE ${escapeHtml(equipmentName)}</small><strong>${escapeHtml(reportCoverValue(equipment.brand))}</strong></div>
-          <div class="report-cover-tech-row"><span>▱</span><small>MODÈLE ${escapeHtml(equipmentName)}</small><strong>${escapeHtml(reportCoverValue(equipment.type))}</strong></div>
-          <div class="report-cover-tech-row"><span>↕</span><small>${escapeHtml(finalMetric)}</small><strong>${escapeHtml(capacity)}</strong></div>
-        </div>
-      </section>
-
-      ${reportCoverContactRow({ visit, agency, visitType, family })}
-      ${reportCoverValuesFooter()}
-    </div>`;
-  }
+}
 
   async function buildReportPreview({ saveFields = true } = {}) {
     const visit = state.activeVisit;
-    const machine = state.activeMachine;
-    if (!visit || !machine) return toast('Aucune visite active.');
+    if (!visit || !state.activeMachine) return toast('Aucune visite active.');
     if (saveFields) {
+  saveMachineIdentityDetails();
   saveDashboardReadings();
   saveControllerDetails();
 }
+    const machine = effectiveMachineForVisit(state.activeMachine, visit);
 
 ensureTyreData(visit, machine);
 
-    const findings = Array.isArray(visit.findings) ? visit.findings : [];
+    const hideNa = reportHideNa(visit);
+    const applicablePointIds = new Set();
+    for (const zone of ['carrier', 'upper']) {
+      for (const section of visit.zones?.[zone]?.sections || []) {
+        for (const point of section.points || []) {
+          if (!hideNa || point.status !== 'na') applicablePointIds.add(point.id);
+        }
+      }
+    }
+
+    const findings = (Array.isArray(visit.findings) ? visit.findings : [])
+      .filter(finding => !hideNa || applicablePointIds.has(finding.pointId));
     const tyreItems = (visit.tyres?.axles || []).flatMap((axle, axleIndex) => axle.tyres.map(tyre => ({ ...tyre, axleIndex, label: tyrePositionLabel(axleIndex, tyre.side, tyre.position) })));
     const tyreWatch = tyreItems.filter(item => item.value === '25');
     const tyreHs = tyreItems.filter(item => item.value === 'HS' && !item.findingId);
@@ -8181,32 +8463,52 @@ ensureTyreData(visit, machine);
     const controlledPoints = totalPoints - remainingPoints;
     const conformPoints = Math.max(0, controlledPoints - findings.length - tyreHs.length);
 
-    const carrierSections = visit.zones?.carrier?.sections || [];
-    const upperSections = visit.zones?.upper?.sections || [];
+    const carrierSectionsAll = visit.zones?.carrier?.sections || [];
+    const upperSectionsAll = visit.zones?.upper?.sections || [];
+    const sectionVisible = section =>
+      !hideNa || (section.points || []).some(point => point.status !== 'na');
+
+    const carrierSections = carrierSectionsAll.filter(sectionVisible);
+    const upperSections = upperSectionsAll.filter(sectionVisible);
     const sectionPages = [
-      ...carrierSections.map((section, index) => ({ section, zoneTitle: 'Porteur', number: `02.${index + 1}` })),
-      ...upperSections.map((section, index) => ({ section, zoneTitle: 'Tourelle', number: `03.${index + 1}` }))
+      ...carrierSections.map((section, index) => ({ section, zone: 'carrier', zoneTitle: 'Porteur', number: `02.${index + 1}` })),
+      ...upperSections.map((section, index) => ({ section, zone: 'upper', zoneTitle: 'Tourelle', number: `03.${index + 1}` }))
     ];
+    const sectionPageByKey = new Map(
+      sectionPages.map((item, index) => [`${item.zone}:${item.section.id}`, 3 + index])
+    );
     const finalPageCount = 1;
     const totalPages = 2 + sectionPages.length + findings.length + finalPageCount;
     const firstFindingPage = 3 + sectionPages.length;
 
-    const coverMedia = await reportCoverPhoto(visit);
-    const family = machineFamily(machine, visit);
+    const coverPhoto = await reportCoverPhoto(visit);
 
-    const cover = ['GM', 'MK'].includes(family)
-      ? renderReportCoverCrane({
-          visit,
-          machine,
-          media: coverMedia,
-          family
-        })
-      : renderReportCoverTruck({
-          visit,
-          machine,
-          media: coverMedia,
-          family
-        });
+    const controlVisit = visitType(visit) === 'control';
+    const cover = `
+      <div class="report-cover-accent"></div>
+      <p class="report-kicker">FOSELEV VFG</p>
+      <p class="report-cover-system">${controlVisit ? 'Inspection System' : 'Warranty Inspection System'}</p>
+      <h2 class="report-cover-title">${controlVisit ? 'Rapport de visite de contrôle' : 'Rapport de visite de fin de garantie'}</h2>
+      ${coverPhoto}
+      <div class="report-machine-title">${escapeHtml(machine.parkNumber || machine.id || '—')}</div>
+      <div class="report-machine-subtitle">${escapeHtml([machine.brand, machine.model || machine.designation].filter(Boolean).join(' · ') || 'Machine')}</div>
+      <div class="report-cover-grid">
+        <div><span>N° de série</span><strong>${escapeHtml(machine.serialNumber || '—')}</strong></div>
+        <div><span>Agence</span><strong>${escapeHtml(machine.agency || '—')}</strong></div>
+        <div><span>Date de la visite</span><strong>${escapeHtml(formatVisitDate(visit.visitDate))}</strong></div>
+        <div><span>Kilométrage porteur</span><strong>${escapeHtml(formatMeter(visit.carrierKm, 'km'))}</strong></div>
+        <div><span>Heures porteur</span><strong>${escapeHtml(formatMeter(visit.carrierHours, 'h'))}</strong></div>
+        <div><span>Heures tourelle</span><strong>${escapeHtml(formatMeter(visit.upperHours, 'h'))}</strong></div>
+        <div><span>Contrôleur</span><strong>${escapeHtml(visit.controllerName || '—')}</strong></div>
+        <div><span>E-mail</span><strong>${escapeHtml(visit.controllerEmail || '—')}</strong></div>
+        <div><span>Téléphone</span><strong>${escapeHtml(visit.controllerPhone || '—')}</strong></div>
+      </div>
+      <div class="report-cover-summary">
+        <div><strong>${controlledPoints}</strong><span>points contrôlés</span></div>
+        <div><strong>${conformPoints}</strong><span>conformes</span></div>
+        <div><strong>${findings.length + tyreHs.length}</strong><span>non-conformités</span></div>
+        <div><strong>${tyreWatch.length}</strong><span>à surveiller</span></div>
+      </div>`;
 
     const summaryItems = [];
     findings.forEach((finding, index) => summaryItems.push({
@@ -8216,8 +8518,8 @@ ensureTyreData(visit, machine);
       comment: finding.comment || 'Aucun commentaire.',
       page: firstFindingPage + index
     }));
-    tyreHs.forEach(item => summaryItems.push({ category: 'nonconformity', title: item.label, subtitle: 'Porteur · Pneumatiques', comment: 'Pneumatique HS.', page: 3 + carrierSections.findIndex(s => s.id === 'tyres') }));
-    tyreWatch.forEach(item => summaryItems.push({ category: 'watch', title: item.label, subtitle: 'Porteur · Pneumatiques', comment: 'Usure restante : 25 %.', page: 3 + carrierSections.findIndex(s => s.id === 'tyres') }));
+    tyreHs.forEach(item => summaryItems.push({ category: 'nonconformity', title: item.label, subtitle: 'Porteur · Pneumatiques', comment: 'Pneumatique HS.', page: sectionPageByKey.get('carrier:tyres') || 1 }));
+    tyreWatch.forEach(item => summaryItems.push({ category: 'watch', title: item.label, subtitle: 'Porteur · Pneumatiques', comment: 'Usure restante : 25 %.', page: sectionPageByKey.get('carrier:tyres') || 1 }));
 
   const categoryBlock = (category, title) => {
   const items = summaryItems.filter(
@@ -8271,8 +8573,15 @@ ensureTyreData(visit, machine);
       <section class="report-general-observations"><h3>Observations générales</h3><div class="report-writing-lines"></div></section>
       <div class="report-signatures"><section><h3>Contrôleur</h3><p>${escapeHtml(visit.controllerName || '')}</p><div class="report-signature-box"></div></section><section><h3>Représentant de l’agence / client</h3><p>Nom :</p><div class="report-signature-box"></div></section></div>`);
 
-    $('#reportPreview').innerHTML = innerPages.map((inner, index) => reportPage(inner, index + 1, totalPages)).join('');
-    $('#reportScreen .eyebrow').textContent = 'RAPPORT PDF · V4.0.0 S2-01';
+    const reportSystemTitle = controlVisit
+      ? 'Inspection / Visite de contrôle'
+      : 'Warranty Inspection System';
+    $('#reportPreview').innerHTML = innerPages
+      .map((inner, index) => reportPage(inner, index + 1, totalPages, reportSystemTitle))
+      .join('');
+    $('#reportScreen .eyebrow').textContent = controlVisit
+      ? 'RAPPORT PDF · VISITE DE CONTRÔLE'
+      : 'RAPPORT PDF · VFG';
     showScreen('report');
   }
 
@@ -9516,6 +9825,32 @@ $('#editVisitScope')?.addEventListener('click', modifyActiveVisitScope);
       openFindings(button.dataset.openNc);
     }));
 
+    document.querySelectorAll('[data-general-photo]').forEach(button => {
+      button.addEventListener('click', () => openGeneralPhotoPoint(button.dataset.generalPhoto));
+    });
+
+    document.querySelectorAll('[data-zone-na]').forEach(button => {
+      button.addEventListener('click', () => toggleWholeZoneNa(button.dataset.zoneNa));
+    });
+
+    $('#toggleControlVisitMode')?.addEventListener('click', toggleTargetedControlMode);
+    $('#reportHideNa')?.addEventListener('change', event => {
+      if (!state.activeVisit || visitType(state.activeVisit) === 'control') {
+        event.target.checked = true;
+        return;
+      }
+      if (!markVisitDraft()) {
+        event.target.checked = reportHideNa(state.activeVisit);
+        return;
+      }
+      state.activeVisit.reportHideNa = event.target.checked;
+      saveActiveVisit();
+      renderVisitModeUi();
+      toast(event.target.checked
+        ? 'Les points N/A seront masqués du rapport.'
+        : 'Les points N/A seront affichés dans le rapport.');
+    });
+
     $('#sectionSearch').addEventListener('input', renderSectionList);
     $('#showZoneNc').addEventListener('click', () => openFindings(state.activeZone));
 
@@ -9564,6 +9899,7 @@ $('#editVisitScope')?.addEventListener('click', modifyActiveVisitScope);
   visit.scope = { carrier: true, upper: true };
 
   // Aucun point n'est encore traité : reconstruction sans perte de données métier.
+  visit.generalControls = createGeneralControls(visit);
   visit.zones = {
     carrier: {
       sections: createSections('carrier', machine, visit)
@@ -9747,6 +10083,7 @@ $('#photoGallery').addEventListener('click', async event => {
     editCanvas.addEventListener('pointerup', onEditorPointerUp);
     editCanvas.addEventListener('pointercancel', onEditorPointerUp);
     $('#pointActionDialog').addEventListener('click', event => { if (event.target.id === 'pointActionDialog') closePointActions(); });
+    bindMachineIdentitySequence();
     bindReadingSequence();
     bindControllerSequence();
     document.querySelectorAll('[data-quick-nav]').forEach(button => button.addEventListener('click', () => {
@@ -10054,23 +10391,6 @@ loadRecents();
     }
   }
 
-  document.addEventListener('DOMContentLoaded', async () => {
-    await init();
-    setTimeout(() => syncPendingLocalDataToServer({ force: true }), 400);
-  });
-
-  window.addEventListener('online', () => {
-    syncPendingLocalDataToServer({ force: true });
-  });
-
-  window.addEventListener('focus', () => {
-    syncPendingLocalDataToServer();
-  });
-
-  document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') {
-      syncPendingLocalDataToServer();
-    }
-  });
+  document.addEventListener('DOMContentLoaded', init);
 })();
 

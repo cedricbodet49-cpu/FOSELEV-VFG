@@ -8,14 +8,14 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <title>FOSELEV VFG - Warranty Inspection System</title>
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=V8A34-IDENTITE-MANUELLE">
 </head>
 <body>
   <header class="app-header">
     <button id="backButton" class="icon-button hidden" type="button" aria-label="Retour">←</button>
     <a class="brand" href="#search" aria-label="Accueil FOSELEV VFG">
       <span class="brand-mark" aria-hidden="true"><i></i></span>
-      <span><strong>FOSELEV</strong><small>VFG · V8K3.4</small></span>
+      <span><strong>FOSELEV</strong><small>VFG · V4.0.0</small></span>
     </a>
     <button id="helpButton" class="icon-button" type="button" aria-label="Aide">?</button>
   </header>
@@ -66,6 +66,17 @@
     <strong>MK</strong> – Grue à déploiement rapide
   </label>
 </div>
+
+      <section class="machine-identity-inline" aria-label="Identification de la machine">
+        <label>Modèle
+          <input id="dashboardMachineModel" type="text" autocomplete="off" enterkeyhint="next" placeholder="Saisir le modèle">
+          <small id="dashboardMachineModelSource" class="machine-identity-source"></small>
+        </label>
+        <label>N° de série
+          <input id="dashboardMachineSerial" type="text" autocomplete="off" enterkeyhint="done" placeholder="Saisir le numéro de série">
+          <small id="dashboardMachineSerialSource" class="machine-identity-source"></small>
+        </label>
+      </section>
       <div class="visit-readings-inline" aria-label="Relevés de la visite">
         <label>Date
           <input id="dashboardVisitDate" type="date" enterkeyhint="next" aria-label="Date de la visite">
@@ -93,6 +104,47 @@
         </label>
       </div>
 
+      <section class="visit-mode-card" aria-labelledby="visitTypeLabel">
+        <div class="visit-mode-copy">
+          <span>Type de visite</span>
+          <strong id="visitTypeLabel">Visite de fin de garantie</strong>
+          <small>Le mode « Visite de contrôle » permet de partir de tout N/A puis de réactiver uniquement les points contrôlés.</small>
+        </div>
+        <button id="toggleControlVisitMode" class="visit-mode-button" type="button">Tout passer en N/A · Visite de contrôle</button>
+        <label class="report-na-toggle">
+          <input id="reportHideNa" type="checkbox" checked>
+          <span>Masquer les points et rubriques N/A dans le rapport</span>
+        </label>
+      </section>
+
+      <section class="general-controls-card" aria-labelledby="generalControlsTitle">
+        <div class="general-controls-heading">
+          <div>
+            <p class="eyebrow">INFORMATIONS GÉNÉRALES</p>
+            <h2 id="generalControlsTitle">Photos d’identification</h2>
+          </div>
+          <small>Indépendantes du châssis et de la tourelle</small>
+        </div>
+        <div class="general-control-list">
+          <button type="button" class="general-control-row" data-general-photo="documentation-006">
+            <span class="general-control-icon" aria-hidden="true">📷</span>
+            <span class="general-control-copy">
+              <strong>Vue d’ensemble</strong>
+              <small class="general-control-status">Photo obligatoire</small>
+            </span>
+            <span class="general-control-arrow" aria-hidden="true">›</span>
+          </button>
+          <button type="button" class="general-control-row" data-general-photo="documentation-001">
+            <span class="general-control-icon" aria-hidden="true">🏷️</span>
+            <span class="general-control-copy">
+              <strong>Plaque constructeur</strong>
+              <small class="general-control-status">Photo obligatoire</small>
+            </span>
+            <span class="general-control-arrow" aria-hidden="true">›</span>
+          </button>
+        </div>
+      </section>
+
       <div class="dashboard-grid">
         <article class="dashboard-card" data-zone="carrier">
           <button class="dashboard-main" type="button" data-open-zone="carrier">
@@ -102,6 +154,7 @@
               <strong id="carrierProgress">0/0</strong>
             </div>
           </button>
+          <button class="zone-na-button" type="button" data-zone-na="carrier">Châssis complet → N/A</button>
           <button id="carrierNc" class="nc-button hidden" type="button" data-open-nc="carrier">NC 0/0</button>
         </article>
 
@@ -113,6 +166,7 @@
               <strong id="upperProgress">0/0</strong>
             </div>
           </button>
+          <button class="zone-na-button" type="button" data-zone-na="upper">Tourelle complète → N/A</button>
           <button id="upperNc" class="nc-button hidden" type="button" data-open-nc="upper">NC 0/0</button>
         </article>
       </div>
@@ -236,7 +290,7 @@
     <section id="reportScreen" class="screen report-screen" aria-labelledby="reportScreenTitle">
       <div class="report-toolbar no-print">
         <div>
-          <p class="eyebrow">RAPPORT PDF · V8K3.4</p>
+          <p class="eyebrow">RAPPORT PDF · V4.0.0</p>
           <h1 id="reportScreenTitle">Aperçu du rapport</h1>
         </div>
         <div class="report-toolbar-actions">
@@ -387,6 +441,6 @@
   <script src="parc.js"></script>
   <script src="./lib/html2pdf.bundle.min.js"></script>
   <script src="contacts-agences.js?v=20260903"></script>
-<script src="app-v4.0.js?v=V8K3.4-HTTPS-20260908"></script>
+<script src="app-v4.0.js?v=V8A34-IDENTITE-MANUELLE"></script>
 </body>
 </html>

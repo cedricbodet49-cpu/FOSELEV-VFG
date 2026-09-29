@@ -1,13 +1,13 @@
-const CACHE = 'foselev-vfg-v8k34-20260907';
+const CACHE = 'foselev-vfg-v8a34-identite-manuelle';
 
 const ASSETS = [
   './',
   './index.html',
-  './style.css',
+  './style.css?v=V8A34-IDENTITE-MANUELLE',
   './manifest.webmanifest',
   './parc.json',
   './parc.js',
-  './app-v4.0.js?v=V8K3.4-20260907',
+  './app-v4.0.js?v=V8A34-IDENTITE-MANUELLE',
   './lib/html2pdf.bundle.min.js',
   './icon-192.svg',
   './icon-512.svg'

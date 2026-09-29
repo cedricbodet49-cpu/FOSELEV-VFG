@@ -1177,767 +1177,134 @@ body{
     text-decoration:none!important;
   }
 }
-
 /* =========================================================
-   V8K3_1_PRINT_BOTTOM_RESERVE
-   Micro-correction impression uniquement :
-   - corps de page reduit de 1 % sans changer la pagination
-   - pied de page descendu de 14 px
-   Objectif : liberer environ 6 mm sur les pages tres remplies
-   sans modifier le moteur PDF, Outlook ni la structure du rapport.
+   V8A 3.4 - visite de controle ciblee
    ========================================================= */
-@media print {
-  .report-page-body {
-    transform: scale(0.99) !important;
-    transform-origin: top center !important;
-  }
-
-  .report-page-footer {
-    bottom: 6px !important;
-  }
-}
-
-/* =========================================================
-   V8K3_3_PAGE1_DEUX_MODELES_VALIDES
-   Modèles définitifs :
-   - GM / MK : visuel « grues »
-   - CB / CN : visuel « camions »
-   Photo principale = « Vue d’ensemble » uniquement.
-   La page 1 est verrouillée en A4 et ne peut pas s'allonger.
-   ========================================================= */
-.report-cover-page{
-  padding:14px 16px 0!important;
-  height:1123px!important;
-  min-height:1123px!important;
-  overflow:hidden!important;
-  background:#fff!important;
-}
-
-.report-cover-page .report-page-header,
-.report-cover-page .report-page-footer{
-  display:none!important;
-}
-
-.report-cover-page .report-page-body{
-  min-height:0!important;
-  height:1109px!important;
-  overflow:hidden!important;
-  transform:none!important;
-}
-
-.report-cover-v8k33{
-  --cover-dark:#111c24;
-  --cover-ink:#1d252c;
-  --cover-orange:var(--ral-2004,#e25303);
-  --cover-line:#cbd1d5;
-  --cover-soft:#f2f4f5;
-  width:100%;
-  height:100%;
-  box-sizing:border-box;
-  display:grid;
-  grid-template-rows:72px 108px 404px 243px 112px 58px 30px;
-  gap:7px;
-  overflow:hidden;
-  color:var(--cover-ink);
+.visit-mode-card,
+.general-controls-card{
+  margin:0 0 16px;
+  padding:14px;
+  border:1px solid var(--line);
+  border-radius:16px;
   background:#fff;
-  font-family:Arial,Helvetica,sans-serif;
+  box-shadow:0 5px 14px rgba(0,0,0,.045);
 }
-
-.report-cover-topbar{
-  display:grid;
-  grid-template-columns:1.05fr 1.55fr .92fr;
-  align-items:stretch;
-  overflow:hidden;
-  border-bottom:2px solid #d7dbde;
-}
-
-.report-cover-logo{
-  display:flex;
-  flex-direction:column;
-  justify-content:center;
-  padding-left:4px;
-}
-.report-cover-logo>strong{
-  font-size:28px;
-  line-height:.92;
-  letter-spacing:-1.5px;
-  color:#182229;
-  font-weight:950;
-}
-.report-cover-logo>strong b{color:var(--cover-orange)}
-.report-cover-logo small{
-  margin-top:6px;
-  font-size:6.7px;
-  font-weight:850;
-  color:#555;
-  letter-spacing:.045em;
-}
-
-.report-cover-heading{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  text-align:center;
-  min-width:0;
-}
-.report-cover-heading strong{
-  color:#1e2930;
-  font-size:20px;
-  line-height:1;
-  letter-spacing:.02em;
-  white-space:nowrap;
-}
-.report-cover-heading span{
-  margin-top:7px;
-  color:var(--cover-orange);
-  font-size:12px;
-  line-height:1;
-  font-weight:950;
-  letter-spacing:.015em;
-}
-.report-cover-heading-truck span{font-size:13px}
-.report-cover-heading-truck>small{
-  margin-top:6px;
-  color:#667078;
-  font-size:7px;
+.visit-mode-card{display:grid;gap:11px}
+.visit-mode-copy{display:grid;gap:3px}
+.visit-mode-copy>span{color:var(--muted);font-size:.68rem;font-weight:850;text-transform:uppercase;letter-spacing:.07em}
+.visit-mode-copy>strong{font-size:1rem}
+.visit-mode-copy>small{color:var(--muted);font-size:.73rem;line-height:1.35}
+.visit-mode-button{
+  min-height:48px;
+  padding:10px 13px;
+  border:1px solid var(--orange);
+  border-radius:12px;
+  background:#fff;
+  color:var(--orange-dark);
   font-weight:900;
 }
-
-.report-cover-vfg-badge{
-  display:flex;
+.visit-mode-button.is-active{background:var(--orange);color:#fff}
+.report-na-toggle{display:flex;align-items:center;gap:9px;color:#555;font-size:.78rem;font-weight:800}
+.report-na-toggle input{width:18px;height:18px;accent-color:var(--orange)}
+.report-na-toggle.is-locked{opacity:.72}
+.general-controls-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-bottom:10px}
+.general-controls-heading h2{margin:0;font-size:1.05rem}
+.general-controls-heading small{color:var(--muted);font-size:.68rem;text-align:right}
+.general-control-list{display:grid;gap:8px}
+.general-control-row{
+  display:grid;
+  grid-template-columns:42px 1fr auto;
   align-items:center;
-  justify-content:center;
   gap:10px;
-  padding:0 10px 0 22px;
-  color:#fff;
-  background:var(--cover-dark);
-  clip-path:polygon(15% 0,100% 0,100% 100%,0 100%);
-}
-.report-cover-vfg-icon{
-  display:grid;
-  place-items:center;
-  width:32px;
-  height:38px;
-  border:2px solid var(--cover-orange);
-  border-radius:4px;
-  color:var(--cover-orange);
-  font-size:20px;
-  font-weight:950;
-}
-.report-cover-vfg-badge div{display:grid;gap:2px}
-.report-cover-vfg-badge strong{font-size:10px}
-.report-cover-vfg-badge small{font-size:7px;opacity:.88}
-
-.report-cover-identity{
-  display:grid;
-  grid-template-columns:190px 1fr 215px;
-  border:1px solid var(--cover-line);
-  border-radius:5px;
-  overflow:hidden;
-  box-shadow:0 1px 4px rgba(0,0,0,.10);
-}
-
-.report-cover-family-tile{
-  display:grid;
-  grid-template-columns:92px 1fr;
-  align-items:center;
-  gap:4px;
-  padding:8px 9px;
-  color:#fff;
-  background:var(--cover-dark);
-}
-.report-cover-family-tile-truck{grid-template-columns:105px 1fr}
-.report-cover-machine-icon{
-  width:90px;
-  height:54px;
-  color:#fff;
-}
-.report-cover-family-tile-truck .report-cover-machine-icon{width:101px}
-.report-cover-family-tile>div{
-  min-width:0;
-  display:grid;
-  align-content:center;
-  gap:4px;
-}
-.report-cover-family-tile strong{
-  font-size:24px;
-  line-height:1;
-  letter-spacing:.04em;
-}
-.report-cover-family-tile span{
-  color:var(--cover-orange);
-  font-size:8.5px;
-  line-height:1.13;
-  font-weight:950;
-  text-transform:uppercase;
-}
-.report-cover-family-tile-truck span{
-  color:#fff;
-  font-size:9px;
-}
-
-.report-cover-park{
-  display:flex;
-  flex-direction:column;
-  justify-content:center;
-  padding:0 18px;
-  border-right:1px solid var(--cover-line);
-}
-.report-cover-park small{
-  color:#363d42;
-  font-size:8px;
-  font-weight:900;
-  letter-spacing:.03em;
-}
-.report-cover-park>strong{
-  display:flex;
-  align-items:baseline;
-  white-space:nowrap;
-  margin-top:3px;
-  color:#101820;
-  font-size:50px;
-  line-height:.95;
-  letter-spacing:-2px;
-}
-.report-cover-park>strong b{color:var(--cover-orange)}
-
-.report-cover-visit-meta{
-  display:grid;
-  grid-template-rows:1fr 1fr;
-  padding:12px 13px;
-  gap:4px;
-}
-.report-cover-visit-meta>div{
-  display:grid;
-  align-content:center;
-  min-width:0;
-}
-.report-cover-visit-meta small{
-  color:#626a70;
-  font-size:7px;
-  font-weight:850;
-}
-.report-cover-visit-meta strong{
-  margin-top:2px;
-  max-height:27px;
-  overflow:hidden;
-  color:#20282e;
-  font-size:12px;
-  line-height:1.1;
-}
-
-.report-cover-main-photo{
-  display:grid;
-  grid-template-rows:1fr 28px;
   width:100%;
-  height:404px;
-  margin:0;
-  overflow:hidden;
-  border:1px solid #c5cbd0;
-  border-radius:5px;
-  box-sizing:border-box;
-  background:#eef1f3;
+  min-height:62px;
+  padding:9px 11px;
+  border:1px solid #d8d8d5;
+  border-radius:13px;
+  background:#fafaf8;
+  color:var(--ink);
+  text-align:left;
 }
-.report-cover-main-photo-frame{
-  min-height:0;
-  overflow:hidden;
-  background:#edf0f1;
-}
-.report-cover-main-photo-frame>img{
-  display:block;
-  width:100%;
-  height:100%;
-  object-fit:cover;
-  object-position:center center;
-}
-.report-cover-main-placeholder{
-  display:grid;
-  place-items:center;
-  width:100%;
-  height:100%;
-  color:#697177;
-  background:#f1f3f4;
-  font-size:16px;
-  font-weight:850;
-}
-.report-cover-main-photo figcaption{
-  display:flex;
-  align-items:center;
-  gap:7px;
-  padding:0 12px;
-  overflow:hidden;
-  background:var(--cover-dark);
-  color:#fff;
-  font-size:7.6px;
-  font-weight:850;
-  letter-spacing:.02em;
-  white-space:nowrap;
-  text-overflow:ellipsis;
-}
-.report-cover-camera{color:var(--cover-orange);font-size:13px}
-
-.report-cover-lower{
-  display:grid;
-  gap:12px;
-  min-height:0;
-  overflow:hidden;
-}
-.report-cover-lower-crane{grid-template-columns:1.12fr .88fr}
-.report-cover-lower-truck{grid-template-columns:1.05fr .95fr}
-
-.report-cover-plates-panel,
-.report-cover-tech-panel{
-  min-height:0;
-  box-sizing:border-box;
-  overflow:hidden;
-  border:1px solid var(--cover-line);
-  border-radius:5px;
-  background:#fff;
-}
-.report-cover-plates-panel{padding:9px 10px}
-.report-cover-block-title{
-  color:#30383e;
-  font-size:8px;
-  font-weight:950;
-  letter-spacing:.025em;
-}
-.report-cover-block-title::first-letter{color:var(--cover-orange)}
-
-.report-cover-plate-figure{
-  display:grid;
-  grid-template-rows:16px 1fr;
-  min-height:0;
-  margin:8px 0 0;
-}
-.report-cover-plate-figure figcaption{
-  color:#3c444a;
-  font-size:7px;
-  font-weight:900;
-}
-.report-cover-plate-figure img{
-  display:block;
-  width:100%;
-  height:181px;
-  object-fit:contain;
-  box-sizing:border-box;
-  border:1px solid #aeb5ba;
-  background:#252b2f;
-}
-.report-cover-plate-placeholder{
-  display:grid;
-  place-items:center;
-  min-height:0;
-  height:181px;
-  box-sizing:border-box;
-  padding:8px;
-  border:1px dashed #aeb5ba;
-  background:#f1f3f4;
-  color:#737a7f;
-  text-align:center;
-  font-size:8px;
-  font-weight:800;
-}
-
-.report-cover-double-plates{
-  display:grid;
-  grid-template-rows:1fr 1fr;
-  gap:5px;
-  height:212px;
-}
-.report-cover-double-plates .report-cover-plate-figure{
-  grid-template-rows:14px 1fr;
-  margin:5px 0 0;
-}
-.report-cover-double-plates .report-cover-plate-figure img,
-.report-cover-double-plates .report-cover-plate-placeholder{
-  height:83px;
-}
-
-.report-cover-tech-panel{
-  display:grid;
-  align-content:stretch;
+.general-control-row.is-complete{border-color:#8ec793;background:#f1faf2}
+.general-control-icon{display:grid;place-items:center;width:38px;height:38px;border-radius:10px;background:#fff;font-size:1.25rem}
+.general-control-copy{display:grid;gap:3px}
+.general-control-copy strong{font-size:.9rem}
+.general-control-copy small{color:#a35418;font-size:.72rem;font-weight:850}
+.general-control-row.is-complete .general-control-copy small{color:#2e7d32}
+.general-control-arrow{font-size:1.8rem;color:#aaa}
+.zone-na-button{
+  width:calc(100% - 24px);
+  margin:0 12px 10px;
+  min-height:36px;
   padding:7px 10px;
-}
-.report-cover-tech-row{
-  display:grid;
-  grid-template-columns:24px 1fr minmax(102px,1fr);
-  align-items:center;
-  gap:7px;
-  min-height:37px;
-  border-bottom:1px solid #e0e3e5;
-}
-.report-cover-tech-row:last-child{border-bottom:0}
-.report-cover-tech-row>span{
-  color:var(--cover-orange);
-  font-size:15px;
-  font-weight:900;
-  text-align:center;
-}
-.report-cover-tech-row small{
-  color:#5b646a;
-  font-size:7px;
-  font-weight:850;
-  line-height:1.1;
-}
-.report-cover-tech-row strong{
-  min-width:0;
-  overflow:hidden;
-  color:#20272c;
-  font-size:9px;
-  font-weight:850;
-  text-align:right;
-  white-space:nowrap;
-  text-overflow:ellipsis;
-}
-.report-cover-tech-panel-truck .report-cover-tech-row{
-  min-height:24.9px;
-  grid-template-columns:21px 1fr minmax(98px,1fr);
-}
-.report-cover-tech-panel-truck .report-cover-tech-row>span{font-size:12px}
-.report-cover-tech-panel-truck .report-cover-tech-row small{font-size:6.4px}
-.report-cover-tech-panel-truck .report-cover-tech-row strong{font-size:8px}
-
-.report-cover-contact-row{
-  display:grid;
-  grid-template-columns:1fr 1fr .78fr;
-  gap:8px;
-  min-height:0;
-}
-.report-cover-contact-card,
-.report-cover-type-card{
-  min-width:0;
-  box-sizing:border-box;
-  overflow:hidden;
-  border:1px solid var(--cover-line);
-  border-radius:5px;
+  border:1px solid #d5d5d1;
+  border-radius:10px;
   background:#fff;
+  color:#666;
+  font-size:.72rem;
+  font-weight:850;
 }
-.report-cover-contact-card{
-  display:grid;
-  grid-template-columns:32px 1fr;
-  align-items:center;
-  gap:8px;
-  padding:8px 10px;
-}
-.report-cover-contact-icon{
-  color:var(--cover-orange);
-  font-size:22px;
-  font-weight:950;
-  text-align:center;
-}
-.report-cover-contact-card>div:last-child{
-  display:grid;
-  gap:2px;
-  min-width:0;
-}
-.report-cover-contact-card small{
-  color:#5e676d;
-  font-size:6.5px;
-  font-weight:900;
-}
-.report-cover-contact-card strong{
-  overflow:hidden;
-  font-size:9px;
-  font-weight:900;
-  white-space:nowrap;
-  text-overflow:ellipsis;
-}
-.report-cover-contact-card span{
-  overflow:hidden;
-  color:#333b41;
-  font-size:7.4px;
-  white-space:nowrap;
-  text-overflow:ellipsis;
-}
-
-.report-cover-type-card{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  padding:8px 10px;
-  border-color:#f0a16d;
-  background:#fff4eb;
-  text-align:center;
-}
-.report-cover-type-card small{
-  color:#4d565c;
-  font-size:6.3px;
-  font-weight:900;
-}
-.report-cover-type-card strong{
-  margin-top:4px;
-  color:var(--cover-orange);
-  font-size:10px;
-  line-height:1.05;
-}
-.report-cover-type-card span{
-  margin-top:4px;
-  max-height:22px;
-  overflow:hidden;
-  color:#333b41;
-  font-size:6.5px;
-  line-height:1.1;
-  font-weight:800;
-}
-.report-cover-type-card b{
-  width:100%;
-  margin-top:6px;
-  padding-top:5px;
-  border-top:1px solid #efb083;
-  color:#353d42;
-  font-size:6.5px;
-}
-
-.report-cover-values{
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  align-items:center;
-  padding:0 24px;
-  background:var(--cover-dark);
-  color:#fff;
-  clip-path:polygon(0 0,100% 0,96% 100%,0 100%);
-}
-.report-cover-values>div{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:8px;
-}
-.report-cover-values>div>strong{
-  color:var(--cover-orange);
-  font-size:18px;
-}
-.report-cover-values span{
-  display:grid;
-  font-size:8.5px;
-  font-weight:950;
-}
-.report-cover-values small{
-  margin-top:1px;
-  color:#fff;
-  font-size:5.8px;
-  font-weight:650;
-}
-
-.report-cover-bottomline{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  margin:0 -16px;
-  padding:0 22px;
-  overflow:hidden;
-  background:var(--cover-orange);
-  color:#fff;
-  font-size:7.5px;
-  font-weight:900;
-}
-.report-cover-bottomline strong{
-  display:flex;
-  align-items:center;
-  align-self:stretch;
-  margin-right:-22px;
-  padding:0 22px 0 31px;
-  background:var(--cover-dark);
-  clip-path:polygon(15% 0,100% 0,100% 100%,0 100%);
-  font-size:7px;
-}
-
-@media print{
-  .report-cover-page{
-    padding:14px 16px 0!important;
-    width:210mm!important;
-    height:297mm!important;
-    min-height:297mm!important;
-  }
-
-  .report-cover-page .report-page-body{
-    height:1109px!important;
-    transform:none!important;
-  }
-
-  .report-cover-v8k33{
-    width:100%!important;
-    height:100%!important;
-    overflow:hidden!important;
-  }
-
-  .report-cover-main-photo,
-  .report-cover-main-photo-frame,
-  .report-cover-main-photo-frame>img{
-    max-height:none!important;
-  }
-
-  .report-cover-main-photo-frame>img{
-    width:100%!important;
-    height:100%!important;
-    object-fit:cover!important;
-  }
-
-  .report-cover-plate-figure img{
-    object-fit:contain!important;
-  }
+.zone-na-button.is-active{border-color:var(--orange);background:var(--soft);color:var(--orange-dark)}
+@media(max-width:560px){
+  .general-controls-heading{align-items:flex-start;flex-direction:column}
+  .general-controls-heading small{text-align:left}
 }
 
 
 /* =========================================================
-   V8K3_4_AJUSTEMENTS_PAGE1_ET_PAGINATION_COMPACTE
-   Ajustements validés sur la page 1 :
-   - logo FOSELEV agrandi, sans sous-titre
-   - couleurs du logo conformes à la charte RAL
-   - n° de parc centré
-   - textes agence/date, technique et contacts agrandis
-   Pagination :
-   - deux chapitres de contrôle par page lorsque possible
+   V8A 3.4.1 - identification manuelle si donnee parc absente
    ========================================================= */
-
-/* Logo FOSELEV */
-.report-cover-logo{
-  position:relative;
-  justify-content:center;
-  padding-left:4px;
-}
-.report-cover-logo>strong{
-  font-size:34px;
-  line-height:.9;
-  letter-spacing:-1.8px;
-  color:var(--ral-7016,#383e42);
-}
-.report-cover-logo>strong span{
-  color:var(--ral-7016,#383e42);
-}
-.report-cover-logo>strong b{
-  color:var(--ral-2004,#e25303);
-}
-.report-cover-logo small{
-  display:none!important;
-}
-.report-cover-logo::after{
-  content:"";
-  width:94px;
-  height:3px;
-  margin-top:7px;
-  background:var(--ral-2004,#e25303);
-}
-
-/* Identification machine : parc centré + agence/date plus lisibles */
-.report-cover-park{
-  align-items:center;
-  text-align:center;
-  padding:0 12px;
-}
-.report-cover-park small{
-  width:100%;
-  text-align:center;
-  font-size:8.6px;
-}
-.report-cover-park>strong{
-  width:100%;
-  justify-content:center;
-  text-align:center;
-  font-size:52px;
-}
-.report-cover-visit-meta small{
-  font-size:8.2px;
-}
-.report-cover-visit-meta strong{
-  max-height:32px;
-  font-size:13.2px;
-  line-height:1.12;
-}
-
-/* 5 lignes techniques du modèle grues */
-.report-cover-crane .report-cover-tech-row small{
-  font-size:8.3px;
-}
-.report-cover-crane .report-cover-tech-row strong{
-  font-size:10.5px;
-}
-.report-cover-crane .report-cover-tech-row>span{
-  font-size:16px;
-}
-
-/* Cartes du bas : agence / contrôleur / type de visite */
-.report-cover-contact-card small{
-  font-size:7.3px;
-}
-.report-cover-contact-card strong{
-  font-size:10.4px;
-}
-.report-cover-contact-card span{
-  font-size:8.2px;
-}
-.report-cover-type-card small{
-  font-size:7.1px;
-}
-.report-cover-type-card strong{
-  font-size:11.3px;
-}
-.report-cover-type-card span{
-  font-size:7.3px;
-}
-.report-cover-type-card b{
-  font-size:7.2px;
-}
-
-/* Pages de contrôles regroupées */
-.report-control-page-group{
+.machine-identity-inline{
   display:grid;
-  gap:22px;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+  margin-top:10px;
+  padding:12px;
+  border:1px solid var(--foselev-border);
+  border-radius:16px;
+  background:#fff;
+  box-shadow:0 3px 12px rgba(0,0,0,.04);
+}
+.machine-identity-inline label{
+  display:grid;
   align-content:start;
+  color:#555;
+  font-size:.68rem;
+  font-weight:800;
 }
-.report-control-chapter{
-  min-width:0;
-  break-inside:avoid;
-  page-break-inside:avoid;
+.machine-identity-inline input{
+  width:100%;
+  min-height:38px;
+  margin-top:5px;
+  padding:8px 10px;
+  border:1px solid #cfcfcb;
+  border-radius:10px;
+  background:#fff;
+  color:var(--ink);
+  font:inherit;
+  font-size:.88rem;
+  font-weight:750;
 }
-.report-control-page-group-double{
-  gap:18px;
+.machine-identity-inline input:focus{
+  outline:2px solid rgba(244,119,33,.22);
+  border-color:var(--orange);
 }
-.report-control-page-group-double .report-section-heading{
-  padding:7px 0 9px;
-  margin-bottom:10px;
+.machine-identity-inline input.is-from-database{
+  background:#f3f3f0;
+  color:#555;
+  cursor:not-allowed;
 }
-.report-control-page-group-double .report-section-heading span{
-  font-size:1rem;
+.machine-identity-source{
+  min-height:1.15em;
+  margin-top:4px;
+  color:var(--muted);
+  font-size:.64rem;
+  font-weight:700;
+  line-height:1.2;
 }
-.report-control-page-group-double .report-section-heading h2{
-  font-size:1.38rem;
+.machine-identity-inline input:not(.is-from-database)+.machine-identity-source{
+  color:#a35418;
 }
-.report-control-page-group-double .report-control-table{
-  font-size:.72rem;
-}
-.report-control-page-group-double .report-control-table th{
-  padding:6px 8px;
-  font-size:.61rem;
-}
-.report-control-page-group-double .report-control-table td{
-  padding:5px 8px;
-}
-.report-control-page-group-double .report-point-comment{
-  margin-top:2px;
-}
-.report-control-page-group-double .report-intro{
-  margin:0 0 8px;
-  font-size:.74rem;
-  line-height:1.3;
-}
-.report-control-page-group-double .report-tyre-diagram{
-  gap:5px;
-}
-.report-control-page-group-double .report-axle-diagram{
-  padding:7px 5px;
-}
-.report-control-page-group-double .report-wheel{
-  width:40px;
-  height:54px;
-}
-
-@media print{
-  .report-control-page-group,
-  .report-control-chapter{
-    break-inside:avoid!important;
-    page-break-inside:avoid!important;
-  }
+@media(max-width:600px){
+  .machine-identity-inline{grid-template-columns:1fr}
 }
