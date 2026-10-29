@@ -1,3 +1,5 @@
+// V8A35_2_REPORT_HISTORICAL_ALIGNED
+// V8A35_1_REPORT_LEGACY_MODEL
 (() => {;
   'use strict';
 const IS_PUBLIC_PILOT =
@@ -8,10 +10,12 @@ const SERVER_BASE_URL =
   IS_PUBLIC_PILOT
     ? null
     : (
-        window.location.port === '3000'
+        ['3000', '3443'].includes(window.location.port)
           ? window.location.origin
           : 'http://localhost:3000'
       );
+
+const V8A35_NATIVE_PDF = true; // GitHub Pages : PDF via impression native
   const VERSION = '4.0.0-S2.01-P4.1';
   const STORAGE_KEYS = {
     recents: 'foselev_v3_recent_machines',
@@ -1102,7 +1106,7 @@ async function createVisitPdfFile(visit) {
 
   if (!SERVER_BASE_URL) {
     throw new Error(
-      'Génération PDF automatique indisponible : ouvre VFG depuis le serveur local du PC.'
+      'Depuis GitHub Pages, utilise « Générer / enregistrer le PDF » dans l’aperçu du rapport.'
     );
   }
 
@@ -1505,6 +1509,23 @@ return true;
 
   async function shareVisitPdfToAgency(visit) {
     if (!visit?.id) return false;
+
+    // V8A 3.5 - GitHub Pages / navigateur autonome :
+    // on ne tente pas de fabriquer silencieusement un Blob PDF.
+    // Le rapport est rendu avec les styles d'impression existants puis
+    // l'utilisateur déclenche l'impression native de son appareil.
+    if (!SERVER_BASE_URL) {
+      await buildReportPreview({ saveFields: false });
+
+      const printButton = $('#printReport');
+      if (printButton) {
+        printButton.focus({ preventScroll: true });
+        printButton.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+
+      toast('Rapport prêt · utilise « Générer / enregistrer le PDF ».');
+      return true;
+    }
 
     let pdfFile = null;
 
@@ -1909,19 +1930,11 @@ return true;
       }
 
       storeVisitRecipients(selection.emails);
-      // V8J1 SAFE TEST MODE:
-      // keep all intended recipients, but redirect the real transmission
-      // to the two private validation addresses only.
       const intendedRecipients = [...selection.emails];
-
-      const testRecipients = [
-        'cedric.bodet@foselev.fr',
-        'cedric.bodet49@gmail.com'
-      ];
 
       if (!SERVER_BASE_URL) {
         alert(
-          'Envoi direct indisponible : ouvre VFG depuis le serveur local du PC.'
+          'Envoi direct indisponible depuis GitHub Pages. Le PDF reste générable via l’impression native.'
         );
         return;
       }
@@ -1931,6 +1944,11 @@ return true;
       shareButton.textContent = 'Envoi en cours...';
 
       try {
+        const testRecipients = [
+          'cedric.bodet@foselev.fr',
+          'cedric.bodet49@gmail.com'
+        ];
+
         const params = new URLSearchParams({
           to: testRecipients.join(','),
           requestedTo: intendedRecipients.join(','),
@@ -2137,13 +2155,12 @@ try {
     return loadJson(STORAGE_KEYS.activeVisitResume, null);
   }
 
-  function findStoredVisitById(visitId) {
+   function findStoredVisitById(visitId) {
     if (!visitId) return null;
 
     const visits = loadJson(STORAGE_KEYS.visits, []);
     return visits.find(visit => visit?.id === visitId) || null;
   }
-
   function findMachineForVisit(visit, resumeMarker = null) {
     if (!visit) return null;
 
@@ -2238,7 +2255,7 @@ saveActiveVisitResumeMarker(state.activeVisit, state.activeMachine);
 
   function registerEmergencyLocalSave() {
     const emergencySave = () => {
-      if (!state.activeVisit?.id) return;
+      if (!state.activeVisit?.id || state.visitReadOnly === true) return;
 
       try {
         // Pas de réseau ici : uniquement sauvegarde locale synchrone.
@@ -2267,29 +2284,41 @@ saveActiveVisitResumeMarker(state.activeVisit, state.activeMachine);
     });
   }
 
-  function persistVisitRecord(visit, { touch = true, sync = true } = {}) {
-    if (!visit?.id) return;
+ function persistVisitRecord(visit, { touch = true, sync = true } = {}) {
+  if (!visit?.id) return;
 
-    if (touch) visit.updatedAt = new Date().toISOString();
-
-    const visits = loadJson(STORAGE_KEYS.visits, []);
-    const index = visits.findIndex(item => item.id === visit.id);
-
-    if (index >= 0) visits[index] = visit;
-    else visits.unshift(visit);
-
-    saveJson(STORAGE_KEYS.visits, visits);
-
-    if (
-      state.activeVisit?.id === visit.id &&
-      !['Terminée', 'Synchronisée'].includes(visit.status)
-    ) {
-      saveActiveVisitResumeMarker(visit, state.activeMachine);
-    }
-
-    if (sync) syncVisitToServer(visit);
+  // Protection du mode consultation.
+  if (
+    state.visitReadOnly === true &&
+    state.activeVisit?.id === visit.id
+  ) {
+    console.warn(
+      'FOSELEV VFG : enregistrement bloqué en mode consultation.'
+    );
+    return;
   }
 
+  if (touch) visit.updatedAt = new Date().toISOString();
+
+  const visits = loadJson(STORAGE_KEYS.visits, []);
+  const index = visits.findIndex(item => item.id === visit.id);
+
+  if (index >= 0) visits[index] = visit;
+  else visits.unshift(visit);
+
+  if (!saveJson(STORAGE_KEYS.visits, visits)) {
+    console.warn('Visite non conservee localement : stockage indisponible.');
+  }
+
+  if (
+    state.activeVisit?.id === visit.id &&
+    !['Terminée', 'Synchronisée'].includes(visit.status)
+  ) {
+    saveActiveVisitResumeMarker(visit, state.activeMachine);
+  }
+
+  if (sync) syncVisitToServer(visit);
+}
   function reopenVisitForEdit(visit) {
     if (!visit) return false;
 
@@ -2310,46 +2339,66 @@ saveActiveVisitResumeMarker(state.activeVisit, state.activeMachine);
   }
 
   function confirmReopenVisit(visit) {
-    if (!visit || !['Terminée', 'Synchronisée'].includes(visit.status)) {
-      return true;
-    }
-
-    const date = formatVisitDate(visit.visitDate);
-    const status = visit.status;
-
-    return confirm(
-      `Cette visite du ${date} est ${status.toLowerCase()}.\n\n` +
-      `OK : la rouvrir en brouillon pour la modifier\n` +
-      `Annuler : ne pas ouvrir cette visite`
-    );
+  if (!visit || !['Terminée', 'Synchronisée'].includes(visit.status)) {
+    return 'edit';
   }
 
+  const date = formatVisitDate(visit.visitDate);
+
+  const choice = prompt(
+    `Visite du ${date} terminée.\n\n` +
+    `1 - Consulter le rapport (lecture seule)\n` +
+    `2 - Rouvrir la visite pour modification\n` +
+    `0 - Annuler\n\n` +
+    `Saisissez votre choix :`,
+    '1'
+  );
+
+  if (choice === '1') return 'view';
+  if (choice === '2') return 'edit';
+  return 'cancel';
+}
+
   function activateExistingVisit(existingVisit, machine) {
-    const migrated = ensureVisitSchema(existingVisit, machine);
-    const visit = migrated.visit;
+  // Travailler sur une copie pour protéger la visite enregistrée.
+  const copy = structuredClone(existingVisit);
+  const migrated = ensureVisitSchema(copy, machine);
+  const visit = migrated.visit;
 
-    if (!confirmReopenVisit(visit)) {
-      return null;
-    }
+  const choice = confirmReopenVisit(visit);
 
-    const wasClosed = ['Terminée', 'Synchronisée'].includes(visit.status);
+  if (choice === 'cancel') {
+    return null;
+  }
 
-    if (wasClosed) {
-      reopenVisitForEdit(visit);
-    }
+  const wasClosed = ['Terminée', 'Synchronisée'].includes(visit.status);
 
-   state.activeMachine = machine;
-state.activeVisit = visit;
-saveActiveVisitResumeMarker(visit, machine);
-
-    // On ne touche pas à updatedAt lors d'une simple consultation/reprise.
-    // En revanche, une migration de schéma ou une réouverture doit être persistée.
-    if (migrated.changed || wasClosed) {
-      persistVisitRecord(visit, { touch: true, sync: true });
-    }
+  if (choice === 'view' && wasClosed) {
+    // Consultation sans modification ni synchronisation.
+    state.visitReadOnly = true;
+    state.activeMachine = machine;
+    state.activeVisit = visit;
 
     return visit;
   }
+
+  // Ouverture normale ou réouverture volontaire.
+  state.visitReadOnly = false;
+
+  if (wasClosed) {
+    reopenVisitForEdit(visit);
+  }
+
+  state.activeMachine = machine;
+  state.activeVisit = visit;
+  saveActiveVisitResumeMarker(visit, machine);
+
+  if (migrated.changed || wasClosed) {
+    persistVisitRecord(visit, { touch: true, sync: true });
+  }
+
+  return visit;
+}
 
   function visitScopeLabel(machine = state.activeMachine, visit = state.activeVisit) {
     const scope = ensureVisitScope(visit, machine);
@@ -2671,9 +2720,10 @@ saveActiveVisitResumeMarker(visit, machine);
 
   const state = {
     machines: [],
-    activeMachine: null,
-    activeVisit: null,
-    recents: [],
+   activeMachine: null,
+activeVisit: null,
+visitReadOnly: false,
+recents: [],
     activeScreen: 'search',
     activeZone: null,
     activeSectionId: null,
@@ -2770,7 +2820,6 @@ saveActiveVisitResumeMarker(visit, machine);
       .slice(0, 60)
       .map(item => item.machine);
   }
-
   async function loadMachines() {
     if (Array.isArray(window.FOSELEV_MACHINES) && window.FOSELEV_MACHINES.length) {
       return window.FOSELEV_MACHINES;
@@ -2818,6 +2867,7 @@ async function photoDbPut(record) {
 
       resolve();
     };
+
 
     tx.onerror = () => {
       db.close();
@@ -3645,6 +3695,9 @@ async function addSelectedLibraryPhotos() {
     }
   }
 async function syncVisitToServer(visit) {
+    if (state.visitReadOnly === true && state.activeVisit?.id === visit?.id) {
+      return false;
+    }
     if (!SERVER_BASE_URL) {
     return false;
   }
@@ -3668,6 +3721,9 @@ async function syncVisitToServer(visit) {
     );
 
     if (!response.ok) {
+      if (response.status === 409) {
+        throw new Error('Conflit : la visite SQLite est plus recente ou plus complete. Copie locale conservee.');
+      }
       throw new Error(`Erreur serveur ${response.status}`);
     }
 
@@ -3723,148 +3779,73 @@ async function deleteVisitFromServer(visitId) {
     return false;
   }
 }
+  // Synchronisation VFG 2026-10 : copie memoire des visites SQLite.
+  // Le navigateur peut refuser localStorage (quota, mode prive, etc.).
+  let vfgServerVisits = [];
+
+  function vfgVisitDate(visit) {
+    const timestamp = Date.parse(visit?.updatedAt || visit?.createdAt || '');
+    return Number.isFinite(timestamp) ? timestamp : 0;
+  }
+
+  function vfgControlCount(visit) {
+    let count = 0;
+    for (const zone of Object.values(visit?.zones || {})) {
+      for (const section of (zone?.sections || [])) {
+        for (const point of (section?.points || [])) {
+          if (point?.status && point.status !== 'pending') count++;
+        }
+      }
+    }
+    return count;
+  }
+
+  function vfgMergeVisits(localVisits, serverVisits) {
+    const merged = new Map();
+    for (const visit of localVisits) {
+      if (visit?.id) merged.set(visit.id, visit);
+    }
+    for (const serverVisit of serverVisits) {
+      if (!serverVisit?.id) continue;
+      const local = merged.get(serverVisit.id);
+      if (!local || vfgControlCount(serverVisit) > vfgControlCount(local) ||
+          vfgVisitDate(serverVisit) >= vfgVisitDate(local)) {
+        merged.set(serverVisit.id, serverVisit);
+      }
+    }
+    return Array.from(merged.values()).sort((a, b) => vfgVisitDate(b) - vfgVisitDate(a));
+  }
+
+  async function vfgFetchServerVisits() {
+    if (!SERVER_BASE_URL) return [];
+    const response = await fetch(`${SERVER_BASE_URL}/api/visits`, { cache: 'no-store' });
+    if (!response.ok) throw new Error(`SQLite HTTP ${response.status}`);
+    const data = await response.json();
+    if (!data?.ok || !Array.isArray(data.visits)) throw new Error('Reponse SQLite invalide');
+    vfgServerVisits = data.visits;
+    return vfgServerVisits;
+  }
+
   function loadRecents() {
     state.recents = loadJson(STORAGE_KEYS.recents, []);
   }
 async function loadVisitsFromServer() {
-    if (!SERVER_BASE_URL) {
-    return [];
-  }
-  try {
-    const response = await fetch(
-     `${SERVER_BASE_URL}/api/visits`,
-      { cache: 'no-store' }
-    );
-
-    if (!response.ok) {
-      throw new Error(`Erreur serveur ${response.status}`);
+    if (!SERVER_BASE_URL) return false;
+    try {
+      const serverVisits = await vfgFetchServerVisits();
+      const localVisits = loadJson(STORAGE_KEYS.visits, []);
+      const mergedVisits = vfgMergeVisits(localVisits, serverVisits);
+      if (!saveJson(STORAGE_KEYS.visits, mergedVisits)) {
+        console.warn('Quota localStorage : les visites serveur restent accessibles en memoire.');
+      }
+      console.log(`${serverVisits.length} visite(s) chargee(s) depuis SQLite`);
+      return true;
+    } catch (error) {
+      console.warn('SQLite indisponible : visites locales conservees.', error);
+      return false;
     }
-
-    const data = await response.json();
-    const serverVisits = Array.isArray(data.visits) ? data.visits : [];
-    const localVisits = loadJson(STORAGE_KEYS.visits, []);
-
-    const mergedById = new Map();
-
-    localVisits.forEach(visit => {
-      if (visit?.id) mergedById.set(visit.id, visit);
-    });
-
-    serverVisits.forEach(serverVisit => {
-      if (!serverVisit?.id) return;
-
-      const localVisit = mergedById.get(serverVisit.id);
-
-      if (!localVisit) {
-        mergedById.set(serverVisit.id, serverVisit);
-        return;
-      }
-
-      const localDate = new Date(
-        localVisit.updatedAt || localVisit.createdAt || 0
-      ).getTime();
-
-      const serverDate = new Date(
-        serverVisit.updatedAt || serverVisit.createdAt || 0
-      ).getTime();
-
-      if (serverDate >= localDate) {
-        mergedById.set(serverVisit.id, serverVisit);
-      }
-    });
-
-    const mergedVisits = Array.from(mergedById.values())
-      .sort((a, b) =>
-        new Date(b.updatedAt || b.createdAt || 0) -
-        new Date(a.updatedAt || a.createdAt || 0)
-      );
-
-    saveJson(STORAGE_KEYS.visits, mergedVisits);
-
-    console.log(
-      `${serverVisits.length} visite(s) chargée(s) depuis SQLite`
-    );
-
-    return true;
-
-  } catch (error) {
-    console.warn(
-      'SQLite indisponible, utilisation des visites locales :',
-      error
-    );
-
-    return false;
   }
-}
-async function loadVisitsFromServer() {
-    if (!SERVER_BASE_URL) {
-    return [];
-  }
-  try {
-  const response = await fetch(
-  `${SERVER_BASE_URL}/api/visits`
-);
 
-    if (!response.ok) {
-      throw new Error(`Erreur serveur ${response.status}`);
-    }
-
-    const data = await response.json();
-    const serverVisits = Array.isArray(data.visits) ? data.visits : [];
-    const localVisits = loadJson(STORAGE_KEYS.visits, []);
-
-    const mergedById = new Map();
-
-    localVisits.forEach(visit => {
-      if (visit?.id) mergedById.set(visit.id, visit);
-    });
-
-    serverVisits.forEach(serverVisit => {
-      if (!serverVisit?.id) return;
-
-      const localVisit = mergedById.get(serverVisit.id);
-
-      if (!localVisit) {
-        mergedById.set(serverVisit.id, serverVisit);
-        return;
-      }
-
-      const localDate = new Date(
-        localVisit.updatedAt || localVisit.createdAt || 0
-      ).getTime();
-
-      const serverDate = new Date(
-        serverVisit.updatedAt || serverVisit.createdAt || 0
-      ).getTime();
-
-      if (serverDate >= localDate) {
-        mergedById.set(serverVisit.id, serverVisit);
-      }
-    });
-
-    const mergedVisits = Array.from(mergedById.values())
-      .sort((a, b) =>
-        new Date(b.updatedAt || b.createdAt || 0) -
-        new Date(a.updatedAt || a.createdAt || 0)
-      );
-
-    saveJson(STORAGE_KEYS.visits, mergedVisits);
-
-    console.log(
-      `${serverVisits.length} visite(s) chargée(s) depuis SQLite`
-    );
-
-    return true;
-
-  } catch (error) {
-    console.warn(
-      'SQLite indisponible, utilisation des visites locales :',
-      error
-    );
-
-    return false;
-  }
-}
   function rememberMachine(machine) {
     const summary = {
       id: machineKey(machine),
@@ -4045,6 +4026,8 @@ async function loadVisitsFromServer() {
       carrierKm: null,
       carrierHours: null,
       upperHours: null,
+      controllerFirstName: '',
+      controllerLastName: '',
       controllerName: '',
       controllerEmail: '',
       controllerPhone: '',
@@ -4369,8 +4352,31 @@ async function loadVisitsFromServer() {
     }
 
     const controllerProfile = loadJson(STORAGE_KEYS.controllerProfile, {});
+
+    if (typeof visit.controllerFirstName !== 'string') {
+      visit.controllerFirstName =
+        controllerProfile.firstName || '';
+      changed = true;
+    }
+
+    if (typeof visit.controllerLastName !== 'string') {
+      visit.controllerLastName =
+        controllerProfile.lastName ||
+        visit.controllerName ||
+        controllerProfile.name ||
+        '';
+      changed = true;
+    }
+
+    if (typeof visit.controllerName !== 'string') {
+      visit.controllerName = [
+        visit.controllerFirstName,
+        visit.controllerLastName
+      ].filter(Boolean).join(' ').trim();
+      changed = true;
+    }
+
     for (const [field, fallback] of [
-      ['controllerName', controllerProfile.name || ''],
       ['controllerEmail', controllerProfile.email || ''],
       ['controllerPhone', controllerProfile.phone || '']
     ]) {
@@ -7265,12 +7271,18 @@ if (saveButton) {
     return true;
   }
 
-  function saveActiveVisit() {
-    if (!state.activeVisit) return;
+function saveActiveVisit() {
+  if (!state.activeVisit) return;
 
-    lockCraneFamilyIfNeeded(state.activeVisit, state.activeMachine);
-    persistVisitRecord(state.activeVisit, { touch: true, sync: true });
+  // Une visite consultée en lecture seule ne doit pas être enregistrée.
+  if (state.visitReadOnly === true) {
+    console.warn('FOSELEV VFG : enregistrement bloqué en lecture seule.');
+    return;
   }
+
+  lockCraneFamilyIfNeeded(state.activeVisit, state.activeMachine);
+  persistVisitRecord(state.activeVisit, { touch: true, sync: true });
+}
 
   function readingValue(input) {
     const raw = String(input.value ?? '').replace(/[\s\u00A0\u202F]/g, '').replace(/[^0-9]/g, '');
@@ -7428,20 +7440,39 @@ if (saveButton) {
     if (!markVisitDraft()) return;
     const visit = state.activeVisit;
     if (!visit) return;
-    visit.controllerName = $('#dashboardControllerName').value.trim();
-    visit.controllerEmail = $('#dashboardControllerEmail').value.trim();
-    visit.controllerPhone = $('#dashboardControllerPhone').value.trim();
+
+    visit.controllerLastName =
+      $('#dashboardControllerLastName').value.trim();
+
+    visit.controllerFirstName =
+      $('#dashboardControllerFirstName').value.trim();
+
+    visit.controllerName = [
+      visit.controllerFirstName,
+      visit.controllerLastName
+    ].filter(Boolean).join(' ').trim();
+
+    visit.controllerEmail =
+      $('#dashboardControllerEmail').value.trim();
+
+    visit.controllerPhone =
+      $('#dashboardControllerPhone').value.trim();
+
     saveJson(STORAGE_KEYS.controllerProfile, {
+      firstName: visit.controllerFirstName,
+      lastName: visit.controllerLastName,
       name: visit.controllerName,
       email: visit.controllerEmail,
       phone: visit.controllerPhone
     });
+
     saveActiveVisit();
   }
 
   function bindControllerSequence() {
     const fields = [
-      $('#dashboardControllerName'),
+      $('#dashboardControllerLastName'),
+      $('#dashboardControllerFirstName'),
       $('#dashboardControllerEmail'),
       $('#dashboardControllerPhone')
     ];
@@ -7758,9 +7789,19 @@ Continuer ?`
     $('#dashboardCarrierKm').value = Number.isFinite(Number(visit.carrierKm)) ? formatReading(visit.carrierKm) : '';
     $('#dashboardCarrierHours').value = Number.isFinite(Number(visit.carrierHours)) ? formatReading(visit.carrierHours) : '';
     $('#dashboardUpperHours').value = Number.isFinite(Number(visit.upperHours)) ? formatReading(visit.upperHours) : '';
-    $('#dashboardControllerName').value = visit.controllerName || '';
-    $('#dashboardControllerEmail').value = visit.controllerEmail || '';
-    $('#dashboardControllerPhone').value = visit.controllerPhone || '';
+    $('#dashboardControllerLastName').value =
+      visit.controllerLastName ||
+      visit.controllerName ||
+      '';
+
+    $('#dashboardControllerFirstName').value =
+      visit.controllerFirstName || '';
+
+    $('#dashboardControllerEmail').value =
+      visit.controllerEmail || '';
+
+    $('#dashboardControllerPhone').value =
+      visit.controllerPhone || '';
     renderProgress('carrier', zoneProgress(visit, 'carrier'));
     renderProgress('upper', zoneProgress(visit, 'upper'));
 
@@ -7834,10 +7875,21 @@ Continuer ?`
     if (!machine) return toast('Aucune machine sélectionnée.');
 
     const profile = loadJson(STORAGE_KEYS.controllerProfile, {});
-    const visit = await createVisitWithScope(machine);
-    if (!visit) return;
+   const visit = await createVisitWithScope(machine);
+if (!visit) return;
 
-    visit.controllerName = profile.name || '';
+// Nouvelle visite : désactiver le mode consultation.
+state.visitReadOnly = false;
+
+visit.controllerFirstName = profile.firstName || '';
+    visit.controllerLastName =
+      profile.lastName ||
+      profile.name ||
+      '';
+    visit.controllerName = [
+      visit.controllerFirstName,
+      visit.controllerLastName
+    ].filter(Boolean).join(' ').trim();
     visit.controllerEmail = profile.email || '';
     visit.controllerPhone = profile.phone || '';
 
@@ -8072,7 +8124,16 @@ async function openMachine(machine) {
   state.activeZone = null;
   state.activeMachine = machine;
 
-  const visits = loadJson(STORAGE_KEYS.visits, []);
+  // Relecture directe de SQLite a chaque ouverture : ne depend pas du stockage Safari.
+  if (SERVER_BASE_URL) {
+    try {
+      await vfgFetchServerVisits();
+    } catch (error) {
+      console.warn('Liste SQLite indisponible, conservation des visites locales.', error);
+      toast('Serveur indisponible : visites locales uniquement.');
+    }
+  }
+  const visits = vfgMergeVisits(loadJson(STORAGE_KEYS.visits, []), vfgServerVisits);
   const machineId = machineKey(machine);
 
   const machineVisits = visits
@@ -8137,8 +8198,12 @@ if (/^D\d+$/.test(normalizedChoice)) {
       visit => visit.id !== visitToDelete.id
     );
 
-    saveJson(STORAGE_KEYS.visits, remainingVisits);
-    deleteVisitFromServer(visitToDelete.id);
+    if (!saveJson(STORAGE_KEYS.visits, remainingVisits)) {
+      toast('Suppression annulee : stockage local indisponible.');
+      return;
+    }
+    await deleteVisitFromServer(visitToDelete.id);
+    vfgServerVisits = vfgServerVisits.filter(item => item.id !== visitToDelete.id);
 
   toast('Visite supprimée.');
 
@@ -8161,10 +8226,13 @@ return;
   toast('Numéro de visite incorrect.');
   return;
 }
-    if (selectedNumber === 0) {
-      state.activeVisit = await createVisitWithScope(machine);
-      if (!state.activeVisit) return;
-      saveActiveVisit();
+if (selectedNumber === 0) {
+  const newVisit = await createVisitWithScope(machine);
+  if (!newVisit) return;
+
+  state.visitReadOnly = false;
+  state.activeVisit = newVisit;
+  saveActiveVisit();
     } else if (
       Number.isInteger(selectedNumber) &&
       selectedNumber >= 1 &&
@@ -8183,12 +8251,27 @@ return;
     if (!state.activeVisit) return;
 
   } else {
-    state.activeVisit = await createVisitWithScope(machine);
-    if (!state.activeVisit) return;
+    const newVisit = await createVisitWithScope(machine);
+    if (!newVisit) return;
+    state.visitReadOnly = false;
+    state.activeVisit = newVisit;
     saveActiveVisit();
   }
 
-  rememberMachine(machine);
+    rememberMachine(machine);
+
+  if (state.visitReadOnly === true) {
+    try {
+      await buildReportPreview({ saveFields: false });
+    } catch (error) {
+      console.error('Consultation du rapport impossible :', error);
+      alert('Impossible de consulter le rapport : ' + (error?.message || String(error)));
+      state.visitReadOnly = false;
+      state.activeVisit = null;
+      showScreen('search');
+    }
+    return;
+  }
 
   if (!state.activeVisit.visitDate) {
     state.activeVisit.visitDate = todayIsoDate();
@@ -8197,7 +8280,6 @@ return;
   renderDashboard();
   showScreen('dashboard');
 }
-
   function reportStatusLabel(status) {
     if (status === 'conform') return 'CONFORME';
     if (status === 'finding') return 'NON CONFORME';
@@ -8207,8 +8289,9 @@ return;
   }
 
   function reportPage(inner, page, total, title = 'Warranty Inspection System') {
+  const pageClass = page === 1 ? 'report-page report-page-cover' : 'report-page';
   return `<article
-    class="report-page"
+    class="${pageClass}"
     id="report-page-${page}"
     data-report-page="${page}"
   >
@@ -8324,121 +8407,84 @@ return;
   ← Retour à l’anomalie dans la synthèse
 </a>`;  }
 
- async function reportCoverPhoto(visit) {
-  if (!visit) return '';
+ async function reportCoverAssets(visit) {
+  if (!visit) return { overviewUrl: '', plateUrls: [] };
 
   const family = machineFamily(state.activeMachine, visit);
-
-  // Photos obligatoires du portail :
-  // documentation-001 = plaque(s) constructeur
-  // documentation-006 = vue d'ensemble
   const plateIds = linkedPhotoIdsForPoint('documentation-001', visit);
   const overviewIds = linkedPhotoIdsForPoint('documentation-006', visit);
+  const usedPhotoIds = new Set();
 
-  const figures = [];
-const usedPhotoIds = new Set();
+  async function firstDataUrl(ids) {
+    for (const id of ids || []) {
+      if (!id || usedPhotoIds.has(id)) continue;
+      try {
+        const stored = await photoDbGet(id);
+        if (!stored?.blob) continue;
+        const url = await blobToDataUrl(stored.blob);
+        usedPhotoIds.add(id);
+        return url;
+      } catch (error) {
+        console.warn('Photo rapport indisponible :', id, error);
+      }
+    }
+    return '';
+  }
 
-async function addFirstAvailablePhoto(ids, label) {
-  for (const id of ids) {
-    if (!id || usedPhotoIds.has(id)) continue;
+  let overviewUrl = await firstDataUrl(overviewIds);
+  const plateUrls = [];
+  const firstPlate = await firstDataUrl(plateIds);
+  if (firstPlate) plateUrls.push(firstPlate);
 
-    try {
-      const stored = await photoDbGet(id);
+  if (family === 'CN') {
+    const secondPlate = await firstDataUrl(plateIds);
+    if (secondPlate) plateUrls.push(secondPlate);
+  }
 
-      if (!stored?.blob) continue;
-
-      const url = await blobToDataUrl(stored.blob);
-
-      figures.push(`
-        <figure class="report-cover-photo">
-          <img src="${url}" alt="${escapeHtml(label)}">
-          <figcaption>${escapeHtml(label)}</figcaption>
-        </figure>
-      `);
-
-      usedPhotoIds.add(id);
-      return true;
-
-    } catch (error) {
-      console.warn('Photo indisponible :', id, error);
+  // Fallback: preserve a useful cover even for older visits where the
+  // two general photos were not linked through the new general menu.
+  if (!overviewUrl) {
+    const candidates = (visit.findings || []).flatMap(finding =>
+      (finding.photos || [])
+        .filter(photo => photo.includeInReport)
+        .map(photo => ({ ...photo, finding }))
+    );
+    const selected = candidates.find(photo => photo.isMain) || candidates[0];
+    if (selected) {
+      try {
+        const stored = await photoDbGet(selected.id);
+        if (stored?.blob) overviewUrl = await blobToDataUrl(stored.blob);
+      } catch (error) {
+        console.warn('Photo de couverture indisponible', error);
+      }
     }
   }
 
-  return false;
+  return { overviewUrl, plateUrls };
 }
 
-await addFirstAvailablePhoto(
-  overviewIds,
-  'Vue d’ensemble'
-);
-
-if (family === 'CN') {
-  const firstPlateAdded = await addFirstAvailablePhoto(
-    plateIds,
-    'Plaque constructeur châssis'
-  );
-
-  if (firstPlateAdded) {
-    await addFirstAvailablePhoto(
-      plateIds.filter(id => !usedPhotoIds.has(id)),
-      'Plaque constructeur nacelle'
-    );
-  }
-} else {
-  await addFirstAvailablePhoto(
-    plateIds,
-    'Plaque constructeur'
-  );
+function reportMachineFamilyLabel(family) {
+  if (family === 'MK') return 'GRUE MOBILE MK';
+  if (family === 'CB') return 'CAMION BRAS';
+  if (family === 'CN') return 'CAMION NACELLE';
+  return 'GRUE MOBILE';
 }
-  if (figures.length) {
-    return `
-      <div class="report-cover-photos">
-        ${figures.join('')}
-      </div>
-    `;
-  }
 
-  // Secours : ancien comportement si aucune photo obligatoire n'est disponible.
-  const candidates = (visit.findings || []).flatMap(finding =>
-    (finding.photos || [])
-      .filter(photo => photo.includeInReport)
-      .map(photo => ({ ...photo, finding }))
-  );
-
-  const selected =
-    candidates.find(photo => photo.isMain) ||
-    candidates[0];
-
-  if (!selected) return '';
-
-  try {
-    const stored = await photoDbGet(selected.id);
-    if (!stored?.blob) return '';
-
-    const url = await blobToDataUrl(stored.blob);
-
-    return `
-      <figure class="report-cover-photo">
-        <img src="${url}" alt="Machine contrôlée">
-        <figcaption>Machine contrôlée</figcaption>
-      </figure>
-    `;
-  } catch (error) {
-    console.warn('Photo de couverture indisponible', error);
-    return '';
-  }
-}
 
   async function buildReportPreview({ saveFields = true } = {}) {
-    const visit = state.activeVisit;
+    // La consultation travaille uniquement sur une copie indépendante.
+    const visit = state.visitReadOnly === true && state.activeVisit
+      ? structuredClone(state.activeVisit)
+      : state.activeVisit;
     if (!visit || !state.activeMachine) return toast('Aucune visite active.');
-    if (saveFields) {
+   if (saveFields && state.visitReadOnly !== true) {
   saveMachineIdentityDetails();
   saveDashboardReadings();
   saveControllerDetails();
 }
     const machine = effectiveMachineForVisit(state.activeMachine, visit);
 
+// En lecture seule, visit est déjà une copie indépendante.
 ensureTyreData(visit, machine);
 
     const hideNa = reportHideNa(visit);
@@ -8474,40 +8520,136 @@ ensureTyreData(visit, machine);
       ...carrierSections.map((section, index) => ({ section, zone: 'carrier', zoneTitle: 'Porteur', number: `02.${index + 1}` })),
       ...upperSections.map((section, index) => ({ section, zone: 'upper', zoneTitle: 'Tourelle', number: `03.${index + 1}` }))
     ];
-    const sectionPageByKey = new Map(
-      sectionPages.map((item, index) => [`${item.zone}:${item.section.id}`, 3 + index])
-    );
+    // VFG 03 : regrouper les rubriques courtes sans couper leurs tableaux.
+    // Budget volontairement prudent pour une page A4 avec en-tête/pied.
+    const groupedControlPages = [];
+    let currentGroup = [];
+    let usedHeight = 0;
+    const PAGE_BUDGET = 710; // px utiles, marge de sécurité incluse
+    for (const item of sectionPages) {
+      const points = (item.section.points || []).filter(point =>
+        !reportHideNa(visit) || point.status !== 'na'
+      );
+      const commentChars = points.reduce((sum, point) => {
+        const finding = point.findingId
+          ? (visit.findings || []).find(f => f.id === point.findingId)
+          : null;
+        return sum + String(finding?.comment || '').length;
+      }, 0);
+      const isTyres = item.section.id === 'tyres';
+      const estimate = isTyres ? 650 : 92 + points.length * 27 + Math.ceil(commentChars / 85) * 15;
+      if (currentGroup.length && (usedHeight + estimate > PAGE_BUDGET || isTyres)) {
+        groupedControlPages.push(currentGroup);
+        currentGroup = [];
+        usedHeight = 0;
+      }
+      currentGroup.push(item);
+      usedHeight += estimate + 14;
+      if (isTyres || estimate >= PAGE_BUDGET) {
+        groupedControlPages.push(currentGroup);
+        currentGroup = [];
+        usedHeight = 0;
+      }
+    }
+    if (currentGroup.length) groupedControlPages.push(currentGroup);
+    const sectionPageByKey = new Map();
+    groupedControlPages.forEach((group, index) => group.forEach(item =>
+      sectionPageByKey.set(`${item.zone}:${item.section.id}`, 3 + index)
+    ));
     const finalPageCount = 1;
-    const totalPages = 2 + sectionPages.length + findings.length + finalPageCount;
-    const firstFindingPage = 3 + sectionPages.length;
+    const totalPages = 2 + groupedControlPages.length + findings.length + finalPageCount;
+    const firstFindingPage = 3 + groupedControlPages.length;
 
-    const coverPhoto = await reportCoverPhoto(visit);
+    const coverAssets = await reportCoverAssets(visit);
 
     const controlVisit = visitType(visit) === 'control';
+    const family = machineFamily(state.activeMachine, visit);
+    const visitTypeLabel = controlVisit ? 'VISITE DE CONTRÔLE' : 'FIN DE GARANTIE';
+    const reportTypeSubtitle = controlVisit ? 'CONTRÔLE CIBLÉ' : 'FIN DE GARANTIE';
+    const agencyDirectory = agencyRecipientForMachine(machine) || {};
+    const agencyContactBook = vfgContactDataForMachine(machine).agency || {};
+    const agencyEmail = String(
+      visit.reportRecipient?.email ||
+      visit.agencyEmail ||
+      agencyDirectory.email ||
+      agencyContactBook.agencyEmail ||
+      ''
+    ).trim();
+    const agencyPhone = String(
+      visit.agencyPhone ||
+      agencyDirectory.phone ||
+      ''
+    ).trim();
+    const agencyAddress = [
+      String(agencyDirectory.address || '').trim(),
+      [agencyDirectory.postalCode, agencyDirectory.city].filter(Boolean).join(' ').trim(),
+      String(agencyDirectory.country || '').trim()
+    ].filter(Boolean).join(' · ');
+    const controllerDisplayName = String(
+      visit.controllerName ||
+      [visit.controllerFirstName, visit.controllerLastName].filter(Boolean).join(' ') ||
+      ''
+    ).trim();
+    // Relevés saisis pour cette visite ; une valeur absente reste affichée « — ».
+    const coverReading = (value, unit) =>
+      value === null || value === undefined || value === ''
+        ? '—'
+        : `${formatReading(value)} ${unit}`;
+    const constructionYear = machine.constructionYear || machine.year || '—';
+    const maxCapacity = machine.maxCapacity || machine.capacity || '—';
+    const overviewFigure = coverAssets.overviewUrl
+      ? `<figure class="report-cover-main-photo"><img src="${coverAssets.overviewUrl}" alt="Vue d’ensemble"><figcaption>Photo de la machine · Vue d’ensemble</figcaption></figure>`
+      : '<div class="report-cover-main-photo report-cover-photo-empty">Vue d’ensemble non disponible</div>';
+    const plateFigure = coverAssets.plateUrls?.length
+      ? `<div class="report-cover-plate-stack">${coverAssets.plateUrls.map((url, index) => `<figure class="report-cover-plate-photo"><img src="${url}" alt="Plaque constructeur ${index + 1}"><figcaption>${coverAssets.plateUrls.length > 1 ? `Plaque constructeur ${index + 1}` : 'Plaque constructeur'}</figcaption></figure>`).join('')}</div>`
+      : '<div class="report-cover-plate-photo report-cover-photo-empty">Plaque constructeur non disponible</div>';
+
     const cover = `
-      <div class="report-cover-accent"></div>
-      <p class="report-kicker">FOSELEV VFG</p>
-      <p class="report-cover-system">${controlVisit ? 'Inspection System' : 'Warranty Inspection System'}</p>
-      <h2 class="report-cover-title">${controlVisit ? 'Rapport de visite de contrôle' : 'Rapport de visite de fin de garantie'}</h2>
-      ${coverPhoto}
-      <div class="report-machine-title">${escapeHtml(machine.parkNumber || machine.id || '—')}</div>
-      <div class="report-machine-subtitle">${escapeHtml([machine.brand, machine.model || machine.designation].filter(Boolean).join(' · ') || 'Machine')}</div>
-      <div class="report-cover-grid">
-        <div><span>N° de série</span><strong>${escapeHtml(machine.serialNumber || '—')}</strong></div>
-        <div><span>Agence</span><strong>${escapeHtml(machine.agency || '—')}</strong></div>
-        <div><span>Date de la visite</span><strong>${escapeHtml(formatVisitDate(visit.visitDate))}</strong></div>
-        <div><span>Kilométrage porteur</span><strong>${escapeHtml(formatMeter(visit.carrierKm, 'km'))}</strong></div>
-        <div><span>Heures porteur</span><strong>${escapeHtml(formatMeter(visit.carrierHours, 'h'))}</strong></div>
-        <div><span>Heures tourelle</span><strong>${escapeHtml(formatMeter(visit.upperHours, 'h'))}</strong></div>
-        <div><span>Contrôleur</span><strong>${escapeHtml(visit.controllerName || '—')}</strong></div>
-        <div><span>E-mail</span><strong>${escapeHtml(visit.controllerEmail || '—')}</strong></div>
-        <div><span>Téléphone</span><strong>${escapeHtml(visit.controllerPhone || '—')}</strong></div>
-      </div>
-      <div class="report-cover-summary">
-        <div><strong>${controlledPoints}</strong><span>points contrôlés</span></div>
-        <div><strong>${conformPoints}</strong><span>conformes</span></div>
-        <div><strong>${findings.length + tyreHs.length}</strong><span>non-conformités</span></div>
-        <div><strong>${tyreWatch.length}</strong><span>à surveiller</span></div>
+      <!-- V8A352_COVER_HISTORICAL_ALIGNED -->
+      <div class="report-cover-legacy">
+        <div class="report-cover-legacy-top">
+          <div class="report-cover-legacy-wordmark"><strong>FOSELEV</strong><span>LIFTING &amp; HANDLING SOLUTION</span></div>
+          <div class="report-cover-legacy-title"><strong>RAPPORT DE VISITE</strong><span>${reportTypeSubtitle}</span></div>
+          <div class="report-cover-legacy-badge"><b>✓</b><span>FOSELEV VFG</span></div>
+        </div>
+
+        <div class="report-cover-legacy-machine">
+          <div class="report-cover-family"><span class="report-cover-family-icon" aria-hidden="true"><svg viewBox="0 0 88 36" role="img"><path d="M5 29h47v4H5zM17 23h29v4H17zM31 7h5v17h-5zM34 7h26v4H34zM58 8l14 17h-5L55 11zM70 24h11v4H70zM14 29a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm31 0a4 4 0 1 0 0 8 4 4 0 0 0 0-8z" fill="currentColor"/></svg></span><b>${escapeHtml(family)}</b><span>${escapeHtml(reportMachineFamilyLabel(family))}</span></div>
+          <div class="report-cover-park"><span>N° DE PARC</span><strong>${escapeHtml(machine.parkNumber || machine.id || '—')}</strong></div>
+          <div class="report-cover-agency-head"><span>AGENCE</span><strong>${escapeHtml(machine.agency || '—')}</strong><small><b>DATE DE VISITE</b>${escapeHtml(formatVisitDate(visit.visitDate))}</small></div>
+        </div>
+
+        ${overviewFigure}
+
+        <div class="report-cover-legacy-detail">
+          <section class="report-cover-plate-block">
+            <h3>PLAQUE CONSTRUCTEUR</h3>
+            ${plateFigure}
+          </section>
+          <section class="report-cover-spec-block">
+            <div><span>Marque</span><strong>${escapeHtml(machine.brand || '—')}</strong></div>
+            <div><span>Type</span><strong>${escapeHtml(machine.model || machine.designation || '—')}</strong></div>
+            <div><span>N° série</span><strong>${escapeHtml(machine.serialNumber || '—')}</strong></div>
+            <div><span>Année de construction</span><strong>${escapeHtml(String(constructionYear))}</strong></div>
+            <div><span>Capacité max.</span><strong>${escapeHtml(String(maxCapacity))}</strong></div>
+            <div><span>Kilométrage porteur</span><strong>${escapeHtml(coverReading(visit.carrierKm, 'km'))}</strong></div>
+            <div><span>Heures porteur</span><strong>${escapeHtml(coverReading(visit.carrierHours, 'h'))}</strong></div>
+            <div><span>Heures tourelle</span><strong>${escapeHtml(coverReading(visit.upperHours, 'h'))}</strong></div>
+          </section>
+        </div>
+
+        <div class="report-cover-legacy-contacts">
+          <section class="report-cover-agency-contact"><span>Agence</span><strong>${escapeHtml(machine.agency || '—')}</strong>${agencyAddress ? `<small class="report-cover-address">▦ ${escapeHtml(agencyAddress)}</small>` : ''}<small>☎ ${escapeHtml(agencyPhone || '—')}</small><small>✉ ${escapeHtml(agencyEmail || '—')}</small></section>
+          <section><span>Technicien contrôleur</span><strong>${escapeHtml(controllerDisplayName || '—')}</strong><small>☎ ${escapeHtml(visit.controllerPhone || '—')}</small><small>✉ ${escapeHtml(visit.controllerEmail || '—')}</small></section>
+          <section class="report-cover-visit-type"><span>Type de visite</span><strong>${escapeHtml(visitTypeLabel)}</strong><small>${controlledPoints} point${controlledPoints > 1 ? 's' : ''} contrôlé${controlledPoints > 1 ? 's' : ''}</small></section>
+        </div>
+
+        <div class="report-cover-legacy-values">
+          <span>◇ SÉCURITÉ <b>NOTRE PRIORITÉ</b></span>
+          <span>✓ QUALITÉ <b>NOTRE ENGAGEMENT</b></span>
+          <span>●●● PROXIMITÉ <b>NOTRE FORCE</b></span>
+        </div>
+        <div class="report-cover-legacy-bottom"><span>FOSELEV — EXPERT EN LEVAGE ET MANUTENTION</span><span>Page 1 / ${totalPages}</span></div>
       </div>`;
 
     const summaryItems = [];
@@ -8567,7 +8709,9 @@ ensureTyreData(visit, machine);
       ${categoryBlock('observation', 'Observations')}`;
 
     const innerPages = [cover, summary];
-    sectionPages.forEach(item => innerPages.push(reportControlPage(item.section, item.zoneTitle, item.number, visit)));
+    groupedControlPages.forEach(group => innerPages.push(
+      group.map(item => `<div class="report-compact-chapter">${reportControlPage(item.section, item.zoneTitle, item.number, visit)}</div>`).join('')
+    ));
     for (let index = 0; index < findings.length; index += 1) innerPages.push(await reportFindingPage(findings[index], index, firstFindingPage + index));
     innerPages.push(`${reportSectionHeading('04', 'Observations et signatures')}
       <section class="report-general-observations"><h3>Observations générales</h3><div class="report-writing-lines"></div></section>
@@ -8586,7 +8730,41 @@ ensureTyreData(visit, machine);
   }
 
   async function printReport() {
-    if (!$('#reportPreview').children.length) await buildReportPreview();
+    if (!$('#reportPreview').children.length) {
+      await buildReportPreview({ saveFields: false });
+    }
+
+    const visit = state.activeVisit;
+    const machine = state.activeMachine || visit?.machineSnapshot || {};
+    const machineId = String(
+      visit?.machineId || machine?.parkNumber || machine?.id || 'MACHINE'
+    ).replace(/[^a-zA-Z0-9_-]/g, '') || 'MACHINE';
+    const visitDate = String(
+      visit?.visitDate || new Date().toISOString().slice(0, 10)
+    ).slice(0, 10);
+
+    const previousTitle = document.title;
+    document.title = `FOSELEV_VFG_${machineId}_${visitDate}`;
+
+    const restoreTitle = () => {
+      document.title = previousTitle;
+      window.removeEventListener('afterprint', restoreTitle);
+    };
+
+    window.addEventListener('afterprint', restoreTitle);
+
+    // Filet de sécurité pour les navigateurs mobiles qui ne déclenchent
+    // pas toujours afterprint après fermeture de la feuille système.
+    setTimeout(() => {
+      if (document.title !== previousTitle) {
+        document.title = previousTitle;
+      }
+    }, 60000);
+
+    if (IS_PUBLIC_PILOT) {
+      toast('PDF : utilise l’impression système puis Enregistrer / Partager.');
+    }
+
     requestAnimationFrame(() => window.print());
   }
 
@@ -9926,9 +10104,27 @@ $('#editVisitScope')?.addEventListener('click', modifyActiveVisitScope);
       }
     });
     $('#previewReport').addEventListener('click', buildReportPreview);
-    $('#closeReport').addEventListener('click', () => { renderDashboard(); showScreen('dashboard'); });
+    $('#closeReport').addEventListener('click', () => {
+      if (state.visitReadOnly === true) {
+        state.visitReadOnly = false;
+        state.activeVisit = null;
+        showScreen('search');
+        return;
+      }
+      renderDashboard();
+      showScreen('dashboard');
+    });
     $('#printReport').addEventListener('click', printReport);
-    $('#finishVisit').addEventListener('click', finishActiveVisit);
+$('#finishVisit').addEventListener('click', async () => {
+  
+
+  try {
+    await finishActiveVisit();
+  } catch (error) {
+    console.error('Erreur clôture visite :', error);
+    alert('ERREUR : ' + (error?.message || String(error)));
+  }
+});
 
 
     $('#axleCountSelector').addEventListener('click', event => {
