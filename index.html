@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="fr">
+<!-- V8A353_FINITION_VISUELLE_COUVERTURE -->
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -8,7 +9,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <title>FOSELEV VFG - Warranty Inspection System</title>
   <link rel="manifest" href="manifest.webmanifest">
-  <link rel="stylesheet" href="style.css?v=V8A34-IDENTITE-MANUELLE">
+  <link rel="stylesheet" href="style.css?v=V8A353-FINITION-VISUELLE">
 </head>
 <body>
   <header class="app-header">
@@ -93,8 +94,11 @@
       </div>
 
       <div class="controller-inline" aria-label="Coordonnées du contrôleur">
-        <label>Contrôleur
-          <input id="dashboardControllerName" type="text" autocomplete="name" enterkeyhint="next" placeholder="Nom et prénom">
+        <label>Nom
+          <input id="dashboardControllerLastName" type="text" autocomplete="family-name" enterkeyhint="next" placeholder="Nom">
+        </label>
+        <label>Prénom
+          <input id="dashboardControllerFirstName" type="text" autocomplete="given-name" enterkeyhint="next" placeholder="Prénom">
         </label>
         <label>Adresse e-mail
           <input id="dashboardControllerEmail" type="email" autocomplete="email" enterkeyhint="next" placeholder="prenom.nom@foselev.com">
@@ -290,12 +294,13 @@
     <section id="reportScreen" class="screen report-screen" aria-labelledby="reportScreenTitle">
       <div class="report-toolbar no-print">
         <div>
-          <p class="eyebrow">RAPPORT PDF · V4.0.0</p>
+          <p class="eyebrow">RAPPORT PDF · V8A 3.5</p>
           <h1 id="reportScreenTitle">Aperçu du rapport</h1>
+          <p class="report-native-pdf-help">PC/Mac : choisir « Enregistrer au format PDF ». iPhone/Android : utiliser l’impression puis enregistrer ou partager le PDF.</p>
         </div>
         <div class="report-toolbar-actions">
           <button id="closeReport" class="secondary-action" type="button">Retour</button>
-          <button id="printReport" class="primary-action" type="button">Imprimer / Enregistrer en PDF</button>
+          <button id="printReport" class="primary-action" type="button">Générer / enregistrer le PDF</button>
         </div>
       </div>
       <div id="reportPreview" class="report-preview" aria-live="polite"></div>
@@ -438,9 +443,10 @@
   </div>
 
   <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
-  <script src="parc.js"></script>
+  <script src="parc.js?v=PUBLIC-20261029-REFERENTIEL-COMPLET"></script>
+  <script src="agences.js?v=20260929"></script>
   <script src="./lib/html2pdf.bundle.min.js"></script>
-  <script src="contacts-agences.js?v=20260903"></script>
-<script src="app-v4.0.js?v=V8A35-CONSULTATION-LECTURE-SEULE"></script>
+  <script src="contacts-agences.js?v=20260929"></script>
+<script src="app-v4.0.js?v=PUBLIC-20261029-REFERENTIEL-COMPLET"></script>
 </body>
 </html>

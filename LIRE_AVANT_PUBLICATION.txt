@@ -1,0 +1,13 @@
+FOSELEV VFG - Version publique
+
+Contenu: fichiers statiques a deposer a la racine du depot GitHub Pages, en conservant le sous-dossier lib/.
+
+Ne pas envoyer le dossier server/, les bases de donnees ni les fichiers prives.
+
+Les donnees des visites restent dans le navigateur de chaque utilisateur (localStorage et IndexedDB). Ne pas vider le stockage du navigateur.
+
+Le PDF public utilise l impression systeme : choisir Enregistrer au format PDF.
+
+La mise en ligne doit etre testee sur GitHub Pages avant validation fonctionnelle finale.
+
+Le ZIP est une archive de preparation, ne pas televerser le ZIP lui-meme dans le depot.
